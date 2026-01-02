@@ -1,7 +1,8 @@
 {
   "expo": {
-    "name": "example",
-    "slug": "example",
+    "name": "Header Motion Example",
+    "slug": "headermotion-example",
+    "scheme": "headermotion-example",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -25,7 +26,11 @@
       "package": "headermotion.example"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
-    }
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router"
+    ]
   }
 }

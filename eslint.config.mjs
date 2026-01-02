@@ -24,6 +24,12 @@ export default defineConfig([
     },
   },
   {
-    ignores: ['node_modules/', 'lib/'],
+    files: ['example/**/*.{js,jsx,ts,tsx}'],
+    rules: {
+      'react/no-unstable-nested-components': 'off',
+    },
+  },
+  {
+    ignores: ['node_modules/', 'lib/', 'eslint.config.mjs'],
   },
 ]);
