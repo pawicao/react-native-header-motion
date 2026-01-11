@@ -9,6 +9,7 @@ import {
   type SharedValue,
 } from 'react-native-reanimated';
 import { HeaderMotionContext } from '../context';
+import type { ReactNode } from 'react';
 import type {
   MeasureAnimatedHeader,
   MeasureAnimatedHeaderAndSet,
@@ -28,7 +29,7 @@ export interface HeaderMotionProps<T extends string> {
   measureDynamicMode?: 'update' | 'mount';
   activeScrollId?: SharedValue<T>;
   progressExtrapolation?: ExtrapolationType;
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 function HeaderMotionContextProvider<T extends string>({

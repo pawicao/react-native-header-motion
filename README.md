@@ -1,17 +1,14 @@
 # react-native-header-motion
 
-TODO
+Smooth, animated collapsible headers with scroll-based motion control in React Native
 
 ## Installation
-
 
 ```sh
 npm install react-native-header-motion
 ```
 
-
 ## Usage
-
 
 ```js
 import { multiply } from 'react-native-header-motion';
@@ -20,7 +17,6 @@ import { multiply } from 'react-native-header-motion';
 
 const result = await multiply(3, 7);
 ```
-
 
 ## Contributing
 

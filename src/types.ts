@@ -48,7 +48,6 @@ export interface ScrollManagerHeaderContext {
 }
 
 export interface ScrollManagerConfig {
-  // todo: check flatlist compatibility
   scrollableProps: Required<
     Pick<ScrollViewProps, 'onScroll' | 'scrollEventThrottle'>
   > & {

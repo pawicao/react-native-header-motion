@@ -1,7 +1,7 @@
 {
   "name": "react-native-header-motion",
   "version": "0.1.0",
-  "description": "TODO",
+  "description": "Smooth, animated collapsible headers with scroll-based motion control in React Native",
   "main": "./lib/module/index.js",
   "types": "./lib/typescript/src/index.d.ts",
   "exports": {

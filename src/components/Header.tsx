@@ -1,7 +1,8 @@
 import { useMotionProgress } from '../hooks/useMotionProgress';
 import type { MotionProgress } from '../types';
+import type { ReactNode } from 'react';
 
-type HeaderRenderChildren = (props: MotionProgress) => React.ReactNode;
+type HeaderRenderChildren = (props: MotionProgress) => ReactNode;
 
 export interface HeaderMotionHeaderProps {
   children: HeaderRenderChildren;

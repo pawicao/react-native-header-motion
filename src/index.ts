@@ -12,9 +12,10 @@ import {
   type HeaderMotionScrollManagerProps,
   type HeaderMotionScrollViewProps,
 } from './components';
+import type { ReactElement } from 'react';
 
 type HeaderMotionComponent = {
-  <T extends string>(props: HeaderMotionProps<T>): React.ReactElement;
+  <T extends string>(props: HeaderMotionProps<T>): ReactElement;
   Header: typeof HeaderMotionHeader;
   ScrollManager: typeof HeaderMotionScrollManager;
   ScrollView: typeof HeaderMotionScrollView;
