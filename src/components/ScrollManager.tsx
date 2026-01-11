@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 
 type ScrollManagerRenderChildren = (
   scrollableProps: ScrollManagerConfig['scrollableProps'],
-  options: ScrollManagerConfig['headerContext']
+  options: ScrollManagerConfig['headerMotionContext']
 ) => ReactNode;
 
 export interface HeaderMotionScrollManagerProps {
@@ -22,9 +22,9 @@ export function HeaderMotionScrollManager({
     );
   }
 
-  const { scrollableProps, headerContext } = useScrollManager(scrollId);
+  const { scrollableProps, headerMotionContext } = useScrollManager(scrollId);
 
-  return children(scrollableProps, headerContext);
+  return children(scrollableProps, headerMotionContext);
 }
 
 // TODO: Description of props and arguments in all the exported functions

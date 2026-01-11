@@ -1,12 +1,14 @@
 import { useContext, useCallback, useEffect } from 'react';
 import {
+  measure,
   scrollTo,
   useAnimatedReaction,
   useAnimatedRef,
   useAnimatedScrollHandler,
+  useAnimatedStyle,
   type ScrollHandler,
 } from 'react-native-reanimated';
-import { scheduleOnUI } from 'react-native-worklets';
+import { RuntimeKind, scheduleOnUI } from 'react-native-worklets';
 import { HeaderMotionContext } from '../context';
 import type { ScrollManagerConfig, ScrollValues } from '../types';
 import { DEFAULT_SCROLL_ID, getInitialScrollValue } from '../utils';
@@ -28,7 +30,7 @@ export function useScrollManager(scrollId?: string): ScrollManagerConfig {
   } = ctxValue;
   const id = scrollId ?? DEFAULT_SCROLL_ID;
 
-  const animatedRef = useAnimatedRef<any>();
+  const animatedRef = useAnimatedRef<any>(); // TODO: better typing
 
   useEffect(() => {
     return () => {
@@ -120,14 +122,31 @@ export function useScrollManager(scrollId?: string): ScrollManagerConfig {
 
   const onScroll = useAnimatedScrollHandler(scrollHandler);
 
+  const minHeightContentContainerStyle = useAnimatedStyle(() => {
+    if (globalThis.__RUNTIME_KIND === RuntimeKind.ReactNative) {
+      return {};
+    }
+
+    const measurement = measure(animatedRef);
+
+    if (!measurement) {
+      return {};
+    }
+
+    return {
+      minHeight: measurement.height + progressThreshold,
+    };
+  });
+
   const scrollableProps = {
     onScroll,
     scrollEventThrottle: 16,
     ref: animatedRef,
   };
-  const headerContext = {
+  const headerMotionContext = {
     originalHeaderHeight,
+    minHeightContentContainerStyle,
   };
 
-  return { scrollableProps, headerContext };
+  return { scrollableProps, headerMotionContext };
 }

@@ -43,15 +43,20 @@ export interface MotionProgress {
   measureDynamic: MeasureAnimatedHeaderAndSet;
 }
 
-export interface ScrollManagerHeaderContext {
+export interface ScrollManagerHeaderMotionContext {
   originalHeaderHeight: number;
+  minHeightContentContainerStyle:
+    | {}
+    | {
+        minHeight: number;
+      };
 }
 
 export interface ScrollManagerConfig {
   scrollableProps: Required<
     Pick<ScrollViewProps, 'onScroll' | 'scrollEventThrottle'>
   > & {
-    ref: AnimatedRef<any>;
+    ref: AnimatedRef<any>; // TODO: better typing
   };
-  headerContext: ScrollManagerHeaderContext;
+  headerMotionContext: ScrollManagerHeaderMotionContext;
 }

@@ -9,20 +9,31 @@ export type HeaderMotionScrollViewProps = AnimatedScrollViewProps & {
 
 export function HeaderMotionScrollView({
   scrollId,
+  children,
+  contentContainerStyle,
   ...props
 }: HeaderMotionScrollViewProps) {
   return (
     <HeaderMotionScrollManager scrollId={scrollId}>
-      {({ onScroll, ...scrollViewProps }, { originalHeaderHeight }) => (
+      {(
+        { onScroll, ...scrollViewProps },
+        { originalHeaderHeight, minHeightContentContainerStyle }
+      ) => (
         <Animated.ScrollView
           {...scrollViewProps}
           {...props}
           onScroll={onScroll}
-          contentContainerStyle={[
-            { paddingTop: originalHeaderHeight },
-            props.contentContainerStyle,
-          ]}
-        />
+        >
+          <Animated.View
+            style={[
+              minHeightContentContainerStyle,
+              { paddingTop: originalHeaderHeight },
+              contentContainerStyle,
+            ]}
+          >
+            {children}
+          </Animated.View>
+        </Animated.ScrollView>
       )}
     </HeaderMotionScrollManager>
   );
