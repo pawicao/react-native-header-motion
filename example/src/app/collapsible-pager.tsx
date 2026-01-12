@@ -97,7 +97,7 @@ export default function Screen() {
 
 function CollapsibleHeader({
   progress,
-  measureTotal,
+  measureTotalHeight,
   measureDynamic,
   progressThreshold,
   activeTab,
@@ -155,7 +155,7 @@ function CollapsibleHeader({
 
   return (
     <AnimatedHeaderBase
-      onLayout={measureTotal}
+      onLayout={measureTotalHeight}
       style={[styles.headerWrapper, { paddingTop: insets.top }, containerStyle]}
     >
       <Animated.View style={[titleStyle]}>

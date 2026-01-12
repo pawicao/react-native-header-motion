@@ -39,7 +39,7 @@ export type WithCollapsiblePagedHeaderProps<
 export interface MotionProgress {
   progress: Progress;
   progressThreshold: number;
-  measureTotal: MeasureAnimatedHeaderAndSet;
+  measureTotalHeight: MeasureAnimatedHeaderAndSet;
   measureDynamic: MeasureAnimatedHeaderAndSet;
 }
 

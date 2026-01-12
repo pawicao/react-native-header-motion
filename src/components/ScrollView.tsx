@@ -4,9 +4,27 @@ import Animated, {
 import { HeaderMotionScrollManager } from './ScrollManager';
 
 export type HeaderMotionScrollViewProps = AnimatedScrollViewProps & {
+  /**
+   * Optional unique identifier for this scroll view.
+   * Use this when you have multiple scroll views (e.g. in tabs) to track them separately.
+   */
   scrollId?: string;
 };
 
+/**
+ * Animated ScrollView component that integrates with HeaderMotion.
+ * Automatically handles scroll tracking and header animation synchronization.
+ * Must be used within a HeaderMotion component.
+ *
+ * @example
+ * ```tsx
+ * <HeaderMotion>
+ *   <HeaderMotion.ScrollView>
+ *     <MyScrollableContent />
+ *   </HeaderMotion.ScrollView>
+ * </HeaderMotion>
+ * ```
+ */
 export function HeaderMotionScrollView({
   scrollId,
   children,

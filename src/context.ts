@@ -8,7 +8,7 @@ import type {
 
 interface HeaderMotionContextType {
   progress: Progress;
-  measureTotal: MeasureAnimatedHeaderAndSet;
+  measureTotalHeight: MeasureAnimatedHeaderAndSet;
   measureDynamic: MeasureAnimatedHeaderAndSet;
   scrollValues: SharedValue<ScrollValues>;
   activeScrollId: SharedValue<string> | undefined;

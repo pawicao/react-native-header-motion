@@ -13,6 +13,40 @@ import { HeaderMotionContext } from '../context';
 import type { ScrollManagerConfig, ScrollValues } from '../types';
 import { DEFAULT_SCROLL_ID, getInitialScrollValue } from '../utils';
 
+/**
+ * Hook that manages scroll tracking and synchronization for header animations.
+ * Returns props to apply to scrollable components and additional values that help with adjusting styling of the scrollables to header's dimensions.
+ *
+ * This hook handles:
+ * - Scroll position tracking
+ * - Synchronization between multiple scroll views (when using multiple scroll IDs)
+ * - Content container minimum height calculations for cases where one of the tracked scrollables does not take enough space to reach the progress threshold/
+ *
+ * Must be used within a HeaderMotion component.
+ *
+ * @param scrollId - Optional unique identifier for the related scrollable.
+ *                   Use when you have multiple scrollables (e.g., in tabs).
+ * @returns Configuration object containing:
+ * - `scrollableProps`: Props to apply to scrollable component (onScroll, scrollEventThrottle, ref)
+ * - `headerMotionContext`: Header context values (originalHeaderHeight, minHeightContentContainerStyle)
+ *
+ * @throws Error if used outside of a HeaderMotion component
+ *
+ * @example
+ * ```tsx
+ * function CustomScrollComponent() {
+ *   const { scrollableProps, headerMotionContext } = useScrollManager('myScroll');
+ *
+ *   return (
+ *     <CustomScrollView {...scrollableProps}>
+ *       <View style={{ paddingTop: headerMotionContext.originalHeaderHeight }}>
+ *         Content
+ *       </View>
+ *     </CustomScrollView>
+ *   );
+ * }
+ * ```
+ */
 export function useScrollManager(scrollId?: string): ScrollManagerConfig {
   const ctxValue = useContext(HeaderMotionContext);
   if (!ctxValue) {

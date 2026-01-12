@@ -39,7 +39,7 @@ export default function Screen() {
 
 function CollapsibleHeader({
   progress,
-  measureTotal,
+  measureTotalHeight,
   measureDynamic,
   progressThreshold,
 }: WithCollapsibleHeaderProps) {
@@ -101,7 +101,7 @@ function CollapsibleHeader({
 
   return (
     <AnimatedHeaderBase
-      onLayout={measureTotal}
+      onLayout={measureTotalHeight}
       style={[styles.headerWrapper, { paddingTop: insets.top }, containerStyle]}
     >
       <AnimatedImage
