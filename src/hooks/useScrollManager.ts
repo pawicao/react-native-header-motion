@@ -6,12 +6,15 @@ import {
   useAnimatedRef,
   useAnimatedScrollHandler,
   useAnimatedStyle,
+  useSharedValue,
   type ScrollHandler,
 } from 'react-native-reanimated';
 import { RuntimeKind, scheduleOnUI } from 'react-native-worklets';
 import { HeaderMotionContext } from '../context';
 import type { ScrollManagerConfig, ScrollValues } from '../types';
 import { DEFAULT_SCROLL_ID, getInitialScrollValue } from '../utils';
+
+const INACTIVE_SYNC_PROGRESS_STEP = 0.01;
 
 /**
  * Hook that manages scroll tracking and synchronization for header animations.
@@ -65,6 +68,8 @@ export function useScrollManager(scrollId?: string): ScrollManagerConfig {
   const id = scrollId ?? DEFAULT_SCROLL_ID;
 
   const animatedRef = useAnimatedRef<any>(); // TODO: better typing
+  const inactiveSyncSignal = useSharedValue(0);
+  const lastSyncedInactiveProgress = useSharedValue<number | null>(null);
 
   useEffect(() => {
     return () => {
@@ -79,16 +84,21 @@ export function useScrollManager(scrollId?: string): ScrollManagerConfig {
   }, [scrollValues, id]);
 
   useAnimatedReaction(
-    () => progress.value,
-    (newProgress, oldProgress) => {
-      // FUTURE: If really needed for, can use other scroll handlers to only do this either on scroll end or between scroll end and momentum end in onScroll (keep context in shared value)
+    () => ({
+      progress: progress.value,
+      inactiveSyncSignal: inactiveSyncSignal.get(),
+    }),
+    (newValues, prevValues) => {
+      const { progress: newProgress, inactiveSyncSignal: newInactiveSyncSignal } =
+        newValues;
+      const hasManualSyncRequest =
+        prevValues !== null &&
+        newInactiveSyncSignal !== prevValues.inactiveSyncSignal;
+
       // Only sync inactive scroll views when we have multiple tabs being tracked
       const currentActiveScrollId = activeScrollId?.get();
-      if (
-        !currentActiveScrollId ||
-        id === currentActiveScrollId ||
-        oldProgress === null
-      ) {
+      if (!currentActiveScrollId || id === currentActiveScrollId) {
+        lastSyncedInactiveProgress.set(null);
         return;
       }
 
@@ -101,6 +111,9 @@ export function useScrollManager(scrollId?: string): ScrollManagerConfig {
 
       let newCur = -1;
       const threshold = progressThreshold.get();
+      if (!Number.isFinite(threshold) || threshold <= 0) {
+        return;
+      }
 
       scrollValues.modify((value) => {
         let scrollValue = value[id];
@@ -109,11 +122,24 @@ export function useScrollManager(scrollId?: string): ScrollManagerConfig {
           scrollValue = value[id]!;
         }
 
-        const progressDiff = oldProgress - newProgress;
+        const initialProgress =
+          (scrollValue.current - scrollValue.min) / threshold;
+        const sourceProgress =
+          lastSyncedInactiveProgress.get() ?? initialProgress;
+        const progressDiff = sourceProgress - newProgress;
+
+        if (
+          !hasManualSyncRequest &&
+          Math.abs(progressDiff) < INACTIVE_SYNC_PROGRESS_STEP
+        ) {
+          return value;
+        }
+
         newCur = scrollValue.current - progressDiff * threshold;
         const newMin = newCur - newProgress * threshold;
         scrollValue.current = newCur;
         scrollValue.min = newMin;
+        lastSyncedInactiveProgress.set(newProgress);
 
         return value;
       });
@@ -123,6 +149,16 @@ export function useScrollManager(scrollId?: string): ScrollManagerConfig {
       }
     }
   );
+
+  const requestInactiveSync = useCallback(() => {
+    'worklet';
+    const activeScrollIdValue = activeScrollId?.get();
+    if (activeScrollIdValue && activeScrollIdValue !== id) {
+      return;
+    }
+
+    inactiveSyncSignal.set(inactiveSyncSignal.get() + 1);
+  }, [activeScrollId, id, inactiveSyncSignal]);
 
   const scrollHandler = useCallback<ScrollHandler>(
     (e) => {
@@ -156,7 +192,11 @@ export function useScrollManager(scrollId?: string): ScrollManagerConfig {
     [scrollValues, id, activeScrollId, progressThreshold]
   );
 
-  const onScroll = useAnimatedScrollHandler(scrollHandler);
+  const onScroll = useAnimatedScrollHandler({
+    onScroll: scrollHandler,
+    onEndDrag: requestInactiveSync,
+    onMomentumEnd: requestInactiveSync,
+  });
 
   const minHeightContentContainerStyle = useAnimatedStyle(() => {
     const threshold = progressThreshold.get();
