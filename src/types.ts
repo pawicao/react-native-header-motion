@@ -38,13 +38,13 @@ export type WithCollapsiblePagedHeaderProps<
 
 export interface MotionProgress {
   progress: Progress;
-  progressThreshold: number;
+  progressThreshold: SharedValue<number>;
   measureTotalHeight: MeasureAnimatedHeaderAndSet;
   measureDynamic: MeasureAnimatedHeaderAndSet;
 }
 
 export interface ScrollManagerHeaderMotionContext {
-  originalHeaderHeight: number;
+  originalHeaderHeight: SharedValue<number>;
   minHeightContentContainerStyle:
     | {}
     | {

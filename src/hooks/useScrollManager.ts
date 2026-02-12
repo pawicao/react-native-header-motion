@@ -100,6 +100,7 @@ export function useScrollManager(scrollId?: string): ScrollManagerConfig {
       }
 
       let newCur = -1;
+      const threshold = progressThreshold.get();
 
       scrollValues.modify((value) => {
         let scrollValue = value[id];
@@ -109,8 +110,8 @@ export function useScrollManager(scrollId?: string): ScrollManagerConfig {
         }
 
         const progressDiff = oldProgress - newProgress;
-        newCur = scrollValue.current - progressDiff * progressThreshold;
-        const newMin = newCur - newProgress * progressThreshold;
+        newCur = scrollValue.current - progressDiff * threshold;
+        const newMin = newCur - newProgress * threshold;
         scrollValue.current = newCur;
         scrollValue.min = newMin;
 
@@ -126,6 +127,7 @@ export function useScrollManager(scrollId?: string): ScrollManagerConfig {
   const scrollHandler = useCallback<ScrollHandler>(
     (e) => {
       'worklet';
+      const threshold = progressThreshold.get();
 
       scrollValues.modify((value) => {
         if (!value[id]) {
@@ -139,13 +141,13 @@ export function useScrollManager(scrollId?: string): ScrollManagerConfig {
 
         const oldCurrent = value[id].current;
         const oldMin = value[id].min;
-        const isCollapsed = oldCurrent >= oldMin + progressThreshold - 0.001;
+        const isCollapsed = oldCurrent >= oldMin + threshold - 0.001;
 
         const newCurrent = e.contentOffset.y;
         value[id].current = newCurrent;
 
         if (isCollapsed) {
-          value[id].min = Math.max(0, newCurrent - progressThreshold);
+          value[id].min = Math.max(0, newCurrent - threshold);
         }
 
         return value;
@@ -157,6 +159,8 @@ export function useScrollManager(scrollId?: string): ScrollManagerConfig {
   const onScroll = useAnimatedScrollHandler(scrollHandler);
 
   const minHeightContentContainerStyle = useAnimatedStyle(() => {
+    const threshold = progressThreshold.get();
+
     if (globalThis.__RUNTIME_KIND === RuntimeKind.ReactNative) {
       return {};
     }
@@ -168,7 +172,7 @@ export function useScrollManager(scrollId?: string): ScrollManagerConfig {
     }
 
     return {
-      minHeight: measurement.height + progressThreshold,
+      minHeight: measurement.height + threshold,
     };
   });
 
