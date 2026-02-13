@@ -46,9 +46,7 @@ export function HeaderMotionFlatList<T = any>({
           {...scrollViewProps}
           {...props}
           onScroll={onScroll}
-          renderScrollComponent={(propsz) => (
-            <AnimatedScrollContainer {...propsz} />
-          )}
+          renderScrollComponent={renderScrollComponent}
           contentContainerStyle={[
             minHeightContentContainerStyle,
             { paddingTop: originalHeaderHeight },
@@ -60,10 +58,15 @@ export function HeaderMotionFlatList<T = any>({
   );
 }
 
+export const renderScrollComponent = (propsz: ScrollViewProps) => (
+  <AnimatedScrollContainer {...propsz} />
+);
+
 const AnimatedScrollContainer = forwardRef<
   ComponentRef<typeof ScrollView>,
   ScrollViewProps
 >(({ children, contentContainerStyle, ...rest }, ref) => {
+  console.log({ contentContainerStyle });
   return (
     <ScrollView {...rest} ref={ref}>
       <Animated.View style={contentContainerStyle}>{children}</Animated.View>

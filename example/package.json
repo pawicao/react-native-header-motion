@@ -10,6 +10,8 @@
   },
   "dependencies": {
     "@expo/metro-runtime": "~6.1.2",
+    "@shopify/flash-list": "2.2.2",
+    "@legendapp/list": "2.0.19",
     "expo": "~54.0.30",
     "expo-constants": "~18.0.12",
     "expo-linking": "~8.0.11",

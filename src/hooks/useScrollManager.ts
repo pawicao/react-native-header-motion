@@ -30,7 +30,7 @@ const INACTIVE_SYNC_PROGRESS_STEP = 0.01;
  * @param scrollId - Optional unique identifier for the related scrollable.
  *                   Use when you have multiple scrollables (e.g., in tabs).
  * @returns Configuration object containing:
- * - `scrollableProps`: Props to apply to scrollable component (onScroll, scrollEventThrottle, ref)
+ * - `scrollableProps`: Props to apply to scrollable component (onScroll, ref)
  * - `headerMotionContext`: Header context values (originalHeaderHeight, minHeightContentContainerStyle)
  *
  * @throws Error if used outside of a HeaderMotion component
@@ -89,8 +89,10 @@ export function useScrollManager(scrollId?: string): ScrollManagerConfig {
       inactiveSyncSignal: inactiveSyncSignal.get(),
     }),
     (newValues, prevValues) => {
-      const { progress: newProgress, inactiveSyncSignal: newInactiveSyncSignal } =
-        newValues;
+      const {
+        progress: newProgress,
+        inactiveSyncSignal: newInactiveSyncSignal,
+      } = newValues;
       const hasManualSyncRequest =
         prevValues !== null &&
         newInactiveSyncSignal !== prevValues.inactiveSyncSignal;
@@ -218,7 +220,6 @@ export function useScrollManager(scrollId?: string): ScrollManagerConfig {
 
   const scrollableProps = {
     onScroll,
-    scrollEventThrottle: 16,
     ref: animatedRef,
   };
   const headerMotionContext = {

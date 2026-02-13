@@ -69,11 +69,10 @@ export default function Screen() {
         <View key="A">
           <HeaderMotion.ScrollManager scrollId="A">
             {(scrollViewProps, { originalHeaderHeight }) => (
-              <Animated.ScrollView
-                {...scrollViewProps}
-                contentContainerStyle={{ paddingTop: originalHeaderHeight }}
-              >
-                {content}
+              <Animated.ScrollView {...scrollViewProps}>
+                <Animated.View style={{ paddingTop: originalHeaderHeight }}>
+                  {content}
+                </Animated.View>
               </Animated.ScrollView>
             )}
           </HeaderMotion.ScrollManager>
@@ -81,11 +80,10 @@ export default function Screen() {
         <View key="B">
           <HeaderMotion.ScrollManager scrollId="B">
             {(scrollViewProps, { originalHeaderHeight }) => (
-              <Animated.ScrollView
-                {...scrollViewProps}
-                contentContainerStyle={{ paddingTop: originalHeaderHeight }}
-              >
-                {content}
+              <Animated.ScrollView {...scrollViewProps}>
+                <Animated.View style={{ paddingTop: originalHeaderHeight }}>
+                  {content}
+                </Animated.View>
               </Animated.ScrollView>
             )}
           </HeaderMotion.ScrollManager>
@@ -110,7 +108,7 @@ function CollapsibleHeader({
     const translateY = interpolate(
       progress.value,
       [0, 1],
-      [0, -progressThreshold],
+      [0, -progressThreshold.value],
       Extrapolation.CLAMP
     );
     return { transform: [{ translateY }] };
@@ -121,7 +119,7 @@ function CollapsibleHeader({
     const translateY = interpolate(
       progress.value,
       [0, 1],
-      [0, progressThreshold],
+      [0, progressThreshold.value],
       Extrapolation.CLAMP
     );
     return { transform: [{ translateY }] };
@@ -132,7 +130,7 @@ function CollapsibleHeader({
     const parallaxTranslateY = interpolate(
       progress.value,
       [0, 1],
-      [0, progressThreshold * 0.5],
+      [0, progressThreshold.value * 0.5],
       Extrapolation.CLAMP
     );
     const opacity = interpolate(

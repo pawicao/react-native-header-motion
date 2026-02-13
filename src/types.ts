@@ -53,9 +53,7 @@ export interface ScrollManagerHeaderMotionContext {
 }
 
 export interface ScrollManagerConfig {
-  scrollableProps: Required<
-    Pick<ScrollViewProps, 'onScroll' | 'scrollEventThrottle'>
-  > & {
+  scrollableProps: Required<Pick<ScrollViewProps, 'onScroll'>> & {
     ref: AnimatedRef<any>; // TODO: better typing
   };
   headerMotionContext: ScrollManagerHeaderMotionContext;
