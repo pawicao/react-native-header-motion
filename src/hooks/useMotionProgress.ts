@@ -44,13 +44,25 @@ export function useMotionProgress(): MotionProgress {
       'useMotionProgress must be used within a <HeaderMotion /> component. If using inside a navigation header, consider using <HeaderMotion.Header /> instead to ensure context access.'
     );
   }
-  const { progress, measureTotalHeight, measureDynamic, progressThreshold } =
-    ctxValue;
+  const {
+    progress,
+    measureTotalHeight,
+    measureDynamic,
+    progressThreshold,
+    activeScrollId,
+    scrollValues,
+    scrollTo,
+    scrollToRef,
+  } = ctxValue;
 
   return {
     progress,
     measureTotalHeight,
     measureDynamic,
     progressThreshold,
+    activeScrollId,
+    scrollValues,
+    scrollTo,
+    scrollToRef,
   };
 }

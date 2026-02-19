@@ -93,6 +93,8 @@ export function useScrollManager(
     activeScrollId,
     progressThreshold,
     originalHeaderHeight,
+    // scrollTo: scrollToSv,
+    scrollToRef,
   } = ctxValue;
   const id = scrollId ?? DEFAULT_SCROLL_ID;
 
@@ -103,6 +105,30 @@ export function useScrollManager(
   const onRefresh = options?.onRefresh;
   const progressViewOffset =
     options?.progressViewOffset ?? originalHeaderHeight;
+
+  // const ownScrollTo = useCallback<ScrollTo>(
+  //   (y, options = {}) => {
+  //     'worklet';
+  //     const { isValueDelta = true, animated = false } = options;
+  //     const newY = isValueDelta ? scrollValues.get()[id]!.current - y : y;
+  //     scrollTo(animatedRef, 0, newY, animated);
+  //   },
+  //   [scrollValues, id, animatedRef]
+  // );
+
+  useAnimatedReaction(
+    () => activeScrollId?.get(),
+    (activeId) => {
+      if (!activeId || activeId === scrollId) {
+        scrollToRef.current = (y, scrollOptions = {}) => {
+          'worklet';
+          const { isValueDelta = true, animated = false } = scrollOptions;
+          const newY = isValueDelta ? scrollValues.get()[id]!.current - y : y;
+          scrollTo(animatedRef, 0, newY, animated);
+        };
+      }
+    }
+  );
 
   useEffect(() => {
     return () => {

@@ -43,6 +43,9 @@ export default function Screen() {
       <Link style={styles.link} href="/scroll-to-button">
         Scroll To Button (external ref)
       </Link>
+      <Link style={styles.link} href="/header-pan">
+        Header Pan
+      </Link>
     </View>
   );
 }

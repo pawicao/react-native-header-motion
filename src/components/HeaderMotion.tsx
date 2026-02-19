@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useRef, useEffect, useMemo } from 'react';
 import {
   Extrapolation,
   interpolate,
@@ -11,6 +11,7 @@ import {
 import { HeaderMotionContext } from '../context';
 import type { ReactNode } from 'react';
 import type {
+  ScrollTo,
   MeasureAnimatedHeader,
   MeasureAnimatedHeaderAndSet,
   ProgressThreshold,
@@ -173,6 +174,10 @@ function HeaderMotionContextProvider<T extends string>({
     );
   });
 
+  const scrollTo = useSharedValue<ScrollTo | null>(null);
+
+  const scrollToRef = useRef<ScrollTo>(null);
+
   const ctxValue = useMemo(
     () => ({
       progress,
@@ -181,6 +186,8 @@ function HeaderMotionContextProvider<T extends string>({
       measureTotalHeight,
       progressThreshold: progressThresholdValue,
       scrollValues,
+      scrollTo,
+      scrollToRef,
       activeScrollId: activeScrollId as SharedValue<string> | undefined,
     }),
     [
@@ -191,6 +198,7 @@ function HeaderMotionContextProvider<T extends string>({
       scrollValues,
       activeScrollId,
       progressThresholdValue,
+      scrollTo,
     ]
   );
 

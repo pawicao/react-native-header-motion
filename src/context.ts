@@ -3,6 +3,8 @@ import { type SharedValue } from 'react-native-reanimated';
 import type {
   MeasureAnimatedHeaderAndSet,
   Progress,
+  ScrollTo,
+  ScrollToSv,
   ScrollValues,
 } from './types';
 
@@ -14,6 +16,9 @@ interface HeaderMotionContextType {
   activeScrollId: SharedValue<string> | undefined;
   progressThreshold: SharedValue<number>;
   originalHeaderHeight: SharedValue<number>;
+
+  scrollTo: ScrollToSv;
+  scrollToRef: React.RefObject<ScrollTo | null>;
 }
 
 export const HeaderMotionContext =
