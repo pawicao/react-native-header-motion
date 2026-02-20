@@ -4,6 +4,10 @@ High-level APIs for **orchestrating header motion** driven by scroll — built o
 
 This library is **100% a wrapper around Reanimated**. All the credit for the underlying animation engine, worklets, and primitives goes to **Reanimated** (and `react-native-worklets`). This package focuses on a specific use case: **header motion + scroll orchestration** (including multi-scroll/tab scenarios).
 
+<div align="center">
+<img src="https://github.com/user-attachments/assets/b673349a-f26a-4cc8-bfe1-60d77deb4390" width="70%" />
+</div>
+
 ## What this is (and isn’t)
 
 **✅ This is**
