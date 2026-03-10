@@ -87,13 +87,12 @@ function HeaderMotionContextProvider<T extends string>({
   const setOrUpdateDynamicMeasurement =
     useCallback<MeasureAnimatedHeaderAndSet>(
       (e) => {
-        const measured = measureDynamic(e);
         const prevMeasurement = dynamicMeasurement.get();
-
         if (prevMeasurement !== undefined && measureDynamicMode === 'mount') {
           return;
         }
 
+        const measured = measureDynamic(e);
         if (prevMeasurement === measured) {
           return;
         }
