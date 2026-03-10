@@ -1,7 +1,8 @@
 import { forwardRef, type ComponentProps, type ComponentRef } from 'react';
-import { ScrollView, type ScrollViewProps } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { HeaderMotionScrollManager } from './ScrollManager';
+
+import type { ScrollViewProps } from 'react-native';
 
 type AnimatedFlatListProps<T = any> = ComponentProps<
   typeof Animated.FlatList<T>
@@ -34,6 +35,7 @@ export type HeaderMotionFlatListProps<T = any> = AnimatedFlatListProps<T> & {
  */
 export function HeaderMotionFlatList<T = any>({
   scrollId,
+  contentContainerStyle,
   ...props
 }: HeaderMotionFlatListProps<T>) {
   return (
@@ -47,13 +49,15 @@ export function HeaderMotionFlatList<T = any>({
           {...props}
           onScroll={onScroll}
           renderScrollComponent={(propsz) => (
-            <AnimatedScrollContainer {...propsz} />
+            <AnimatedScrollContainer
+              {...propsz}
+              contentContainerStyle={[
+                minHeightContentContainerStyle,
+                { paddingTop: originalHeaderHeight },
+                contentContainerStyle,
+              ]}
+            />
           )}
-          contentContainerStyle={[
-            minHeightContentContainerStyle,
-            { paddingTop: originalHeaderHeight },
-            props.contentContainerStyle,
-          ]}
         />
       )}
     </HeaderMotionScrollManager>
@@ -61,12 +65,12 @@ export function HeaderMotionFlatList<T = any>({
 }
 
 const AnimatedScrollContainer = forwardRef<
-  ComponentRef<typeof ScrollView>,
+  ComponentRef<typeof Animated.ScrollView>,
   ScrollViewProps
 >(({ children, contentContainerStyle, ...rest }, ref) => {
   return (
-    <ScrollView {...rest} ref={ref}>
+    <Animated.ScrollView {...rest} ref={ref}>
       <Animated.View style={contentContainerStyle}>{children}</Animated.View>
-    </ScrollView>
+    </Animated.ScrollView>
   );
 });
