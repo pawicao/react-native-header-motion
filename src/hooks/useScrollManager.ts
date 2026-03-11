@@ -6,6 +6,7 @@ import {
   useAnimatedRef,
   useAnimatedScrollHandler,
   useAnimatedStyle,
+  type AnimatedRef,
   type ScrollHandler,
 } from 'react-native-reanimated';
 import { RuntimeKind, scheduleOnUI } from 'react-native-worklets';
@@ -26,6 +27,9 @@ import { DEFAULT_SCROLL_ID, getInitialScrollValue } from '../utils';
  *
  * @param scrollId - Optional unique identifier for the related scrollable.
  *                   Use when you have multiple scrollables (e.g., in tabs).
+ * @param options - Optional configuration object.
+ * @param options.animatedRef - Optional animated ref to use instead of creating one internally.
+ *                              Useful when you need access to the scroll view ref from outside.
  * @returns Configuration object containing:
  * - `scrollableProps`: Props to apply to scrollable component (onScroll, scrollEventThrottle, ref)
  * - `headerMotionContext`: Header context values (originalHeaderHeight, minHeightContentContainerStyle)
@@ -47,7 +51,18 @@ import { DEFAULT_SCROLL_ID, getInitialScrollValue } from '../utils';
  * }
  * ```
  */
-export function useScrollManager(scrollId?: string): ScrollManagerConfig {
+export interface UseScrollManagerOptions {
+  /**
+   * Optional animated ref to use instead of creating one internally.
+   * Useful when you need access to the scroll view ref from outside.
+   */
+  animatedRef?: AnimatedRef<any>;
+}
+
+export function useScrollManager(
+  scrollId?: string,
+  options?: UseScrollManagerOptions
+): ScrollManagerConfig {
   const ctxValue = useContext(HeaderMotionContext);
   if (!ctxValue) {
     throw new Error(
@@ -64,7 +79,8 @@ export function useScrollManager(scrollId?: string): ScrollManagerConfig {
   } = ctxValue;
   const id = scrollId ?? DEFAULT_SCROLL_ID;
 
-  const animatedRef = useAnimatedRef<any>(); // TODO: better typing
+  const localRef = useAnimatedRef<any>(); // TODO: better typing
+  const animatedRef = options?.animatedRef ?? localRef;
 
   useEffect(() => {
     return () => {

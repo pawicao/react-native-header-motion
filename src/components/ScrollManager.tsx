@@ -1,6 +1,7 @@
 import { useScrollManager } from '../hooks';
 import type { ScrollManagerConfig } from '../types';
 import type { ReactNode } from 'react';
+import type { AnimatedRef } from 'react-native-reanimated';
 
 type ScrollManagerRenderChildren = (
   scrollableProps: ScrollManagerConfig['scrollableProps'],
@@ -13,6 +14,11 @@ export interface HeaderMotionScrollManagerProps {
    * Use this when you have multiple scroll views (e.g., in tabs) to track them separately.
    */
   scrollId?: string;
+  /**
+   * Optional animated ref to use for the scroll view.
+   * When provided, the scroll manager will use this ref instead of creating its own.
+   */
+  animatedRef?: AnimatedRef<any>;
   /**
    * Render function that receives scroll props and header context.
    * Use this to create custom scroll implementations that integrate with HeaderMotion.
@@ -45,6 +51,7 @@ export interface HeaderMotionScrollManagerProps {
 export function HeaderMotionScrollManager({
   children,
   scrollId,
+  animatedRef,
 }: HeaderMotionScrollManagerProps) {
   if (typeof children !== 'function') {
     throw new Error(
@@ -52,7 +59,9 @@ export function HeaderMotionScrollManager({
     );
   }
 
-  const { scrollableProps, headerMotionContext } = useScrollManager(scrollId);
+  const { scrollableProps, headerMotionContext } = useScrollManager(scrollId, {
+    animatedRef,
+  });
 
   return children(scrollableProps, headerMotionContext);
 }

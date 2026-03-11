@@ -1,4 +1,5 @@
 import Animated, {
+  type AnimatedRef,
   type AnimatedScrollViewProps,
 } from 'react-native-reanimated';
 import { HeaderMotionScrollManager } from './ScrollManager';
@@ -9,6 +10,11 @@ export type HeaderMotionScrollViewProps = AnimatedScrollViewProps & {
    * Use this when you have multiple scroll views (e.g. in tabs) to track them separately.
    */
   scrollId?: string;
+  /**
+   * Optional animated ref to use for the scroll view.
+   * When provided, the scroll manager will use this ref instead of creating its own.
+   */
+  animatedRef?: AnimatedRef<any>;
 };
 
 /**
@@ -27,12 +33,13 @@ export type HeaderMotionScrollViewProps = AnimatedScrollViewProps & {
  */
 export function HeaderMotionScrollView({
   scrollId,
+  animatedRef,
   children,
   contentContainerStyle,
   ...props
 }: HeaderMotionScrollViewProps) {
   return (
-    <HeaderMotionScrollManager scrollId={scrollId}>
+    <HeaderMotionScrollManager scrollId={scrollId} animatedRef={animatedRef}>
       {(
         { onScroll, ...scrollViewProps },
         { originalHeaderHeight, minHeightContentContainerStyle }
