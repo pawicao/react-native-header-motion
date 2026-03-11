@@ -13,6 +13,12 @@ import { HeaderMotionContext } from '../context';
 import type { ScrollManagerConfig, ScrollValues } from '../types';
 import { DEFAULT_SCROLL_ID, getInitialScrollValue } from '../utils';
 
+type ScrollHandlerContext = {
+  lastOffset: number | undefined;
+};
+
+const SCROLL_TOLERANCE = 0.5;
+
 /**
  * Hook that manages scroll tracking and synchronization for header animations.
  * Returns props to apply to scrollable components and additional values that help with adjusting styling of the scrollables to header's dimensions.
@@ -124,9 +130,19 @@ export function useScrollManager(scrollId?: string): ScrollManagerConfig {
     }
   );
 
-  const scrollHandler = useCallback<ScrollHandler>(
-    (e) => {
+  const scrollHandler = useCallback<ScrollHandler<ScrollHandlerContext>>(
+    (e, ctx) => {
       'worklet';
+      const newCurrent = e.contentOffset.y;
+
+      if (
+        ctx.lastOffset !== undefined &&
+        Math.abs(ctx.lastOffset - newCurrent) < SCROLL_TOLERANCE
+      ) {
+        return;
+      }
+      ctx.lastOffset = newCurrent;
+
       const threshold = progressThreshold.get();
 
       scrollValues.modify((value) => {
@@ -143,7 +159,6 @@ export function useScrollManager(scrollId?: string): ScrollManagerConfig {
         const oldMin = value[id].min;
         const isCollapsed = oldCurrent >= oldMin + threshold - 0.001;
 
-        const newCurrent = e.contentOffset.y;
         value[id].current = newCurrent;
 
         if (isCollapsed) {
