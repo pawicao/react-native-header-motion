@@ -1,11 +1,18 @@
-import { forwardRef, type ComponentProps, type ComponentRef } from 'react';
+import {
+  forwardRef,
+  isValidElement,
+  type ComponentProps,
+  type ComponentRef,
+  type ReactElement,
+} from 'react';
 import Animated, { type AnimatedRef } from 'react-native-reanimated';
 import { HeaderMotionScrollManager } from './ScrollManager';
 
-import type { ScrollViewProps } from 'react-native';
+import type { RefreshControlProps, ScrollViewProps } from 'react-native';
 
-type AnimatedFlatListProps<T = any> = ComponentProps<
-  typeof Animated.FlatList<T>
+type AnimatedFlatListProps<T = any> = Omit<
+  ComponentProps<typeof Animated.FlatList<T>>,
+  'refreshControl'
 >;
 
 export type HeaderMotionFlatListProps<T = any> = AnimatedFlatListProps<T> & {
@@ -19,6 +26,9 @@ export type HeaderMotionFlatListProps<T = any> = AnimatedFlatListProps<T> & {
    * When provided, the scroll manager will use this ref instead of creating its own.
    */
   animatedRef?: AnimatedRef<any>;
+  refreshControl?: ReactElement<RefreshControlProps>;
+  refreshing?: boolean;
+  onRefresh?: () => void;
 };
 
 /**
@@ -42,21 +52,38 @@ export function HeaderMotionFlatList<T = any>({
   scrollId,
   animatedRef,
   contentContainerStyle,
+  refreshControl,
+  refreshing,
+  onRefresh,
   ...props
 }: HeaderMotionFlatListProps<T>) {
+  const explicitRefreshControl = isValidElement<RefreshControlProps>(
+    refreshControl
+  )
+    ? refreshControl
+    : undefined;
+
   return (
-    <HeaderMotionScrollManager scrollId={scrollId} animatedRef={animatedRef}>
+    <HeaderMotionScrollManager
+      scrollId={scrollId}
+      animatedRef={animatedRef}
+      refreshControl={explicitRefreshControl}
+      refreshing={refreshing}
+      onRefresh={onRefresh}
+    >
       {(
-        { onScroll, ...scrollViewProps },
+        { onScroll, refreshControl: managedRefreshControl, ...scrollViewProps },
         { originalHeaderHeight, minHeightContentContainerStyle }
       ) => (
         <Animated.FlatList
           {...scrollViewProps}
           {...props}
           onScroll={onScroll}
+          refreshControl={managedRefreshControl}
           renderScrollComponent={(propsz) => (
             <AnimatedScrollContainer
               {...propsz}
+              refreshControl={managedRefreshControl}
               contentContainerStyle={[
                 minHeightContentContainerStyle,
                 { paddingTop: originalHeaderHeight },
