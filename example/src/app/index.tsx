@@ -19,6 +19,9 @@ export default function Screen() {
       <Link style={styles.link} href="/flatlist">
         FlatList
       </Link>
+      <Link style={styles.link} href="/scroll-manager">
+        ScrollManager
+      </Link>
     </View>
   );
 }

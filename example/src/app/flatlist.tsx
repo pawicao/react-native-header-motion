@@ -45,10 +45,11 @@ function CollapsibleHeader({
 
   // 1. Container Animation (Moves UP)
   const containerStyle = useAnimatedStyle(() => {
+    const threshold = progressThreshold.get();
     const translateY = interpolate(
-      progress.value,
+      progress.get(),
       [0, 1],
-      [0, -progressThreshold],
+      [0, -threshold],
       Extrapolation.CLAMP
     );
     return { transform: [{ translateY }] };
@@ -56,10 +57,11 @@ function CollapsibleHeader({
 
   // 2. Title Animation (Counter-Moves DOWN to stay sticky)
   const titleStyle = useAnimatedStyle(() => {
+    const threshold = progressThreshold.get();
     const translateY = interpolate(
-      progress.value,
+      progress.get(),
       [0, 1],
-      [0, progressThreshold],
+      [0, threshold],
       Extrapolation.CLAMP
     );
     return { transform: [{ translateY }] };
@@ -67,20 +69,21 @@ function CollapsibleHeader({
 
   // 3. Content Animation (Parallax + Opacity + Scale)
   const boxSectionStyle = useAnimatedStyle(() => {
+    const threshold = progressThreshold.get();
     const parallaxTranslateY = interpolate(
-      progress.value,
+      progress.get(),
       [0, 1],
-      [0, progressThreshold * 0.5],
+      [0, threshold * 0.5],
       Extrapolation.CLAMP
     );
     const opacity = interpolate(
-      progress.value,
+      progress.get(),
       [0, 1 * 0.6],
       [1, 0],
       Extrapolation.CLAMP
     );
     const scale = interpolate(
-      progress.value,
+      progress.get(),
       [0, 1],
       [1, 0.8],
       Extrapolation.CLAMP
