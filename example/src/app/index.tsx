@@ -19,6 +19,18 @@ export default function Screen() {
       <Link style={styles.link} href="/flatlist">
         FlatList
       </Link>
+      <Link style={styles.link} href="/refresh-scrollview-control">
+        Refresh ScrollView (refreshControl)
+      </Link>
+      <Link style={styles.link} href="/refresh-scrollview-props">
+        Refresh ScrollView (refreshing/onRefresh)
+      </Link>
+      <Link style={styles.link} href="/refresh-flatlist-control">
+        Refresh FlatList (refreshControl)
+      </Link>
+      <Link style={styles.link} href="/refresh-flatlist-props">
+        Refresh FlatList (refreshing/onRefresh)
+      </Link>
       <Link style={styles.link} href="/short-content">
         Short Content (min height)
       </Link>
