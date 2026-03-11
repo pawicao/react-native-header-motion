@@ -17,7 +17,7 @@ function injectProgressViewOffset(
   refreshControl: ReactElement<RefreshControlProps>,
   progressViewOffset: number
 ) {
-  if (refreshControl.props.progressViewOffset != null) {
+  if (refreshControl.props.progressViewOffset !== undefined) {
     return refreshControl;
   }
 

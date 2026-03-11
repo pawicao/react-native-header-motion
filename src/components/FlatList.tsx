@@ -80,9 +80,9 @@ export function HeaderMotionFlatList<T = any>({
           {...props}
           onScroll={onScroll}
           refreshControl={managedRefreshControl}
-          renderScrollComponent={(propsz) => (
+          renderScrollComponent={(scrollComponentProps) => (
             <AnimatedScrollContainer
-              {...propsz}
+              {...scrollComponentProps}
               refreshControl={managedRefreshControl}
               contentContainerStyle={[
                 minHeightContentContainerStyle,
