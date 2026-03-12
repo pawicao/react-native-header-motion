@@ -1,7 +1,7 @@
 import { useScrollManager } from '../hooks';
 import type { ScrollManagerConfig } from '../types';
-import type { ReactElement, ReactNode } from 'react';
-import type { RefreshControlProps } from 'react-native';
+import type { ResolveRefreshControlOptions } from '../hooks/refreshControl';
+import type { ReactNode } from 'react';
 import type { AnimatedRef } from 'react-native-reanimated';
 
 type ScrollManagerRenderChildren = (
@@ -9,7 +9,8 @@ type ScrollManagerRenderChildren = (
   options: ScrollManagerConfig['headerMotionContext']
 ) => ReactNode;
 
-export interface HeaderMotionScrollManagerProps {
+export interface HeaderMotionScrollManagerProps
+  extends Omit<ResolveRefreshControlOptions, 'progressViewOffset'> {
   /**
    * Optional unique identifier for this scroll view.
    * Use this when you have multiple scroll views (e.g., in tabs) to track them separately.
@@ -20,9 +21,6 @@ export interface HeaderMotionScrollManagerProps {
    * When provided, the scroll manager will use this ref instead of creating its own.
    */
   animatedRef?: AnimatedRef<any>;
-  refreshControl?: ReactElement<RefreshControlProps>;
-  refreshing?: boolean;
-  onRefresh?: () => void;
   /**
    * Render function that receives scroll props and header context.
    * Use this to create custom scroll implementations that integrate with HeaderMotion.

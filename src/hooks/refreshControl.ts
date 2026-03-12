@@ -5,11 +5,14 @@ import {
   type ReactElement,
 } from 'react';
 import { RefreshControl, type RefreshControlProps } from 'react-native';
+import type { SharedValue } from 'react-native-reanimated';
 
-interface ResolveRefreshControlOptions {
-  refreshControl?: ReactElement<RefreshControlProps>;
-  refreshing?: boolean;
-  onRefresh?: () => void;
+type MaybeShared<T> = T | SharedValue<T | undefined>;
+
+export interface ResolveRefreshControlOptions {
+  refreshControl?: MaybeShared<ReactElement<RefreshControlProps>>;
+  refreshing?: MaybeShared<boolean>;
+  onRefresh?: MaybeShared<() => void>;
   progressViewOffset: number;
 }
 
@@ -43,8 +46,8 @@ export function resolveRefreshControl({
   }
 
   return createElement(RefreshControl, {
-    refreshing: refreshing ?? false,
-    onRefresh,
+    refreshing: (refreshing as boolean) ?? false,
+    onRefresh: onRefresh as () => void,
     progressViewOffset,
-  });
+  }) as unknown as ReactElement<RefreshControlProps>;
 }

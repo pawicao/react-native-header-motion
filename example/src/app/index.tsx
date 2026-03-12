@@ -20,10 +20,7 @@ export default function Screen() {
         FlatList
       </Link>
       <Link style={styles.link} href="/refresh-scrollview-control">
-        Refresh ScrollView (refreshControl)
-      </Link>
-      <Link style={styles.link} href="/refresh-scrollview-props">
-        Refresh ScrollView (refreshing/onRefresh)
+        Refresh ScrollView
       </Link>
       <Link style={styles.link} href="/refresh-flatlist-control">
         Refresh FlatList (refreshControl)

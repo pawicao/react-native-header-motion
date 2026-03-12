@@ -1,11 +1,4 @@
-import {
-  useContext,
-  useCallback,
-  useEffect,
-  useMemo,
-  type ReactElement,
-} from 'react';
-import type { RefreshControlProps } from 'react-native';
+import { useContext, useCallback, useEffect } from 'react';
 import {
   measure,
   scrollTo,
@@ -20,7 +13,10 @@ import { RuntimeKind, scheduleOnUI } from 'react-native-worklets';
 import { HeaderMotionContext } from '../context';
 import type { ScrollManagerConfig, ScrollValues } from '../types';
 import { DEFAULT_SCROLL_ID, getInitialScrollValue } from '../utils';
-import { resolveRefreshControl } from './refreshControl';
+import {
+  resolveRefreshControl,
+  type ResolveRefreshControlOptions,
+} from './refreshControl';
 
 /**
  * Hook that manages scroll tracking and synchronization for header animations.
@@ -59,15 +55,13 @@ import { resolveRefreshControl } from './refreshControl';
  * }
  * ```
  */
-export interface UseScrollManagerOptions {
+export interface UseScrollManagerOptions
+  extends Omit<ResolveRefreshControlOptions, 'progressViewOffset'> {
   /**
    * Optional animated ref to use instead of creating one internally.
    * Useful when you need access to the scroll view ref from outside.
    */
   animatedRef?: AnimatedRef<any>;
-  refreshControl?: ReactElement<RefreshControlProps>;
-  refreshing?: boolean;
-  onRefresh?: () => void;
 }
 
 export function useScrollManager(
@@ -202,16 +196,12 @@ export function useScrollManager(
     };
   });
 
-  const resolvedRefreshControl = useMemo(
-    () =>
-      resolveRefreshControl({
-        refreshControl,
-        refreshing,
-        onRefresh,
-        progressViewOffset: originalHeaderHeight,
-      }),
-    [onRefresh, originalHeaderHeight, refreshControl, refreshing]
-  );
+  const resolvedRefreshControl = resolveRefreshControl({
+    refreshControl,
+    refreshing,
+    onRefresh,
+    progressViewOffset: originalHeaderHeight,
+  });
 
   const scrollableProps = {
     onScroll,
