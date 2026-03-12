@@ -36,18 +36,26 @@ export function HeaderMotionScrollView({
   animatedRef,
   children,
   contentContainerStyle,
+  refreshControl,
   ...props
 }: HeaderMotionScrollViewProps) {
   return (
-    <HeaderMotionScrollManager scrollId={scrollId} animatedRef={animatedRef}>
+    <HeaderMotionScrollManager
+      scrollId={scrollId}
+      animatedRef={animatedRef}
+      refreshControl={refreshControl}
+    >
       {(
-        { onScroll, ...scrollViewProps },
+        { onScroll, refreshControl: managedRefreshControl, ...scrollViewProps },
         { originalHeaderHeight, minHeightContentContainerStyle }
       ) => (
         <Animated.ScrollView
           {...scrollViewProps}
           {...props}
           onScroll={onScroll}
+          {...(managedRefreshControl && {
+            refreshControl: managedRefreshControl,
+          })}
         >
           <Animated.View
             style={[

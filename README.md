@@ -407,6 +407,15 @@ Supports `scrollId?: string` for multi-scroll scenarios.
 
 Render-prop API for custom scrollables (pager pages, 3rd party lists, etc.).
 
+If you use `HeaderMotion.ScrollManager` directly for custom integrations, pass refresh-related props to `ScrollManager` (instead of your inner scrollable):
+
+- `refreshControl`
+- `refreshing`
+- `onRefresh`
+- optional `progressViewOffset` if you want to force your offset.
+
+This is required, as the positioning of scrollables is affecting Refresh Control and has to be coupled with the header heights.
+
 ```tsx
 <HeaderMotion.ScrollManager scrollId="A">
   {(
@@ -415,6 +424,31 @@ Render-prop API for custom scrollables (pager pages, 3rd party lists, etc.).
   ) => (
     <Animated.ScrollView
       {...scrollableProps}
+      contentContainerStyle={[
+        minHeightContentContainerStyle,
+        { paddingTop: originalHeaderHeight },
+      ]}
+    />
+  )}
+</HeaderMotion.ScrollManager>
+```
+
+Refresh example with explicit props on `ScrollManager`:
+
+```tsx
+<HeaderMotion.ScrollManager
+  scrollId="A"
+  refreshing={refreshing}
+  onRefresh={onRefresh}
+>
+  {(
+    { onScroll, refreshControl: managedRefreshControl, ...scrollableProps },
+    { originalHeaderHeight, minHeightContentContainerStyle }
+  ) => (
+    <Animated.ScrollView
+      {...scrollableProps}
+      onScroll={onScroll}
+      refreshControl={managedRefreshControl}
       contentContainerStyle={[
         minHeightContentContainerStyle,
         { paddingTop: originalHeaderHeight },
@@ -468,6 +502,30 @@ Reanimated-powered, absolutely positioned header base.
 
 - `WithCollapsibleHeaderProps` – convenience type for headers using motion progress props.
 - `WithCollapsiblePagedHeaderProps` – like above, plus `activeTab` and `onTabChange`.
+
+## Additional notes
+
+### Refresh Control (v.0.3.0+)
+
+Refresh control support was improved in `v0.3.0+`.
+
+- If you use `HeaderMotion.ScrollView` or `HeaderMotion.FlatList`, your refresh-control usage stays the same as in React Native.
+- If you use `HeaderMotion.ScrollManager` directly for custom integrations, pass refresh-related props to `ScrollManager`:
+  - `refreshControl`
+  - `refreshing`
+  - `onRefresh`
+  - optional `progressViewOffset`
+
+This is important because scrollable positioning affects refresh-control behavior and needs to stay coupled with measured header height.
+
+#### Platform support note:
+
+- Support for Refresh Control is currently partial.
+- Android works well with the current implementation.
+- iOS behavior is still not fully deterministic.
+- `progressViewOffset` does not seem to be reliable on iOS in all scenarios.
+- Other iOS approaches tried so far introduced different issues.
+- Additional iOS support improvements are planned for future releases.
 
 ## Contributing
 

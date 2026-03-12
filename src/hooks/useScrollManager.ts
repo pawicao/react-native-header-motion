@@ -13,6 +13,10 @@ import { RuntimeKind, scheduleOnUI } from 'react-native-worklets';
 import { HeaderMotionContext } from '../context';
 import type { ScrollManagerConfig, ScrollValues } from '../types';
 import { DEFAULT_SCROLL_ID, getInitialScrollValue } from '../utils';
+import {
+  resolveRefreshControl,
+  type ResolveRefreshControlOptions,
+} from './refreshControl';
 
 /**
  * Hook that manages scroll tracking and synchronization for header animations.
@@ -51,12 +55,18 @@ import { DEFAULT_SCROLL_ID, getInitialScrollValue } from '../utils';
  * }
  * ```
  */
-export interface UseScrollManagerOptions {
+export interface UseScrollManagerOptions
+  extends Omit<ResolveRefreshControlOptions, 'progressViewOffset'> {
   /**
    * Optional animated ref to use instead of creating one internally.
    * Useful when you need access to the scroll view ref from outside.
    */
   animatedRef?: AnimatedRef<any>;
+  /**
+   * Optional refresh progress offset override.
+   * When provided, it takes precedence over the automatic offset based on header height.
+   */
+  progressViewOffset?: ResolveRefreshControlOptions['progressViewOffset'];
 }
 
 export function useScrollManager(
@@ -81,6 +91,11 @@ export function useScrollManager(
 
   const localRef = useAnimatedRef<any>(); // TODO: better typing
   const animatedRef = options?.animatedRef ?? localRef;
+  const refreshControl = options?.refreshControl;
+  const refreshing = options?.refreshing;
+  const onRefresh = options?.onRefresh;
+  const progressViewOffset =
+    options?.progressViewOffset ?? originalHeaderHeight;
 
   useEffect(() => {
     return () => {
@@ -188,10 +203,18 @@ export function useScrollManager(
     };
   });
 
+  const resolvedRefreshControl = resolveRefreshControl({
+    refreshControl,
+    refreshing,
+    onRefresh,
+    progressViewOffset,
+  });
+
   const scrollableProps = {
     onScroll,
     scrollEventThrottle: 16,
     ref: animatedRef,
+    refreshControl: resolvedRefreshControl,
   };
   const headerMotionContext = {
     originalHeaderHeight,
