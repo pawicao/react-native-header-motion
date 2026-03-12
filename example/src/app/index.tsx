@@ -28,6 +28,9 @@ export default function Screen() {
       <Link style={styles.link} href="/refresh-flatlist-props">
         Refresh FlatList (refreshing/onRefresh)
       </Link>
+      <Link style={styles.link} href="/refresh-flatlist-props-offset">
+        Refresh FlatList (custom progressViewOffset)
+      </Link>
       <Link style={styles.link} href="/short-content">
         Short Content (min height)
       </Link>
