@@ -13,18 +13,20 @@ export interface ResolveRefreshControlOptions {
   refreshControl?: MaybeShared<ReactElement<RefreshControlProps>>;
   refreshing?: MaybeShared<boolean>;
   onRefresh?: MaybeShared<() => void>;
-  progressViewOffset: number;
+  progressViewOffset: MaybeShared<number>;
 }
 
 function injectProgressViewOffset(
   refreshControl: ReactElement<RefreshControlProps>,
-  progressViewOffset: number
+  progressViewOffset: MaybeShared<number>
 ) {
   if (refreshControl.props.progressViewOffset !== undefined) {
     return refreshControl;
   }
 
-  return cloneElement(refreshControl, { progressViewOffset });
+  return cloneElement(refreshControl, {
+    progressViewOffset: progressViewOffset as number,
+  });
 }
 
 export function resolveRefreshControl({
@@ -48,6 +50,6 @@ export function resolveRefreshControl({
   return createElement(RefreshControl, {
     refreshing: (refreshing as boolean) ?? false,
     onRefresh: onRefresh as () => void,
-    progressViewOffset,
+    progressViewOffset: progressViewOffset as number,
   }) as unknown as ReactElement<RefreshControlProps>;
 }

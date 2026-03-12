@@ -49,6 +49,7 @@ export function HeaderMotionFlatList<T = any>({
       refreshControl={props.refreshControl}
       refreshing={props.refreshing}
       onRefresh={props.onRefresh}
+      progressViewOffset={props.progressViewOffset}
     >
       {(
         { onScroll, refreshControl: managedRefreshControl, ...scrollViewProps },

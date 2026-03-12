@@ -22,6 +22,11 @@ export interface HeaderMotionScrollManagerProps
    */
   animatedRef?: AnimatedRef<any>;
   /**
+   * Optional refresh progress offset override.
+   * When provided, it takes precedence over the automatic offset based on header height.
+   */
+  progressViewOffset?: ResolveRefreshControlOptions['progressViewOffset'];
+  /**
    * Render function that receives scroll props and header context.
    * Use this to create custom scroll implementations that integrate with HeaderMotion.
    */
@@ -57,6 +62,7 @@ export function HeaderMotionScrollManager({
   refreshControl,
   refreshing,
   onRefresh,
+  progressViewOffset,
 }: HeaderMotionScrollManagerProps) {
   if (typeof children !== 'function') {
     throw new Error(
@@ -69,6 +75,7 @@ export function HeaderMotionScrollManager({
     refreshControl,
     refreshing,
     onRefresh,
+    progressViewOffset,
   });
 
   return children(scrollableProps, headerMotionContext);

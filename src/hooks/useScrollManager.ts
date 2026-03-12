@@ -62,6 +62,11 @@ export interface UseScrollManagerOptions
    * Useful when you need access to the scroll view ref from outside.
    */
   animatedRef?: AnimatedRef<any>;
+  /**
+   * Optional refresh progress offset override.
+   * When provided, it takes precedence over the automatic offset based on header height.
+   */
+  progressViewOffset?: ResolveRefreshControlOptions['progressViewOffset'];
 }
 
 export function useScrollManager(
@@ -89,6 +94,8 @@ export function useScrollManager(
   const refreshControl = options?.refreshControl;
   const refreshing = options?.refreshing;
   const onRefresh = options?.onRefresh;
+  const progressViewOffset =
+    options?.progressViewOffset ?? originalHeaderHeight;
 
   useEffect(() => {
     return () => {
@@ -200,7 +207,7 @@ export function useScrollManager(
     refreshControl,
     refreshing,
     onRefresh,
-    progressViewOffset: originalHeaderHeight,
+    progressViewOffset,
   });
 
   const scrollableProps = {
