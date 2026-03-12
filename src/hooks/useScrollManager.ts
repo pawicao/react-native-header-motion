@@ -144,20 +144,39 @@ export function useScrollManager(scrollId?: string): ScrollManagerConfig {
       ctx.lastOffset = newCurrent;
 
       const threshold = progressThreshold.get();
+      const values = scrollValues.get();
+      const scrollValue = values[id];
+
+      if (!scrollValue) {
+        return;
+      }
+
+      const activeScrollIdValue = activeScrollId?.get();
+      if (activeScrollIdValue && activeScrollIdValue !== id) {
+        return;
+      }
+
+      const oldCurrent = scrollValue.current;
+      const oldMin = scrollValue.min;
+      const isCollapsed = oldCurrent >= oldMin + threshold - 0.001;
+
+      // When the header is fully collapsed and the user is scrolled past the
+      // threshold, progress is mathematically guaranteed to stay at 1:
+      //   min = newCurrent - threshold  →  (newCurrent - min) / threshold = 1
+      // In this case we update the values directly via .get() instead of
+      // .modify(), which avoids triggering the reactive cascade (progress
+      // re-derivation, animated reactions, animated styles). The values are
+      // still updated in-place for tab synchronization correctness.
+      if (isCollapsed && newCurrent >= threshold) {
+        scrollValue.current = newCurrent;
+        scrollValue.min = newCurrent - threshold;
+        return;
+      }
 
       scrollValues.modify((value) => {
         if (!value[id]) {
           return value;
         }
-
-        const activeScrollIdValue = activeScrollId?.get();
-        if (activeScrollIdValue && activeScrollIdValue !== id) {
-          return value;
-        }
-
-        const oldCurrent = value[id].current;
-        const oldMin = value[id].min;
-        const isCollapsed = oldCurrent >= oldMin + threshold - 0.001;
 
         value[id].current = newCurrent;
 
