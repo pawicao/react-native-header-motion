@@ -174,9 +174,11 @@ function HeaderMotionContextProvider<T extends string>({
     );
   });
 
-  const scrollTo = useSharedValue<ScrollTo | null>(null);
-
   const scrollToRef = useRef<ScrollTo>(null);
+  // FUTURE: SharedValue-based scrollTo was removed for now because function updates
+  // were not propagating reliably, while it works for refs. Revisit later.
+  // We need to be updating the scrollTo on active scroll ID changes and doing it via state would cause re-renders.
+  // It's a bit of an anti-pattern to use refs for this as well, but I am yet to figure out a better way to pass those if SV won't work.
 
   const ctxValue = useMemo(
     () => ({
@@ -186,7 +188,6 @@ function HeaderMotionContextProvider<T extends string>({
       measureTotalHeight,
       progressThreshold: progressThresholdValue,
       scrollValues,
-      scrollTo,
       scrollToRef,
       activeScrollId: activeScrollId as SharedValue<string> | undefined,
     }),
@@ -198,7 +199,6 @@ function HeaderMotionContextProvider<T extends string>({
       scrollValues,
       activeScrollId,
       progressThresholdValue,
-      scrollTo,
     ]
   );
 

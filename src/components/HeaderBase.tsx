@@ -16,7 +16,7 @@ import type { MotionProgress } from '../types';
 
 export type HeaderBaseProps = ViewProps;
 export type AnimatedHeaderBaseProps = AnimatedProps<ViewProps> &
-  Pick<MotionProgress, 'scrollTo' | 'scrollToRef'>;
+  Partial<Pick<MotionProgress, 'scrollToRef'>>;
 
 /**
  * Base header component with absolute positioning.
@@ -55,7 +55,6 @@ export function HeaderBase({ style, ...rest }: HeaderBaseProps) {
 // TODO: May need to block momentum by forcing scrollTo
 export function AnimatedHeaderBase({
   style,
-  // scrollTo,
   scrollToRef,
   ...rest
 }: AnimatedHeaderBaseProps) {
@@ -66,7 +65,7 @@ export function AnimatedHeaderBase({
     (offset, prevOffset) => {
       if (offset !== null) {
         const dy = offset - (prevOffset ?? 0);
-        scrollToRef.current?.(dy);
+        scrollToRef?.current?.(dy);
         // TODO: We gotta stop applying this as soon as the user starts scrolling by hand, otherwise we are stopping his scroll with our forced scrollTo
       }
     }
@@ -77,7 +76,7 @@ export function AnimatedHeaderBase({
       Gesture.Pan()
         .onChange((e) => {
           const dy = e.changeY;
-          scrollToRef.current?.(dy);
+          scrollToRef?.current?.(dy);
         })
         // TODO: onEnd or onFinalize?
         .onEnd((e) => {

@@ -51,7 +51,6 @@ export function useMotionProgress(): MotionProgress {
     progressThreshold,
     activeScrollId,
     scrollValues,
-    scrollTo,
     scrollToRef,
   } = ctxValue;
 
@@ -62,7 +61,6 @@ export function useMotionProgress(): MotionProgress {
     progressThreshold,
     activeScrollId,
     scrollValues,
-    scrollTo,
     scrollToRef,
   };
 }

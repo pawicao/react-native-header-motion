@@ -4,7 +4,6 @@ import type {
   MeasureAnimatedHeaderAndSet,
   Progress,
   ScrollTo,
-  ScrollToSv,
   ScrollValues,
 } from './types';
 
@@ -17,7 +16,6 @@ interface HeaderMotionContextType {
   progressThreshold: SharedValue<number>;
   originalHeaderHeight: SharedValue<number>;
 
-  scrollTo: ScrollToSv;
   scrollToRef: React.RefObject<ScrollTo | null>;
 }
 

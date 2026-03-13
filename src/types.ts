@@ -42,7 +42,6 @@ export interface MotionProgress {
   progressThreshold: SharedValue<number>;
   measureTotalHeight: MeasureAnimatedHeaderAndSet;
   measureDynamic: MeasureAnimatedHeaderAndSet;
-  scrollTo: ScrollToSv;
   scrollToRef: React.RefObject<ScrollTo | null>;
   scrollValues: SharedValue<ScrollValues>;
   activeScrollId: SharedValue<string> | undefined;
@@ -68,8 +67,6 @@ export interface ScrollManagerConfig {
 }
 
 export type ScrollTo = (y: number, options?: ScrollToOptions) => void;
-
-export type ScrollToSv = SharedValue<ScrollTo | null>;
 
 interface ScrollToOptions {
   isValueDelta?: boolean;
