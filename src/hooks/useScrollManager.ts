@@ -6,12 +6,18 @@ import {
   useAnimatedRef,
   useAnimatedScrollHandler,
   useAnimatedStyle,
+  type AnimatedRef,
   type ScrollHandler,
 } from 'react-native-reanimated';
 import { RuntimeKind, scheduleOnUI } from 'react-native-worklets';
 import { HeaderMotionContext } from '../context';
 import type { ScrollManagerConfig, ScrollValues } from '../types';
-import { DEFAULT_SCROLL_ID, getInitialScrollValue } from '../utils';
+import {
+  resolveRefreshControl,
+  DEFAULT_SCROLL_ID,
+  getInitialScrollValue,
+  type ResolveRefreshControlOptions,
+} from '../utils';
 
 type ScrollHandlerContext = {
   lastOffset: number | undefined;
@@ -32,6 +38,9 @@ const SCROLL_TOLERANCE = 0.5;
  *
  * @param scrollId - Optional unique identifier for the related scrollable.
  *                   Use when you have multiple scrollables (e.g., in tabs).
+ * @param options - Optional configuration object.
+ * @param options.animatedRef - Optional animated ref to use instead of creating one internally.
+ *                              Useful when you need access to the scroll view ref from outside.
  * @returns Configuration object containing:
  * - `scrollableProps`: Props to apply to scrollable component (onScroll, scrollEventThrottle, ref)
  * - `headerMotionContext`: Header context values (originalHeaderHeight, minHeightContentContainerStyle)
@@ -53,7 +62,24 @@ const SCROLL_TOLERANCE = 0.5;
  * }
  * ```
  */
-export function useScrollManager(scrollId?: string): ScrollManagerConfig {
+export interface UseScrollManagerOptions
+  extends Omit<ResolveRefreshControlOptions, 'progressViewOffset'> {
+  /**
+   * Optional animated ref to use instead of creating one internally.
+   * Useful when you need access to the scroll view ref from outside.
+   */
+  animatedRef?: AnimatedRef<any>;
+  /**
+   * Optional refresh progress offset override.
+   * When provided, it takes precedence over the automatic offset based on header height.
+   */
+  progressViewOffset?: ResolveRefreshControlOptions['progressViewOffset'];
+}
+
+export function useScrollManager(
+  scrollId?: string,
+  options?: UseScrollManagerOptions
+): ScrollManagerConfig {
   const ctxValue = useContext(HeaderMotionContext);
   if (!ctxValue) {
     throw new Error(
@@ -70,7 +96,13 @@ export function useScrollManager(scrollId?: string): ScrollManagerConfig {
   } = ctxValue;
   const id = scrollId ?? DEFAULT_SCROLL_ID;
 
-  const animatedRef = useAnimatedRef<any>(); // TODO: better typing
+  const localRef = useAnimatedRef<any>(); // TODO: better typing
+  const animatedRef = options?.animatedRef ?? localRef;
+  const refreshControl = options?.refreshControl;
+  const refreshing = options?.refreshing;
+  const onRefresh = options?.onRefresh;
+  const progressViewOffset =
+    options?.progressViewOffset ?? originalHeaderHeight;
 
   useEffect(() => {
     return () => {
@@ -210,10 +242,18 @@ export function useScrollManager(scrollId?: string): ScrollManagerConfig {
     };
   });
 
+  const resolvedRefreshControl = resolveRefreshControl({
+    refreshControl,
+    refreshing,
+    onRefresh,
+    progressViewOffset,
+  });
+
   const scrollableProps = {
     onScroll,
     scrollEventThrottle: 16,
     ref: animatedRef,
+    refreshControl: resolvedRefreshControl,
   };
   const headerMotionContext = {
     originalHeaderHeight,

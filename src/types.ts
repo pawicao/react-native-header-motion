@@ -1,3 +1,4 @@
+import type { ReactElement } from 'react';
 import type { LayoutChangeEvent, ScrollViewProps } from 'react-native';
 import type { AnimatedRef, SharedValue } from 'react-native-reanimated';
 import { DEFAULT_SCROLL_ID } from './utils/defaults';
@@ -56,6 +57,7 @@ export interface ScrollManagerConfig {
   scrollableProps: Required<
     Pick<ScrollViewProps, 'onScroll' | 'scrollEventThrottle'>
   > & {
+    refreshControl?: ReactElement;
     ref: AnimatedRef<any>; // TODO: better typing
   };
   headerMotionContext: ScrollManagerHeaderMotionContext;

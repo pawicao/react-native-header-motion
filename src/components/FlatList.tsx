@@ -1,18 +1,22 @@
 import { forwardRef, type ComponentProps, type ComponentRef } from 'react';
-import { ScrollView, type ScrollViewProps } from 'react-native';
-import Animated from 'react-native-reanimated';
+import Animated, { type AnimatedRef } from 'react-native-reanimated';
 import { HeaderMotionScrollManager } from './ScrollManager';
 
-type AnimatedFlatListProps<T = any> = ComponentProps<
-  typeof Animated.FlatList<T>
->;
+import type { ScrollViewProps } from 'react-native';
 
-export type HeaderMotionFlatListProps<T = any> = AnimatedFlatListProps<T> & {
+export type HeaderMotionFlatListProps<T = any> = ComponentProps<
+  typeof Animated.FlatList<T>
+> & {
   /**
    * Optional unique identifier for this scroll view.
    * Use this when you have multiple scroll views (e.g. in tabs) to track them separately.
    */
   scrollId?: string;
+  /**
+   * Optional animated ref to use for the flat list.
+   * When provided, the scroll manager will use this ref instead of creating its own.
+   */
+  animatedRef?: AnimatedRef<any>;
 };
 
 /**
@@ -34,26 +38,40 @@ export type HeaderMotionFlatListProps<T = any> = AnimatedFlatListProps<T> & {
  */
 export function HeaderMotionFlatList<T = any>({
   scrollId,
+  animatedRef,
+  contentContainerStyle,
   ...props
 }: HeaderMotionFlatListProps<T>) {
   return (
-    <HeaderMotionScrollManager scrollId={scrollId}>
+    <HeaderMotionScrollManager
+      scrollId={scrollId}
+      animatedRef={animatedRef}
+      refreshControl={props.refreshControl}
+      refreshing={props.refreshing}
+      onRefresh={props.onRefresh}
+      progressViewOffset={props.progressViewOffset}
+    >
       {(
-        { onScroll, ...scrollViewProps },
+        { onScroll, refreshControl: managedRefreshControl, ...scrollViewProps },
         { originalHeaderHeight, minHeightContentContainerStyle }
       ) => (
         <Animated.FlatList
           {...scrollViewProps}
           {...props}
           onScroll={onScroll}
-          renderScrollComponent={(propsz) => (
-            <AnimatedScrollContainer {...propsz} />
+          {...(managedRefreshControl && {
+            refreshControl: managedRefreshControl,
+          })}
+          renderScrollComponent={(scrollComponentProps) => (
+            <AnimatedScrollContainer
+              {...scrollComponentProps}
+              contentContainerStyle={[
+                minHeightContentContainerStyle,
+                { paddingTop: originalHeaderHeight },
+                contentContainerStyle,
+              ]}
+            />
           )}
-          contentContainerStyle={[
-            minHeightContentContainerStyle,
-            { paddingTop: originalHeaderHeight },
-            props.contentContainerStyle,
-          ]}
         />
       )}
     </HeaderMotionScrollManager>
@@ -61,12 +79,12 @@ export function HeaderMotionFlatList<T = any>({
 }
 
 const AnimatedScrollContainer = forwardRef<
-  ComponentRef<typeof ScrollView>,
+  ComponentRef<typeof Animated.ScrollView>,
   ScrollViewProps
 >(({ children, contentContainerStyle, ...rest }, ref) => {
   return (
-    <ScrollView {...rest} ref={ref}>
+    <Animated.ScrollView {...rest} ref={ref}>
       <Animated.View style={contentContainerStyle}>{children}</Animated.View>
-    </ScrollView>
+    </Animated.ScrollView>
   );
 });
