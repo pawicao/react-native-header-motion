@@ -93,6 +93,7 @@ export function AnimatedHeaderBase({
           );
         })
         .shouldCancelWhenOutside(false),
+    // TODO: Android seems to work without gesture handler at all? probably need a prop to control how it should behave and then we either block external gesture and let GH handle it fully OR disable this on android completely
     // .blocksExternalGesture(scrollRef), <-- maybe not needed
     [enableHeaderPan, scrollToRef, momentumScrollOffset]
   );

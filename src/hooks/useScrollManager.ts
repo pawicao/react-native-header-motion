@@ -109,6 +109,7 @@ export function useScrollManager(
     () => activeScrollId?.get(),
     (activeId) => {
       if (!activeId || activeId === scrollId) {
+        // TODO: Could we just be passing current scrollRef instead of the entire function?
         scrollToRef.current = (y, scrollOptions = {}) => {
           'worklet';
           const { isValueDelta = true, animated = false } = scrollOptions;
