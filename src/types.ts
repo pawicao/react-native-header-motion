@@ -42,6 +42,7 @@ export interface MotionProgress {
   progressThreshold: SharedValue<number>;
   measureTotalHeight: MeasureAnimatedHeaderAndSet;
   measureDynamic: MeasureAnimatedHeaderAndSet;
+  enableHeaderPan: boolean;
   scrollToRef: React.RefObject<ScrollTo | null>;
   scrollValues: SharedValue<ScrollValues>;
   activeScrollId: SharedValue<string> | undefined;

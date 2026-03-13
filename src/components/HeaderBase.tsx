@@ -16,7 +16,7 @@ import type { MotionProgress } from '../types';
 
 export type HeaderBaseProps = ViewProps;
 export type AnimatedHeaderBaseProps = AnimatedProps<ViewProps> &
-  Partial<Pick<MotionProgress, 'scrollToRef'>>;
+  Partial<Pick<MotionProgress, 'scrollToRef' | 'enableHeaderPan'>>;
 
 /**
  * Base header component with absolute positioning.
@@ -56,6 +56,7 @@ export function HeaderBase({ style, ...rest }: HeaderBaseProps) {
 export function AnimatedHeaderBase({
   style,
   scrollToRef,
+  enableHeaderPan = false,
   ...rest
 }: AnimatedHeaderBaseProps) {
   const momentumScrollOffset = useSharedValue<number | null>(null);
@@ -74,6 +75,7 @@ export function AnimatedHeaderBase({
   const pan = useMemo(
     () =>
       Gesture.Pan()
+        .enabled(enableHeaderPan)
         .onChange((e) => {
           const dy = e.changeY;
           scrollToRef?.current?.(dy);
@@ -92,7 +94,7 @@ export function AnimatedHeaderBase({
         })
         .shouldCancelWhenOutside(false),
     // .blocksExternalGesture(scrollRef), <-- maybe not needed
-    [scrollToRef, momentumScrollOffset]
+    [enableHeaderPan, scrollToRef, momentumScrollOffset]
   );
 
   return (

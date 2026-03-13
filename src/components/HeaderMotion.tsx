@@ -62,6 +62,10 @@ export interface HeaderMotionProps<T extends string> {
    * @default Extrapolation.CLAMP
    */
   progressExtrapolation?: ExtrapolationType;
+  /** Enables panning directly on the header surface.
+   * @default false
+   */
+  enableHeaderPan?: boolean;
   /** Child components that will have access to the header motion context */
   children: ReactNode;
 }
@@ -77,6 +81,7 @@ function HeaderMotionContextProvider<T extends string>({
   measureDynamicMode = 'mount',
   activeScrollId,
   progressExtrapolation = Extrapolation.CLAMP,
+  enableHeaderPan = false,
   children,
 }: HeaderMotionProps<T>) {
   const dynamicMeasurement = useSharedValue<number | undefined>(undefined);
@@ -186,6 +191,7 @@ function HeaderMotionContextProvider<T extends string>({
       originalHeaderHeight,
       measureDynamic: setOrUpdateDynamicMeasurement,
       measureTotalHeight,
+      enableHeaderPan,
       progressThreshold: progressThresholdValue,
       scrollValues,
       scrollToRef,
@@ -195,6 +201,7 @@ function HeaderMotionContextProvider<T extends string>({
       originalHeaderHeight,
       progress,
       measureTotalHeight,
+      enableHeaderPan,
       setOrUpdateDynamicMeasurement,
       scrollValues,
       activeScrollId,

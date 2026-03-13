@@ -14,7 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function Screen() {
   return (
-    <HeaderMotion>
+    <HeaderMotion enableHeaderPan>
       <HeaderMotion.Header>
         {(headerProps) => (
           <Stack.Screen
@@ -34,6 +34,7 @@ function CollapsibleHeader({
   measureTotalHeight,
   measureDynamic,
   progressThreshold,
+  enableHeaderPan,
   scrollToRef,
 }: WithCollapsibleHeaderProps) {
   const insets = useSafeAreaInsets();
@@ -88,6 +89,7 @@ function CollapsibleHeader({
 
   return (
     <AnimatedHeaderBase
+      enableHeaderPan={enableHeaderPan}
       scrollToRef={scrollToRef}
       onLayout={measureTotalHeight}
       style={[styles.headerWrapper, { paddingTop: insets.top }, containerStyle]}

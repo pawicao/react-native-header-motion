@@ -11,6 +11,7 @@ interface HeaderMotionContextType {
   progress: Progress;
   measureTotalHeight: MeasureAnimatedHeaderAndSet;
   measureDynamic: MeasureAnimatedHeaderAndSet;
+  enableHeaderPan: boolean;
   scrollValues: SharedValue<ScrollValues>;
   activeScrollId: SharedValue<string> | undefined;
   progressThreshold: SharedValue<number>;
