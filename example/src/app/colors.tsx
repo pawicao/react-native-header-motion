@@ -69,28 +69,14 @@ export default function Screen() {
         onPageSelected={onPageSelected}
       >
         <View key="A">
-          <HeaderMotion.ScrollManager scrollId="A">
-            {(scrollViewProps, { originalHeaderHeight }) => (
-              <Animated.ScrollView
-                {...scrollViewProps}
-                contentContainerStyle={{ paddingTop: originalHeaderHeight }}
-              >
-                {content}
-              </Animated.ScrollView>
-            )}
-          </HeaderMotion.ScrollManager>
+          <HeaderMotion.ScrollView scrollId="A">
+            {content}
+          </HeaderMotion.ScrollView>
         </View>
         <View key="B">
-          <HeaderMotion.ScrollManager scrollId="B">
-            {(scrollViewProps, { originalHeaderHeight }) => (
-              <Animated.ScrollView
-                {...scrollViewProps}
-                contentContainerStyle={{ paddingTop: originalHeaderHeight }}
-              >
-                {content}
-              </Animated.ScrollView>
-            )}
-          </HeaderMotion.ScrollManager>
+          <HeaderMotion.ScrollView scrollId="B">
+            {content}
+          </HeaderMotion.ScrollView>
         </View>
       </PagerView>
     </HeaderMotion>
@@ -109,7 +95,7 @@ function CollapsibleHeader({
   const animatedStyle = useAnimatedStyle(() => {
     return {
       backgroundColor: interpolateColor(
-        progress.value,
+        progress.get(),
         [0, 1],
         ['#E3CBFC', '#FFFCC0']
       ),

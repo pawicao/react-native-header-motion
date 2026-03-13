@@ -1,9 +1,5 @@
 import type { ReactElement } from 'react';
-import type {
-  LayoutChangeEvent,
-  RefreshControlProps,
-  ScrollViewProps,
-} from 'react-native';
+import type { LayoutChangeEvent, ScrollViewProps } from 'react-native';
 import type { AnimatedRef, SharedValue } from 'react-native-reanimated';
 import { DEFAULT_SCROLL_ID } from './utils/defaults';
 
@@ -43,13 +39,13 @@ export type WithCollapsiblePagedHeaderProps<
 
 export interface MotionProgress {
   progress: Progress;
-  progressThreshold: number;
+  progressThreshold: SharedValue<number>;
   measureTotalHeight: MeasureAnimatedHeaderAndSet;
   measureDynamic: MeasureAnimatedHeaderAndSet;
 }
 
 export interface ScrollManagerHeaderMotionContext {
-  originalHeaderHeight: number;
+  originalHeaderHeight: SharedValue<number>;
   minHeightContentContainerStyle:
     | {}
     | {
@@ -61,7 +57,7 @@ export interface ScrollManagerConfig {
   scrollableProps: Required<
     Pick<ScrollViewProps, 'onScroll' | 'scrollEventThrottle'>
   > & {
-    refreshControl?: ReactElement<RefreshControlProps>;
+    refreshControl?: ReactElement;
     ref: AnimatedRef<any>; // TODO: better typing
   };
   headerMotionContext: ScrollManagerHeaderMotionContext;

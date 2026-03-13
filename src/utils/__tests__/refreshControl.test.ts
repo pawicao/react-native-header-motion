@@ -2,6 +2,21 @@ import React from 'react';
 import { RefreshControl } from 'react-native';
 import { resolveRefreshControl } from '../refreshControl';
 
+jest.mock('react-native-reanimated', () => {
+  const ReactActual = require('react');
+
+  return {
+    __esModule: true,
+    default: {
+      createAnimatedComponent: (Component: any) =>
+        function MockAnimatedComponent(props: any) {
+          return ReactActual.createElement(Component, props);
+        },
+    },
+    useAnimatedProps: (factory: () => object) => factory(),
+  };
+});
+
 describe('resolveRefreshControl', () => {
   it('injects progressViewOffset into explicit refreshControl when missing', () => {
     const onRefresh = jest.fn();
@@ -33,7 +48,10 @@ describe('resolveRefreshControl', () => {
       progressViewOffset: 72,
     });
 
-    expect(resolved).toBe(refreshControl);
+    expect(resolved).toBeDefined();
+    expect(resolved?.type).toBe(refreshControl.type);
+    expect(resolved?.props.refreshing).toBe(false);
+    expect(resolved?.props.onRefresh).toBe(onRefresh);
     expect(resolved?.props.progressViewOffset).toBe(24);
   });
 
@@ -47,7 +65,7 @@ describe('resolveRefreshControl', () => {
     });
 
     expect(resolved).toBeDefined();
-    expect(resolved?.type).toBe(RefreshControl);
+    expect(typeof resolved?.type).toBe('function');
     expect(resolved?.props.refreshing).toBe(true);
     expect(resolved?.props.onRefresh).toBe(onRefresh);
     expect(resolved?.props.progressViewOffset).toBe(64);
@@ -69,7 +87,9 @@ describe('resolveRefreshControl', () => {
       progressViewOffset: 72,
     });
 
-    expect(resolved).toBe(refreshControl);
+    expect(resolved).toBeDefined();
+    expect(resolved?.type).toBe(refreshControl.type);
+    expect(resolved?.props.refreshing).toBe(false);
     expect(resolved?.props.onRefresh).toBe(explicitOnRefresh);
     expect(resolved?.props.progressViewOffset).toBe(24);
   });

@@ -12,11 +12,18 @@ import {
 import { RuntimeKind, scheduleOnUI } from 'react-native-worklets';
 import { HeaderMotionContext } from '../context';
 import type { ScrollManagerConfig, ScrollValues } from '../types';
-import { DEFAULT_SCROLL_ID, getInitialScrollValue } from '../utils';
 import {
   resolveRefreshControl,
+  DEFAULT_SCROLL_ID,
+  getInitialScrollValue,
   type ResolveRefreshControlOptions,
-} from './refreshControl';
+} from '../utils';
+
+type ScrollHandlerContext = {
+  lastOffset: number | undefined;
+};
+
+const SCROLL_TOLERANCE = 0.5;
 
 /**
  * Hook that manages scroll tracking and synchronization for header animations.
@@ -131,6 +138,7 @@ export function useScrollManager(
       }
 
       let newCur = -1;
+      const threshold = progressThreshold.get();
 
       scrollValues.modify((value) => {
         let scrollValue = value[id];
@@ -140,8 +148,8 @@ export function useScrollManager(
         }
 
         const progressDiff = oldProgress - newProgress;
-        newCur = scrollValue.current - progressDiff * progressThreshold;
-        const newMin = newCur - newProgress * progressThreshold;
+        newCur = scrollValue.current - progressDiff * threshold;
+        const newMin = newCur - newProgress * threshold;
         scrollValue.current = newCur;
         scrollValue.min = newMin;
 
@@ -154,29 +162,58 @@ export function useScrollManager(
     }
   );
 
-  const scrollHandler = useCallback<ScrollHandler>(
-    (e) => {
+  const scrollHandler = useCallback<ScrollHandler<ScrollHandlerContext>>(
+    (e, ctx) => {
       'worklet';
+      const newCurrent = e.contentOffset.y;
+
+      if (
+        ctx.lastOffset !== undefined &&
+        Math.abs(ctx.lastOffset - newCurrent) < SCROLL_TOLERANCE
+      ) {
+        return;
+      }
+      ctx.lastOffset = newCurrent;
+
+      const threshold = progressThreshold.get();
+      const values = scrollValues.get();
+      const scrollValue = values[id];
+
+      if (!scrollValue) {
+        return;
+      }
+
+      const activeScrollIdValue = activeScrollId?.get();
+      if (activeScrollIdValue && activeScrollIdValue !== id) {
+        return;
+      }
+
+      const oldCurrent = scrollValue.current;
+      const oldMin = scrollValue.min;
+      const isCollapsed = oldCurrent >= oldMin + threshold - 0.001;
+
+      // When the header is fully collapsed and the user is scrolled past the
+      // threshold, progress is mathematically guaranteed to stay at 1:
+      //   min = newCurrent - threshold  →  (newCurrent - min) / threshold = 1
+      // In this case we update the values directly via .get() instead of
+      // .modify(), which avoids triggering the reactive cascade (progress
+      // re-derivation, animated reactions, animated styles). The values are
+      // still updated in-place for tab synchronization correctness.
+      if (isCollapsed && newCurrent >= threshold) {
+        scrollValue.current = newCurrent;
+        scrollValue.min = newCurrent - threshold;
+        return;
+      }
 
       scrollValues.modify((value) => {
         if (!value[id]) {
           return value;
         }
 
-        const activeScrollIdValue = activeScrollId?.get();
-        if (activeScrollIdValue && activeScrollIdValue !== id) {
-          return value;
-        }
-
-        const oldCurrent = value[id].current;
-        const oldMin = value[id].min;
-        const isCollapsed = oldCurrent >= oldMin + progressThreshold - 0.001;
-
-        const newCurrent = e.contentOffset.y;
         value[id].current = newCurrent;
 
         if (isCollapsed) {
-          value[id].min = Math.max(0, newCurrent - progressThreshold);
+          value[id].min = Math.max(0, newCurrent - threshold);
         }
 
         return value;
@@ -188,6 +225,8 @@ export function useScrollManager(
   const onScroll = useAnimatedScrollHandler(scrollHandler);
 
   const minHeightContentContainerStyle = useAnimatedStyle(() => {
+    const threshold = progressThreshold.get();
+
     if (globalThis.__RUNTIME_KIND === RuntimeKind.ReactNative) {
       return {};
     }
@@ -199,7 +238,7 @@ export function useScrollManager(
     }
 
     return {
-      minHeight: measurement.height + progressThreshold,
+      minHeight: measurement.height + threshold,
     };
   });
 

@@ -24,7 +24,24 @@ export default function Screen() {
           />
         )}
       </HeaderMotion.Header>
-      <HeaderMotion.ScrollView>{content}</HeaderMotion.ScrollView>
+
+      <HeaderMotion.ScrollManager>
+        {(
+          scrollViewProps,
+          { originalHeaderHeight, minHeightContentContainerStyle }
+        ) => (
+          <Animated.ScrollView {...scrollViewProps}>
+            <Animated.View
+              style={[
+                minHeightContentContainerStyle,
+                { paddingTop: originalHeaderHeight },
+              ]}
+            >
+              {content}
+            </Animated.View>
+          </Animated.ScrollView>
+        )}
+      </HeaderMotion.ScrollManager>
     </HeaderMotion>
   );
 }
@@ -40,7 +57,7 @@ function CollapsibleHeader({
   const containerStyle = useAnimatedStyle(() => {
     const threshold = progressThreshold.get();
     const translateY = interpolate(
-      progress.value,
+      progress.get(),
       [0, 1],
       [0, -threshold],
       Extrapolation.CLAMP
@@ -51,7 +68,7 @@ function CollapsibleHeader({
   const titleStyle = useAnimatedStyle(() => {
     const threshold = progressThreshold.get();
     const translateY = interpolate(
-      progress.value,
+      progress.get(),
       [0, 1],
       [0, threshold],
       Extrapolation.CLAMP
@@ -62,19 +79,19 @@ function CollapsibleHeader({
   const boxSectionStyle = useAnimatedStyle(() => {
     const threshold = progressThreshold.get();
     const parallaxTranslateY = interpolate(
-      progress.value,
+      progress.get(),
       [0, 1],
       [0, threshold * 0.5],
       Extrapolation.CLAMP
     );
     const opacity = interpolate(
-      progress.value,
+      progress.get(),
       [0, 1 * 0.6],
       [1, 0],
       Extrapolation.CLAMP
     );
     const scale = interpolate(
-      progress.value,
+      progress.get(),
       [0, 1],
       [1, 0.8],
       Extrapolation.CLAMP
@@ -91,7 +108,7 @@ function CollapsibleHeader({
       style={[styles.headerWrapper, { paddingTop: insets.top }, containerStyle]}
     >
       <Animated.View style={[titleStyle]}>
-        <TitleWithSubtitle title="Short Content" subtitle="Min height test" />
+        <TitleWithSubtitle title="Title" subtitle="Subtitle" />
       </Animated.View>
 
       <View style={styles.dynamicContent}>
@@ -126,8 +143,7 @@ const styles = StyleSheet.create({
 });
 
 const content = generateContent({
-  count: 3,
+  count: 500,
   backgroundColor: '#E3CBFC',
   textColor: '#304077',
-  label: 'Short List Item',
 });

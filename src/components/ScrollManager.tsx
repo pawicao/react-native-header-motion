@@ -1,6 +1,6 @@
 import { useScrollManager } from '../hooks';
 import type { ScrollManagerConfig } from '../types';
-import type { ResolveRefreshControlOptions } from '../hooks/refreshControl';
+import type { ResolveRefreshControlOptions } from '../utils';
 import type { ReactNode } from 'react';
 import type { AnimatedRef } from 'react-native-reanimated';
 

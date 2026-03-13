@@ -43,30 +43,33 @@ function CollapsibleHeader({
   const insets = useSafeAreaInsets();
 
   const containerStyle = useAnimatedStyle(() => {
+    const threshold = progressThreshold.get();
     const translateY = interpolate(
       progress.value,
       [0, 1],
-      [0, -progressThreshold],
+      [0, -threshold],
       Extrapolation.CLAMP
     );
     return { transform: [{ translateY }] };
   });
 
   const titleStyle = useAnimatedStyle(() => {
+    const threshold = progressThreshold.get();
     const translateY = interpolate(
       progress.value,
       [0, 1],
-      [0, progressThreshold],
+      [0, threshold],
       Extrapolation.CLAMP
     );
     return { transform: [{ translateY }] };
   });
 
   const boxSectionStyle = useAnimatedStyle(() => {
+    const threshold = progressThreshold.get();
     const parallaxTranslateY = interpolate(
       progress.value,
       [0, 1],
-      [0, progressThreshold * 0.5],
+      [0, threshold * 0.5],
       Extrapolation.CLAMP
     );
     const opacity = interpolate(

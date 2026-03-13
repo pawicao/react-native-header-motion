@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import {
   Extrapolation,
   interpolate,
@@ -78,43 +78,63 @@ function HeaderMotionContextProvider<T extends string>({
   progressExtrapolation = Extrapolation.CLAMP,
   children,
 }: HeaderMotionProps<T>) {
-  const [dynamicMeasurement, setDynamicMeasurement] = useState<
-    number | undefined
-  >(undefined);
-  const [originalHeaderHeight, setOriginalHeaderHeight] = useState(0);
+  const dynamicMeasurement = useSharedValue<number | undefined>(undefined);
+  const originalHeaderHeight = useSharedValue(0);
+  const progressThresholdValue = useSharedValue(
+    typeof progressThreshold === 'number' ? progressThreshold : Infinity
+  );
 
   const setOrUpdateDynamicMeasurement =
     useCallback<MeasureAnimatedHeaderAndSet>(
       (e) => {
-        const measured = measureDynamic(e);
-        setDynamicMeasurement((prevMeasurement) => {
-          if (prevMeasurement !== undefined && measureDynamicMode === 'mount') {
-            return prevMeasurement;
-          }
+        const prevMeasurement = dynamicMeasurement.get();
+        if (prevMeasurement !== undefined && measureDynamicMode === 'mount') {
+          return;
+        }
 
-          return measured;
-        });
+        const measured = measureDynamic(e);
+        if (prevMeasurement === measured) {
+          return;
+        }
+
+        dynamicMeasurement.set(measured);
+        progressThresholdValue.set(
+          typeof progressThreshold === 'number'
+            ? progressThreshold
+            : progressThreshold(measured)
+        );
       },
-      [measureDynamicMode, measureDynamic, setDynamicMeasurement]
+      [
+        measureDynamicMode,
+        measureDynamic,
+        dynamicMeasurement,
+        progressThreshold,
+        progressThresholdValue,
+      ]
     );
 
-  const calculatedProgressThreshold = useMemo(() => {
+  useEffect(() => {
     if (typeof progressThreshold === 'number') {
-      return progressThreshold;
+      progressThresholdValue.set(progressThreshold);
+      return;
     }
 
-    if (dynamicMeasurement === undefined) {
-      return Infinity;
-    }
-    return progressThreshold(dynamicMeasurement);
-  }, [dynamicMeasurement, progressThreshold]);
+    const measured = dynamicMeasurement.get();
+    progressThresholdValue.set(
+      measured === undefined ? Infinity : progressThreshold(measured)
+    );
+  }, [progressThreshold, dynamicMeasurement, progressThresholdValue]);
 
   const measureTotalHeight = useCallback<MeasureAnimatedHeaderAndSet>(
     (e) => {
       const measuredValue = e.nativeEvent.layout.height;
-      setOriginalHeaderHeight(measuredValue);
+      if (originalHeaderHeight.get() === measuredValue) {
+        return;
+      }
+
+      originalHeaderHeight.set(measuredValue);
     },
-    [setOriginalHeaderHeight]
+    [originalHeaderHeight]
   );
 
   const scrollValues = useSharedValue<ScrollValues>({
@@ -138,6 +158,7 @@ function HeaderMotionContextProvider<T extends string>({
   const progress = useDerivedValue(() => {
     const id = activeScrollId?.get() ?? DEFAULT_SCROLL_ID;
     const scrollValue = scrollValues.get()[id];
+    const threshold = progressThresholdValue.get();
 
     if (!scrollValue) {
       return 0;
@@ -146,7 +167,7 @@ function HeaderMotionContextProvider<T extends string>({
     const { min, current } = scrollValue;
     return interpolate(
       current,
-      [min, min + calculatedProgressThreshold],
+      [min, min + threshold],
       [0, 1],
       progressExtrapolation
     );
@@ -158,7 +179,7 @@ function HeaderMotionContextProvider<T extends string>({
       originalHeaderHeight,
       measureDynamic: setOrUpdateDynamicMeasurement,
       measureTotalHeight,
-      progressThreshold: calculatedProgressThreshold,
+      progressThreshold: progressThresholdValue,
       scrollValues,
       activeScrollId: activeScrollId as SharedValue<string> | undefined,
     }),
@@ -169,7 +190,7 @@ function HeaderMotionContextProvider<T extends string>({
       setOrUpdateDynamicMeasurement,
       scrollValues,
       activeScrollId,
-      calculatedProgressThreshold,
+      progressThresholdValue,
     ]
   );
 

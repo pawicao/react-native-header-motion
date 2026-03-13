@@ -12,8 +12,8 @@ interface HeaderMotionContextType {
   measureDynamic: MeasureAnimatedHeaderAndSet;
   scrollValues: SharedValue<ScrollValues>;
   activeScrollId: SharedValue<string> | undefined;
-  progressThreshold: number;
-  originalHeaderHeight: number;
+  progressThreshold: SharedValue<number>;
+  originalHeaderHeight: SharedValue<number>;
 }
 
 export const HeaderMotionContext =
