@@ -45,8 +45,15 @@ export interface MotionProgress {
   enableHeaderPan: boolean;
   headerPanMomentumOffset: SharedValue<number | null>;
   scrollToRef: React.RefObject<ScrollTo | null>;
+  animatedHeaderBaseProps: AnimatedHeaderBaseMotionProps;
   scrollValues: SharedValue<ScrollValues>;
   activeScrollId: SharedValue<string> | undefined;
+}
+
+export interface AnimatedHeaderBaseMotionProps {
+  enableHeaderPan: boolean;
+  scrollToRef: React.RefObject<ScrollTo | null>;
+  headerPanMomentumOffset: SharedValue<number | null>;
 }
 
 export interface ScrollManagerHeaderMotionContext {

@@ -87,6 +87,7 @@ function CollapsibleHeader({
   progress,
   measureTotalHeight,
   measureDynamic,
+  animatedHeaderBaseProps,
   activeTab,
   onTabChange,
 }: WithCollapsiblePagedHeaderProps) {
@@ -104,6 +105,7 @@ function CollapsibleHeader({
 
   return (
     <AnimatedHeaderBase
+      animatedHeaderBaseProps={animatedHeaderBaseProps}
       onLayout={measureTotalHeight}
       style={[styles.headerWrapper, { paddingTop: insets.top }, animatedStyle]}
     >

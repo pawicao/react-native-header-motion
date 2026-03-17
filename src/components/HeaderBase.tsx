@@ -15,12 +15,7 @@ import type { MotionProgress } from '../types';
 
 export type HeaderBaseProps = ViewProps;
 export type AnimatedHeaderBaseProps = AnimatedProps<ViewProps> &
-  Partial<
-    Pick<
-      MotionProgress,
-      'scrollToRef' | 'enableHeaderPan' | 'headerPanMomentumOffset'
-    >
-  >;
+  Pick<MotionProgress, 'animatedHeaderBaseProps'>;
 
 /**
  * Base header component with absolute positioning.
@@ -59,20 +54,27 @@ export function HeaderBase({ style, ...rest }: HeaderBaseProps) {
 // TODO: May need to block momentum by forcing scrollTo
 export function AnimatedHeaderBase({
   style,
-  scrollToRef,
-  enableHeaderPan = false,
-  headerPanMomentumOffset,
+  animatedHeaderBaseProps,
   ...rest
 }: AnimatedHeaderBaseProps) {
-  const momentumScrollOffset = headerPanMomentumOffset;
+  if (!animatedHeaderBaseProps) {
+    throw new Error(
+      'AnimatedHeaderBase requires `animatedHeaderBaseProps`. Pass the value from HeaderMotion.Header or useMotionProgress.'
+    );
+  }
+
+  const {
+    enableHeaderPan,
+    scrollToRef,
+    headerPanMomentumOffset: momentumScrollOffset,
+  } = animatedHeaderBaseProps;
 
   useAnimatedReaction(
-    () => momentumScrollOffset?.get() ?? null,
+    () => momentumScrollOffset.get(),
     (offset, prevOffset) => {
       if (offset !== null) {
         const dy = offset - (prevOffset ?? 0);
-        scrollToRef?.current?.(dy);
-        // TODO: We gotta stop applying this as soon as the user starts scrolling by hand, otherwise we are stopping his scroll with our forced scrollTo
+        scrollToRef.current?.(dy);
       }
     }
   );
@@ -83,14 +85,10 @@ export function AnimatedHeaderBase({
         .enabled(enableHeaderPan)
         .onChange((e) => {
           const dy = e.changeY;
-          scrollToRef?.current?.(dy);
+          scrollToRef.current?.(dy);
         })
         // TODO: onEnd or onFinalize?
         .onEnd((e) => {
-          if (!momentumScrollOffset) {
-            return;
-          }
-
           momentumScrollOffset.set(
             withDecay(
               {
@@ -104,7 +102,8 @@ export function AnimatedHeaderBase({
         .shouldCancelWhenOutside(false),
     // TODO: Android seems to work without gesture handler at all? probably need a prop to control how it should behave and then we either block external gesture and let GH handle it fully OR disable this on android completely
     // .blocksExternalGesture(scrollRef), <-- maybe not needed
-    [enableHeaderPan, scrollToRef, momentumScrollOffset]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [enableHeaderPan, momentumScrollOffset]
   );
 
   return (

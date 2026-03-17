@@ -1,6 +1,7 @@
 import { createContext } from 'react';
 import { type SharedValue } from 'react-native-reanimated';
 import type {
+  AnimatedHeaderBaseMotionProps,
   MeasureAnimatedHeaderAndSet,
   Progress,
   ScrollTo,
@@ -13,6 +14,7 @@ interface HeaderMotionContextType {
   measureDynamic: MeasureAnimatedHeaderAndSet;
   enableHeaderPan: boolean;
   headerPanMomentumOffset: SharedValue<number | null>;
+  animatedHeaderBaseProps: AnimatedHeaderBaseMotionProps;
   scrollValues: SharedValue<ScrollValues>;
   activeScrollId: SharedValue<string> | undefined;
   progressThreshold: SharedValue<number>;

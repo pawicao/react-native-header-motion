@@ -185,6 +185,14 @@ function HeaderMotionContextProvider<T extends string>({
   // were not propagating reliably, while it works for refs. Revisit later.
   // We need to be updating the scrollTo on active scroll ID changes and doing it via state would cause re-renders.
   // It's a bit of an anti-pattern to use refs for this as well, but I am yet to figure out a better way to pass those if SV won't work.
+  const animatedHeaderBaseProps = useMemo(
+    () => ({
+      enableHeaderPan,
+      scrollToRef,
+      headerPanMomentumOffset,
+    }),
+    [enableHeaderPan, headerPanMomentumOffset]
+  );
 
   const ctxValue = useMemo(
     () => ({
@@ -194,6 +202,7 @@ function HeaderMotionContextProvider<T extends string>({
       measureTotalHeight,
       enableHeaderPan,
       headerPanMomentumOffset,
+      animatedHeaderBaseProps,
       progressThreshold: progressThresholdValue,
       scrollValues,
       scrollToRef,
@@ -205,6 +214,7 @@ function HeaderMotionContextProvider<T extends string>({
       measureTotalHeight,
       enableHeaderPan,
       headerPanMomentumOffset,
+      animatedHeaderBaseProps,
       setOrUpdateDynamicMeasurement,
       scrollValues,
       activeScrollId,

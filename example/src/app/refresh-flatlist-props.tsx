@@ -52,6 +52,7 @@ function CollapsibleHeader({
   measureTotalHeight,
   measureDynamic,
   progressThreshold,
+  animatedHeaderBaseProps,
 }: WithCollapsibleHeaderProps) {
   const insets = useSafeAreaInsets();
 
@@ -105,6 +106,7 @@ function CollapsibleHeader({
 
   return (
     <AnimatedHeaderBase
+      animatedHeaderBaseProps={animatedHeaderBaseProps}
       onLayout={measureTotalHeight}
       style={[styles.headerWrapper, { paddingTop: insets.top }, containerStyle]}
     >
