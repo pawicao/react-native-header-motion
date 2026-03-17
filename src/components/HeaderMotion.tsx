@@ -89,6 +89,7 @@ function HeaderMotionContextProvider<T extends string>({
   const progressThresholdValue = useSharedValue(
     typeof progressThreshold === 'number' ? progressThreshold : Infinity
   );
+  const headerPanMomentumOffset = useSharedValue<number | null>(null);
 
   const setOrUpdateDynamicMeasurement =
     useCallback<MeasureAnimatedHeaderAndSet>(
@@ -192,6 +193,7 @@ function HeaderMotionContextProvider<T extends string>({
       measureDynamic: setOrUpdateDynamicMeasurement,
       measureTotalHeight,
       enableHeaderPan,
+      headerPanMomentumOffset,
       progressThreshold: progressThresholdValue,
       scrollValues,
       scrollToRef,
@@ -202,6 +204,7 @@ function HeaderMotionContextProvider<T extends string>({
       progress,
       measureTotalHeight,
       enableHeaderPan,
+      headerPanMomentumOffset,
       setOrUpdateDynamicMeasurement,
       scrollValues,
       activeScrollId,

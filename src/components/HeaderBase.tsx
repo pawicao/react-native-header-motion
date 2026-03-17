@@ -7,7 +7,6 @@ import {
 } from 'react-native-gesture-handler';
 import Animated, {
   useAnimatedReaction,
-  useSharedValue,
   withDecay,
   type AnimatedProps,
 } from 'react-native-reanimated';
@@ -16,7 +15,12 @@ import type { MotionProgress } from '../types';
 
 export type HeaderBaseProps = ViewProps;
 export type AnimatedHeaderBaseProps = AnimatedProps<ViewProps> &
-  Partial<Pick<MotionProgress, 'scrollToRef' | 'enableHeaderPan'>>;
+  Partial<
+    Pick<
+      MotionProgress,
+      'scrollToRef' | 'enableHeaderPan' | 'headerPanMomentumOffset'
+    >
+  >;
 
 /**
  * Base header component with absolute positioning.
@@ -57,12 +61,13 @@ export function AnimatedHeaderBase({
   style,
   scrollToRef,
   enableHeaderPan = false,
+  headerPanMomentumOffset,
   ...rest
 }: AnimatedHeaderBaseProps) {
-  const momentumScrollOffset = useSharedValue<number | null>(null);
+  const momentumScrollOffset = headerPanMomentumOffset;
 
   useAnimatedReaction(
-    () => momentumScrollOffset.get(),
+    () => momentumScrollOffset?.get() ?? null,
     (offset, prevOffset) => {
       if (offset !== null) {
         const dy = offset - (prevOffset ?? 0);
@@ -82,6 +87,10 @@ export function AnimatedHeaderBase({
         })
         // TODO: onEnd or onFinalize?
         .onEnd((e) => {
+          if (!momentumScrollOffset) {
+            return;
+          }
+
           momentumScrollOffset.set(
             withDecay(
               {

@@ -1,5 +1,6 @@
 import { useContext, useCallback, useEffect } from 'react';
 import {
+  cancelAnimation,
   measure,
   scrollTo,
   useAnimatedReaction,
@@ -94,6 +95,7 @@ export function useScrollManager(
     progressThreshold,
     originalHeaderHeight,
     scrollToRef,
+    headerPanMomentumOffset,
   } = ctxValue;
   const id = scrollId ?? DEFAULT_SCROLL_ID;
 
@@ -178,7 +180,7 @@ export function useScrollManager(
     }
   );
 
-  const scrollHandler = useCallback<ScrollHandler<ScrollHandlerContext>>(
+  const onScroll = useCallback<ScrollHandler<ScrollHandlerContext>>(
     (e, ctx) => {
       'worklet';
       const newCurrent = e.contentOffset.y;
@@ -238,7 +240,20 @@ export function useScrollManager(
     [scrollValues, id, activeScrollId, progressThreshold]
   );
 
-  const onScroll = useAnimatedScrollHandler(scrollHandler);
+  const onBeginDrag = useCallback<ScrollHandler<ScrollHandlerContext>>(() => {
+    'worklet';
+    if (headerPanMomentumOffset.get() === null) {
+      return;
+    }
+
+    cancelAnimation(headerPanMomentumOffset);
+    headerPanMomentumOffset.set(null);
+  }, [headerPanMomentumOffset]);
+
+  const animatedOnScroll = useAnimatedScrollHandler({
+    onBeginDrag,
+    onScroll,
+  });
 
   const minHeightContentContainerStyle = useAnimatedStyle(() => {
     const threshold = progressThreshold.get();
@@ -266,7 +281,7 @@ export function useScrollManager(
   });
 
   const scrollableProps = {
-    onScroll,
+    onScroll: animatedOnScroll,
     scrollEventThrottle: 16,
     ref: animatedRef,
     refreshControl: resolvedRefreshControl,

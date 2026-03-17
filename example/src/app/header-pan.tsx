@@ -36,6 +36,7 @@ function CollapsibleHeader({
   progressThreshold,
   enableHeaderPan,
   scrollToRef,
+  headerPanMomentumOffset,
 }: WithCollapsibleHeaderProps) {
   const insets = useSafeAreaInsets();
 
@@ -91,6 +92,7 @@ function CollapsibleHeader({
     <AnimatedHeaderBase
       enableHeaderPan={enableHeaderPan}
       scrollToRef={scrollToRef}
+      headerPanMomentumOffset={headerPanMomentumOffset}
       onLayout={measureTotalHeight}
       style={[styles.headerWrapper, { paddingTop: insets.top }, containerStyle]}
     >
