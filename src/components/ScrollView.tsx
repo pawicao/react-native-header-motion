@@ -14,7 +14,8 @@ export type HeaderMotionScrollViewProps = AnimatedScrollViewProps & {
    * Optional animated ref to use for the scroll view.
    * When provided, the scroll manager will use this ref instead of creating its own.
    */
-  animatedRef?: AnimatedRef<any>;
+  // @ts-expect-error 4.2.0 of reanimated should help here? TODO
+  animatedRef?: AnimatedRef<Animated.ScrollView>;
 };
 
 /**
@@ -46,12 +47,18 @@ export function HeaderMotionScrollView({
       refreshControl={refreshControl}
     >
       {(
-        { onScroll, refreshControl: managedRefreshControl, ...scrollViewProps },
+        {
+          onScroll,
+          ref,
+          refreshControl: managedRefreshControl,
+          ...scrollViewProps
+        },
         { originalHeaderHeight, minHeightContentContainerStyle }
       ) => (
         <Animated.ScrollView
           {...scrollViewProps}
           {...props}
+          ref={ref}
           onScroll={onScroll}
           {...(managedRefreshControl && {
             refreshControl: managedRefreshControl,

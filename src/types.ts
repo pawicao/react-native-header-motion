@@ -61,12 +61,13 @@ export interface ScrollManagerHeaderMotionContext {
       };
 }
 
-export interface ScrollManagerConfig {
+export interface ScrollManagerConfig<TRef = any> {
   scrollableProps: Required<
     Pick<ScrollViewProps, 'onScroll' | 'scrollEventThrottle'>
   > & {
     refreshControl?: ReactElement;
-    ref: AnimatedRef<any>; // TODO: better typing
+    // @ts-expect-error 4.2.0 of reanimated should help here? TODO
+    ref: AnimatedRef<TRef>;
   };
   headerMotionContext: ScrollManagerHeaderMotionContext;
 }

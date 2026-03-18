@@ -50,8 +50,8 @@ export function HeaderBase({ style, ...rest }: HeaderBaseProps) {
  */
 
 // TODO: Thinking about DX, perhaps creating another context in AnimatedHeaderBase or somewhere else could make sense
-// TODO: Intercept ongoing scroll when starting to pan (perhaps even on the tap itself but to be checked what feels better when using)
-// TODO: May need to block momentum by forcing scrollTo
+// Note: Depending on feedback, there might be a need to intercept ongoing scroll when starting to pan (perhaps even on the tap itself but to be checked what feels better when using)
+// Note: Depending on feedback, there might be a need to block momentum by forcing scrollTo
 export function AnimatedHeaderBase({
   style,
   animatedHeaderBaseProps,
@@ -87,7 +87,6 @@ export function AnimatedHeaderBase({
           const dy = e.changeY;
           scrollToRef.current?.(dy);
         })
-        // TODO: onEnd or onFinalize?
         .onEnd((e) => {
           momentumScrollOffset.set(
             withDecay(
@@ -102,8 +101,7 @@ export function AnimatedHeaderBase({
         .shouldCancelWhenOutside(false),
     // TODO: Android seems to work without gesture handler at all? probably need a prop to control how it should behave and then we either block external gesture and let GH handle it fully OR disable this on android completely
     // .blocksExternalGesture(scrollRef), <-- maybe not needed
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [enableHeaderPan, momentumScrollOffset]
+    [enableHeaderPan, scrollToRef, momentumScrollOffset]
   );
 
   return (

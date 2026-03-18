@@ -63,13 +63,14 @@ const SCROLL_TOLERANCE = 0.5;
  * }
  * ```
  */
-export interface UseScrollManagerOptions
+export interface UseScrollManagerOptions<TRef = any>
   extends Omit<ResolveRefreshControlOptions, 'progressViewOffset'> {
   /**
    * Optional animated ref to use instead of creating one internally.
    * Useful when you need access to the scroll view ref from outside.
    */
-  animatedRef?: AnimatedRef<any>;
+  // @ts-expect-error 4.2.0 of reanimated should help here? TODO
+  animatedRef?: AnimatedRef<TRef>;
   /**
    * Optional refresh progress offset override.
    * When provided, it takes precedence over the automatic offset based on header height.
@@ -77,10 +78,10 @@ export interface UseScrollManagerOptions
   progressViewOffset?: ResolveRefreshControlOptions['progressViewOffset'];
 }
 
-export function useScrollManager(
+export function useScrollManager<TRef = any>(
   scrollId?: string,
-  options?: UseScrollManagerOptions
-): ScrollManagerConfig {
+  options?: UseScrollManagerOptions<TRef>
+): ScrollManagerConfig<TRef> {
   const ctxValue = useContext(HeaderMotionContext);
   if (!ctxValue) {
     throw new Error(
@@ -99,7 +100,8 @@ export function useScrollManager(
   } = ctxValue;
   const id = scrollId ?? DEFAULT_SCROLL_ID;
 
-  const localRef = useAnimatedRef<any>(); // TODO: better typing
+  // @ts-expect-error 4.2.0 of reanimated should help here? TODO
+  const localRef = useAnimatedRef<TRef>();
   const animatedRef = options?.animatedRef ?? localRef;
   const refreshControl = options?.refreshControl;
   const refreshing = options?.refreshing;
@@ -116,6 +118,7 @@ export function useScrollManager(
           'worklet';
           const { isValueDelta = true, animated = false } = scrollOptions;
           const newY = isValueDelta ? scrollValues.get()[id]!.current - y : y;
+          // @ts-expect-error 4.2.0 of reanimated should help here? TODO
           scrollTo(animatedRef, 0, newY, animated);
         };
       }
@@ -175,6 +178,7 @@ export function useScrollManager(
       });
 
       if (newCur >= 0) {
+        // @ts-expect-error 4.2.0 of reanimated should help here? TODO
         scrollTo(animatedRef, 0, newCur, false);
       }
     }
@@ -262,6 +266,7 @@ export function useScrollManager(
       return {};
     }
 
+    // @ts-expect-error 4.2.0 of reanimated should help here? TODO
     const measurement = measure(animatedRef);
 
     if (!measurement) {

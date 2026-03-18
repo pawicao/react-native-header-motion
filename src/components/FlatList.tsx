@@ -16,7 +16,7 @@ export type HeaderMotionFlatListProps<T = any> = ComponentProps<
    * Optional animated ref to use for the flat list.
    * When provided, the scroll manager will use this ref instead of creating its own.
    */
-  animatedRef?: AnimatedRef<any>;
+  animatedRef?: AnimatedRef<Animated.FlatList<T>>;
 };
 
 /**
