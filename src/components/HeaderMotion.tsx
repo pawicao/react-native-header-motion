@@ -24,6 +24,32 @@ import {
   getInitialScrollValue,
 } from '../utils';
 
+const resolveScrollIdForProgress = (
+  scrollValues: ScrollValues,
+  activeScrollIdValue: string | undefined
+) => {
+  'worklet';
+
+  if (activeScrollIdValue) {
+    return activeScrollIdValue;
+  }
+
+  let onlyNonDefaultId: string | null = null;
+  for (const key in scrollValues) {
+    if (key === DEFAULT_SCROLL_ID) {
+      continue;
+    }
+
+    if (onlyNonDefaultId !== null) {
+      return DEFAULT_SCROLL_ID;
+    }
+
+    onlyNonDefaultId = key;
+  }
+
+  return onlyNonDefaultId ?? DEFAULT_SCROLL_ID;
+};
+
 export interface HeaderMotionProps<T extends string> {
   /**
    * The threshold at which the header animation completes (reaches progress = 1).
@@ -163,8 +189,9 @@ function HeaderMotionContextProvider<T extends string>({
   );
 
   const progress = useDerivedValue(() => {
-    const id = activeScrollId?.get() ?? DEFAULT_SCROLL_ID;
-    const scrollValue = scrollValues.get()[id];
+    const values = scrollValues.get();
+    const id = resolveScrollIdForProgress(values, activeScrollId?.get());
+    const scrollValue = values[id];
     const threshold = progressThresholdValue.get();
 
     if (!scrollValue) {

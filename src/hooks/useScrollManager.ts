@@ -12,11 +12,12 @@ import {
 } from 'react-native-reanimated';
 import { RuntimeKind, scheduleOnUI } from 'react-native-worklets';
 import { HeaderMotionContext } from '../context';
-import type { ScrollManagerConfig, ScrollValues } from '../types';
+import type { ScrollManagerConfig } from '../types';
 import {
   resolveRefreshControl,
   DEFAULT_SCROLL_ID,
-  getInitialScrollValue,
+  ensureScrollValueRegistered,
+  warnIfMissingActiveScrollId,
   type ResolveRefreshControlOptions,
 } from '../utils';
 import type { InstanceOrElement } from 'react-native-reanimated/lib/typescript/commonTypes';
@@ -111,7 +112,10 @@ export function useScrollManager<TRef extends InstanceOrElement = any>(
   useAnimatedReaction(
     () => activeScrollId?.get(),
     (activeId) => {
-      if (!activeId || activeId === scrollId) {
+      const currentValues = ensureScrollValueRegistered(scrollValues, id);
+      warnIfMissingActiveScrollId(currentValues, id, activeId);
+
+      if (!activeId || activeId === id) {
         // TODO: Could we just be passing current scrollRef instead of the entire function?
         scrollToRef.current = (y, scrollOptions = {}) => {
           'worklet';
@@ -149,21 +153,15 @@ export function useScrollManager<TRef extends InstanceOrElement = any>(
         return;
       }
 
-      if (!scrollValues.get()[id]) {
-        scrollValues.modify((value) => {
-          (value as ScrollValues)[id] = getInitialScrollValue();
-          return value;
-        });
-      }
+      ensureScrollValueRegistered(scrollValues, id);
 
       let newCur = -1;
       const threshold = progressThreshold.get();
 
       scrollValues.modify((value) => {
-        let scrollValue = value[id];
+        const scrollValue = value[id];
         if (!scrollValue) {
-          (value as ScrollValues)[id] = getInitialScrollValue();
-          scrollValue = value[id]!;
+          return value;
         }
 
         const progressDiff = oldProgress - newProgress;
