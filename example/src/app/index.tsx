@@ -46,6 +46,9 @@ export default function Screen() {
       <Link style={styles.link} href="/header-pan">
         Header Pan
       </Link>
+      <Link style={styles.link} href="/pager-header-pan">
+        Pager + Header Pan
+      </Link>
     </View>
   );
 }
