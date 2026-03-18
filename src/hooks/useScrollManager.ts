@@ -1,5 +1,6 @@
 import { useContext, useCallback, useEffect } from 'react';
 import {
+  cancelAnimation,
   measure,
   scrollTo,
   useAnimatedReaction,
@@ -11,13 +12,15 @@ import {
 } from 'react-native-reanimated';
 import { RuntimeKind, scheduleOnUI } from 'react-native-worklets';
 import { HeaderMotionContext } from '../context';
-import type { ScrollManagerConfig, ScrollValues } from '../types';
+import type { ScrollManagerConfig } from '../types';
 import {
   resolveRefreshControl,
   DEFAULT_SCROLL_ID,
-  getInitialScrollValue,
+  ensureScrollValueRegistered,
+  warnIfMissingActiveScrollId,
   type ResolveRefreshControlOptions,
 } from '../utils';
+import type { InstanceOrElement } from 'react-native-reanimated/lib/typescript/commonTypes';
 
 type ScrollHandlerContext = {
   lastOffset: number | undefined;
@@ -62,13 +65,13 @@ const SCROLL_TOLERANCE = 0.5;
  * }
  * ```
  */
-export interface UseScrollManagerOptions
+export interface UseScrollManagerOptions<TRef extends InstanceOrElement = any>
   extends Omit<ResolveRefreshControlOptions, 'progressViewOffset'> {
   /**
    * Optional animated ref to use instead of creating one internally.
    * Useful when you need access to the scroll view ref from outside.
    */
-  animatedRef?: AnimatedRef<any>;
+  animatedRef?: AnimatedRef<TRef>;
   /**
    * Optional refresh progress offset override.
    * When provided, it takes precedence over the automatic offset based on header height.
@@ -76,10 +79,10 @@ export interface UseScrollManagerOptions
   progressViewOffset?: ResolveRefreshControlOptions['progressViewOffset'];
 }
 
-export function useScrollManager(
+export function useScrollManager<TRef extends InstanceOrElement = any>(
   scrollId?: string,
-  options?: UseScrollManagerOptions
-): ScrollManagerConfig {
+  options?: UseScrollManagerOptions<TRef>
+): ScrollManagerConfig<TRef> {
   const ctxValue = useContext(HeaderMotionContext);
   if (!ctxValue) {
     throw new Error(
@@ -93,16 +96,36 @@ export function useScrollManager(
     activeScrollId,
     progressThreshold,
     originalHeaderHeight,
+    scrollToRef,
+    headerPanMomentumOffset,
   } = ctxValue;
   const id = scrollId ?? DEFAULT_SCROLL_ID;
 
-  const localRef = useAnimatedRef<any>(); // TODO: better typing
+  const localRef = useAnimatedRef<TRef>();
   const animatedRef = options?.animatedRef ?? localRef;
   const refreshControl = options?.refreshControl;
   const refreshing = options?.refreshing;
   const onRefresh = options?.onRefresh;
   const progressViewOffset =
     options?.progressViewOffset ?? originalHeaderHeight;
+
+  useAnimatedReaction(
+    () => activeScrollId?.get(),
+    (activeId) => {
+      const currentValues = ensureScrollValueRegistered(scrollValues, id);
+      warnIfMissingActiveScrollId(currentValues, id, activeId);
+
+      if (!activeId || activeId === id) {
+        // TODO: Could we just be passing current scrollRef instead of the entire function?
+        scrollToRef.current = (y, scrollOptions = {}) => {
+          'worklet';
+          const { isValueDelta = true, animated = false } = scrollOptions;
+          const newY = isValueDelta ? scrollValues.get()[id]!.current - y : y;
+          scrollTo(animatedRef, 0, newY, animated);
+        };
+      }
+    }
+  );
 
   useEffect(() => {
     return () => {
@@ -130,21 +153,15 @@ export function useScrollManager(
         return;
       }
 
-      if (!scrollValues.get()[id]) {
-        scrollValues.modify((value) => {
-          (value as ScrollValues)[id] = getInitialScrollValue();
-          return value;
-        });
-      }
+      ensureScrollValueRegistered(scrollValues, id);
 
       let newCur = -1;
       const threshold = progressThreshold.get();
 
       scrollValues.modify((value) => {
-        let scrollValue = value[id];
+        const scrollValue = value[id];
         if (!scrollValue) {
-          (value as ScrollValues)[id] = getInitialScrollValue();
-          scrollValue = value[id]!;
+          return value;
         }
 
         const progressDiff = oldProgress - newProgress;
@@ -162,7 +179,7 @@ export function useScrollManager(
     }
   );
 
-  const scrollHandler = useCallback<ScrollHandler<ScrollHandlerContext>>(
+  const onScroll = useCallback<ScrollHandler<ScrollHandlerContext>>(
     (e, ctx) => {
       'worklet';
       const newCurrent = e.contentOffset.y;
@@ -222,7 +239,20 @@ export function useScrollManager(
     [scrollValues, id, activeScrollId, progressThreshold]
   );
 
-  const onScroll = useAnimatedScrollHandler(scrollHandler);
+  const onBeginDrag = useCallback<ScrollHandler<ScrollHandlerContext>>(() => {
+    'worklet';
+    if (headerPanMomentumOffset.get() === null) {
+      return;
+    }
+
+    cancelAnimation(headerPanMomentumOffset);
+    headerPanMomentumOffset.set(null);
+  }, [headerPanMomentumOffset]);
+
+  const animatedOnScroll = useAnimatedScrollHandler({
+    onBeginDrag,
+    onScroll,
+  });
 
   const minHeightContentContainerStyle = useAnimatedStyle(() => {
     const threshold = progressThreshold.get();
@@ -250,7 +280,7 @@ export function useScrollManager(
   });
 
   const scrollableProps = {
-    onScroll,
+    onScroll: animatedOnScroll,
     scrollEventThrottle: 16,
     ref: animatedRef,
     refreshControl: resolvedRefreshControl,

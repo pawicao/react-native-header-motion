@@ -1,8 +1,32 @@
-import { StyleSheet, View, type ViewProps } from 'react-native';
-import Animated, { type AnimatedProps } from 'react-native-reanimated';
+import { useMemo } from 'react';
+import { Platform, StyleSheet, View, type ViewProps } from 'react-native';
+import {
+  Gesture,
+  GestureDetector,
+  GestureHandlerRootView,
+} from 'react-native-gesture-handler';
+import Animated, {
+  useAnimatedReaction,
+  withDecay,
+  type AnimatedProps,
+} from 'react-native-reanimated';
+
+const PLATFORM_PANNING_ENABLED = Platform.select({
+  default: true,
+  android: false,
+});
+
+import type { MotionProgress } from '../types';
 
 export type HeaderBaseProps = ViewProps;
-export type AnimatedHeaderBaseProps = AnimatedProps<ViewProps>;
+export type AnimatedHeaderBaseProps = AnimatedProps<ViewProps> &
+  Pick<MotionProgress, 'animatedHeaderBaseProps'> & {
+    /**
+     * Wraps the header with GestureHandlerRootView.
+     * Keep this disabled when your app already has a root-level GestureHandlerRootView.
+     */
+    withGestureHandlerRootView?: boolean;
+  };
 
 /**
  * Base header component with absolute positioning.
@@ -35,11 +59,74 @@ export function HeaderBase({ style, ...rest }: HeaderBaseProps) {
  * </AnimatedHeaderBase>
  * ```
  */
+
+// TODO: Thinking about DX, perhaps creating another context in AnimatedHeaderBase or somewhere else could make sense
+// Note: Depending on feedback, there might be a need to intercept ongoing scroll when starting to pan (perhaps even on the tap itself but to be checked what feels better when using)
+// Note: Depending on feedback, there might be a need to block momentum by forcing scrollTo
 export function AnimatedHeaderBase({
   style,
+  animatedHeaderBaseProps,
+  withGestureHandlerRootView = false,
   ...rest
 }: AnimatedHeaderBaseProps) {
-  return <Animated.View style={[style, styles.container]} {...rest} />;
+  if (!animatedHeaderBaseProps) {
+    throw new Error(
+      'AnimatedHeaderBase requires `animatedHeaderBaseProps`. Pass the value from HeaderMotion.Header or useMotionProgress.'
+    );
+  }
+
+  const {
+    enableHeaderPan,
+    scrollToRef,
+    headerPanMomentumOffset: momentumScrollOffset,
+  } = animatedHeaderBaseProps;
+
+  useAnimatedReaction(
+    () => momentumScrollOffset.get(),
+    (offset, prevOffset) => {
+      if (offset !== null) {
+        const dy = offset - (prevOffset ?? 0);
+        scrollToRef.current?.(dy);
+      }
+    }
+  );
+
+  const isPanEnabled = PLATFORM_PANNING_ENABLED && enableHeaderPan;
+
+  const pan = useMemo(
+    () =>
+      Gesture.Pan()
+        .enabled(isPanEnabled)
+        .onChange((e) => {
+          const dy = e.changeY;
+          scrollToRef.current?.(dy);
+        })
+        .onEnd((e) => {
+          momentumScrollOffset.set(
+            withDecay(
+              {
+                velocity: e.velocityY,
+              },
+              () => momentumScrollOffset.set(null)
+            )
+          );
+        })
+        .shouldCancelWhenOutside(false),
+    // Note: In first testing Android works without gesture handler whatsoever. If this functionality is needed, we can further control it with a prop in the future
+    [isPanEnabled, scrollToRef, momentumScrollOffset]
+  );
+
+  const content = (
+    <GestureDetector gesture={pan}>
+      <Animated.View style={[style, styles.container]} {...rest} />
+    </GestureDetector>
+  );
+
+  if (!withGestureHandlerRootView) {
+    return content;
+  }
+
+  return <GestureHandlerRootView>{content}</GestureHandlerRootView>;
 }
 
 const styles = StyleSheet.create({
@@ -49,3 +136,5 @@ const styles = StyleSheet.create({
     right: 0,
   },
 });
+
+// TODO: Lib refactor: context repetition, make people use less boilerplate by just wrapping the header with <HeaderBaseOrSomethingElse ctx={headerProps} /> that does everything under the hood (measuring total for example). That will then allow for people to use context inside

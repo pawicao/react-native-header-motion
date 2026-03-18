@@ -14,7 +14,7 @@ export type HeaderMotionScrollViewProps = AnimatedScrollViewProps & {
    * Optional animated ref to use for the scroll view.
    * When provided, the scroll manager will use this ref instead of creating its own.
    */
-  animatedRef?: AnimatedRef<any>;
+  animatedRef?: AnimatedRef<Animated.ScrollView> | AnimatedRef;
 };
 
 /**
@@ -42,16 +42,22 @@ export function HeaderMotionScrollView({
   return (
     <HeaderMotionScrollManager
       scrollId={scrollId}
-      animatedRef={animatedRef}
+      animatedRef={animatedRef as AnimatedRef<Animated.ScrollView>}
       refreshControl={refreshControl}
     >
       {(
-        { onScroll, refreshControl: managedRefreshControl, ...scrollViewProps },
+        {
+          onScroll,
+          ref,
+          refreshControl: managedRefreshControl,
+          ...scrollViewProps
+        },
         { originalHeaderHeight, minHeightContentContainerStyle }
       ) => (
         <Animated.ScrollView
           {...scrollViewProps}
           {...props}
+          ref={ref}
           onScroll={onScroll}
           {...(managedRefreshControl && {
             refreshControl: managedRefreshControl,

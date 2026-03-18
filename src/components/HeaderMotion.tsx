@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useRef, useEffect, useMemo } from 'react';
 import {
   Extrapolation,
   interpolate,
@@ -11,6 +11,7 @@ import {
 import { HeaderMotionContext } from '../context';
 import type { ReactNode } from 'react';
 import type {
+  ScrollTo,
   MeasureAnimatedHeader,
   MeasureAnimatedHeaderAndSet,
   ProgressThreshold,
@@ -22,6 +23,32 @@ import {
   DEFAULT_SCROLL_ID,
   getInitialScrollValue,
 } from '../utils';
+
+const resolveScrollIdForProgress = (
+  scrollValues: ScrollValues,
+  activeScrollIdValue: string | undefined
+) => {
+  'worklet';
+
+  if (activeScrollIdValue) {
+    return activeScrollIdValue;
+  }
+
+  let onlyNonDefaultId: string | null = null;
+  for (const key in scrollValues) {
+    if (key === DEFAULT_SCROLL_ID) {
+      continue;
+    }
+
+    if (onlyNonDefaultId !== null) {
+      return DEFAULT_SCROLL_ID;
+    }
+
+    onlyNonDefaultId = key;
+  }
+
+  return onlyNonDefaultId ?? DEFAULT_SCROLL_ID;
+};
 
 export interface HeaderMotionProps<T extends string> {
   /**
@@ -61,6 +88,10 @@ export interface HeaderMotionProps<T extends string> {
    * @default Extrapolation.CLAMP
    */
   progressExtrapolation?: ExtrapolationType;
+  /** Enables panning directly on the header surface.
+   * @default false
+   */
+  enableHeaderPan?: boolean;
   /** Child components that will have access to the header motion context */
   children: ReactNode;
 }
@@ -76,6 +107,7 @@ function HeaderMotionContextProvider<T extends string>({
   measureDynamicMode = 'mount',
   activeScrollId,
   progressExtrapolation = Extrapolation.CLAMP,
+  enableHeaderPan = false,
   children,
 }: HeaderMotionProps<T>) {
   const dynamicMeasurement = useSharedValue<number | undefined>(undefined);
@@ -83,6 +115,7 @@ function HeaderMotionContextProvider<T extends string>({
   const progressThresholdValue = useSharedValue(
     typeof progressThreshold === 'number' ? progressThreshold : Infinity
   );
+  const headerPanMomentumOffset = useSharedValue<number | null>(null);
 
   const setOrUpdateDynamicMeasurement =
     useCallback<MeasureAnimatedHeaderAndSet>(
@@ -156,8 +189,9 @@ function HeaderMotionContextProvider<T extends string>({
   );
 
   const progress = useDerivedValue(() => {
-    const id = activeScrollId?.get() ?? DEFAULT_SCROLL_ID;
-    const scrollValue = scrollValues.get()[id];
+    const values = scrollValues.get();
+    const id = resolveScrollIdForProgress(values, activeScrollId?.get());
+    const scrollValue = values[id];
     const threshold = progressThresholdValue.get();
 
     if (!scrollValue) {
@@ -173,20 +207,41 @@ function HeaderMotionContextProvider<T extends string>({
     );
   });
 
+  const scrollToRef = useRef<ScrollTo>(null);
+  // FUTURE: SharedValue-based scrollTo was removed for now because function updates
+  // were not propagating reliably, while it works for refs. Revisit later.
+  // We need to be updating the scrollTo on active scroll ID changes and doing it via state would cause re-renders.
+  // It's a bit of an anti-pattern to use refs for this as well, but I am yet to figure out a better way to pass those if SV won't work.
+  const animatedHeaderBaseProps = useMemo(
+    () => ({
+      enableHeaderPan,
+      scrollToRef,
+      headerPanMomentumOffset,
+    }),
+    [enableHeaderPan, headerPanMomentumOffset]
+  );
+
   const ctxValue = useMemo(
     () => ({
       progress,
       originalHeaderHeight,
       measureDynamic: setOrUpdateDynamicMeasurement,
       measureTotalHeight,
+      enableHeaderPan,
+      headerPanMomentumOffset,
+      animatedHeaderBaseProps,
       progressThreshold: progressThresholdValue,
       scrollValues,
+      scrollToRef,
       activeScrollId: activeScrollId as SharedValue<string> | undefined,
     }),
     [
       originalHeaderHeight,
       progress,
       measureTotalHeight,
+      enableHeaderPan,
+      headerPanMomentumOffset,
+      animatedHeaderBaseProps,
       setOrUpdateDynamicMeasurement,
       scrollValues,
       activeScrollId,
