@@ -8,6 +8,19 @@ This library is **100% a wrapper around Reanimated**. All the credit for the und
 <img src="https://github.com/user-attachments/assets/b673349a-f26a-4cc8-bfe1-60d77deb4390" width="70%" />
 </div>
 
+## v1 alpha status
+
+`v1.0.0-alpha.x` is pre-release quality.
+
+- Expect additional API changes (including breaking ones) before stable `1.0.0`.
+- If you are upgrading from `0.3.x`, use the migration doc: [MIGRATION-v1.md](./MIGRATION-v1.md).
+
+## What changed since `v0.3.0`
+
+- **Performance-focused internals:** motion threshold + header height now flow through `SharedValue`s to reduce JS-side churn.
+- **Pannable header support:** new `enableHeaderPan` on `HeaderMotion` and required `animatedHeaderBaseProps` on `AnimatedHeaderBase`.
+- **Ecosystem update:** example app moved to Expo 55 + Reanimated 4.2; `react-native-gesture-handler` is now a peer dependency.
+
 ## What this is (and isn’t)
 
 **✅ This is**
@@ -25,6 +38,7 @@ You build any header motion you want by animating based on `progress`.
 
 You must have these installed in your app:
 
+- `react-native-gesture-handler` **>= 2.0.0**
 - `react-native-reanimated` **>= 4.0.0**
 - `react-native-worklets` **>= 0.4.0**
 
@@ -57,16 +71,19 @@ There are three key concepts:
 - `0` → animation start (initial state)
 - `1` → animation end (final state)
 
-### 2) `progressThreshold`
+### 2) `progressThreshold` (prop vs runtime value)
 
 `progressThreshold` is the distance needed for `progress` to move from `0 → 1`.
 
-You can provide it as:
+As a `HeaderMotion` prop, you can provide:
 
 - a number, or
 - a function `(measuredDynamic) => threshold`
 
 If you provide a function, it uses the value measured by `measureDynamic`.
+
+When you read `progressThreshold` from `useMotionProgress()` / `HeaderMotion.Header`, it is a `SharedValue<number>`.
+Read it inside worklets via `progressThreshold.get()` (or `progressThreshold.value`).
 
 ### 3) Measurement functions
 
@@ -163,14 +180,16 @@ function MyHeader({
   measureTotalHeight,
   measureDynamic,
   progressThreshold,
+  animatedHeaderBaseProps,
 }: WithCollapsibleHeaderProps) {
   const insets = useSafeAreaInsets();
 
   const containerStyle = useAnimatedStyle(() => {
+    const threshold = progressThreshold.get();
     const translateY = interpolate(
-      progress.value,
+      progress.get(),
       [0, 1],
-      [0, -progressThreshold],
+      [0, -threshold],
       Extrapolation.CLAMP
     );
     return { transform: [{ translateY }] };
@@ -178,6 +197,7 @@ function MyHeader({
 
   return (
     <AnimatedHeaderBase
+      animatedHeaderBaseProps={animatedHeaderBaseProps}
       onLayout={measureTotalHeight}
       style={[{ paddingTop: insets.top }, containerStyle]}
     >
@@ -209,6 +229,7 @@ import Animated, {
   interpolate,
   useAnimatedStyle,
 } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { View } from 'react-native';
 
 export function MyScreen() {
@@ -245,14 +266,16 @@ function MyHeader({
   measureTotalHeight,
   measureDynamic,
   progressThreshold,
+  animatedHeaderBaseProps,
 }: WithCollapsibleHeaderProps) {
   const insets = useSafeAreaInsets();
 
   const containerStyle = useAnimatedStyle(() => {
+    const threshold = progressThreshold.get();
     const translateY = interpolate(
-      progress.value,
+      progress.get(),
       [0, 1],
-      [0, -progressThreshold],
+      [0, -threshold],
       Extrapolation.CLAMP
     );
     return { transform: [{ translateY }] };
@@ -260,6 +283,7 @@ function MyHeader({
 
   return (
     <AnimatedHeaderBase
+      animatedHeaderBaseProps={animatedHeaderBaseProps}
       onLayout={measureTotalHeight}
       style={[{ paddingTop: insets.top }, containerStyle]}
     >
@@ -323,21 +347,31 @@ export default function Screen() {
 }
 
 function InlineAnimatedHeader() {
-  const { progress, measureTotalHeight, measureDynamic, progressThreshold } =
-    useMotionProgress();
+  const {
+    progress,
+    measureTotalHeight,
+    measureDynamic,
+    progressThreshold,
+    animatedHeaderBaseProps,
+  } = useMotionProgress();
 
   const containerStyle = useAnimatedStyle(() => {
+    const threshold = progressThreshold.get();
     const translateY = interpolate(
-      progress.value,
+      progress.get(),
       [0, 1],
-      [0, -progressThreshold],
+      [0, -threshold],
       Extrapolation.CLAMP
     );
     return { transform: [{ translateY }] };
   });
 
   return (
-    <AnimatedHeaderBase onLayout={measureTotalHeight} style={containerStyle}>
+    <AnimatedHeaderBase
+      animatedHeaderBaseProps={animatedHeaderBaseProps}
+      onLayout={measureTotalHeight}
+      style={containerStyle}
+    >
       <Animated.View onLayout={measureDynamic}>
         {/* custom animated header content below the native header */}
       </Animated.View>
@@ -374,6 +408,8 @@ The package exports a default compound component plus hooks, types, and a couple
   - Enables multi-scroll orchestration (tabs/pager).
 - `progressExtrapolation?: ExtrapolationType`
   - Controls how progress behaves outside the threshold range (useful for overscroll).
+- `enableHeaderPan?: boolean`
+  - Enables direct pan gestures on `AnimatedHeaderBase` (`false` by default).
 
 #### `HeaderMotion.Header`
 
@@ -422,13 +458,16 @@ This is required, as the positioning of scrollables is affecting Refresh Control
     scrollableProps,
     { originalHeaderHeight, minHeightContentContainerStyle }
   ) => (
-    <Animated.ScrollView
-      {...scrollableProps}
-      contentContainerStyle={[
-        minHeightContentContainerStyle,
-        { paddingTop: originalHeaderHeight },
-      ]}
-    />
+    <Animated.ScrollView {...scrollableProps}>
+      <Animated.View
+        style={[
+          minHeightContentContainerStyle,
+          { paddingTop: originalHeaderHeight },
+        ]}
+      >
+        {/* content */}
+      </Animated.View>
+    </Animated.ScrollView>
   )}
 </HeaderMotion.ScrollManager>
 ```
@@ -449,11 +488,16 @@ Refresh example with explicit props on `ScrollManager`:
       {...scrollableProps}
       onScroll={onScroll}
       refreshControl={managedRefreshControl}
-      contentContainerStyle={[
-        minHeightContentContainerStyle,
-        { paddingTop: originalHeaderHeight },
-      ]}
-    />
+    >
+      <Animated.View
+        style={[
+          minHeightContentContainerStyle,
+          { paddingTop: originalHeaderHeight },
+        ]}
+      >
+        {/* content */}
+      </Animated.View>
+    </Animated.ScrollView>
   )}
 </HeaderMotion.ScrollManager>
 ```
@@ -465,9 +509,11 @@ Refresh example with explicit props on `ScrollManager`:
 Returns:
 
 - `progress` (`SharedValue<number>`)
-- `progressThreshold` (`number`)
+- `progressThreshold` (`SharedValue<number>`)
 - `measureTotalHeight` (`onLayout` callback)
 - `measureDynamic` (`onLayout` callback)
+- `animatedHeaderBaseProps` (required by `AnimatedHeaderBase`)
+- `activeScrollId` (`SharedValue<string> | undefined`)
 
 Only use inside the `HeaderMotion` provider tree.
 
@@ -477,7 +523,7 @@ Lower-level orchestration hook that powers the component APIs. Returns:
 
 - `scrollableProps`: `{ onScroll, scrollEventThrottle, ref }`
 - `headerMotionContext`:
-  - `originalHeaderHeight`
+  - `originalHeaderHeight` (`SharedValue<number>`)
   - `minHeightContentContainerStyle` (helps when content is shorter than the threshold)
 
 #### `useActiveScrollId(initialId)`
@@ -497,6 +543,10 @@ Non-animated absolutely positioned header base.
 #### `AnimatedHeaderBase`
 
 Reanimated-powered, absolutely positioned header base.
+
+- Requires `animatedHeaderBaseProps` from `useMotionProgress()` / `HeaderMotion.Header`.
+- It is required for header panning functionality.
+- Optional `withGestureHandlerRootView` can wrap this header in `GestureHandlerRootView` when needed.
 
 ### Types
 
