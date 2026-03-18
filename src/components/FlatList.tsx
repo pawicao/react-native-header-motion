@@ -16,7 +16,7 @@ export type HeaderMotionFlatListProps<T = any> = ComponentProps<
    * Optional animated ref to use for the flat list.
    * When provided, the scroll manager will use this ref instead of creating its own.
    */
-  animatedRef?: AnimatedRef<Animated.FlatList<T>>;
+  animatedRef?: AnimatedRef<Animated.FlatList<T>> | AnimatedRef;
 };
 
 /**
@@ -45,19 +45,25 @@ export function HeaderMotionFlatList<T = any>({
   return (
     <HeaderMotionScrollManager
       scrollId={scrollId}
-      animatedRef={animatedRef}
+      animatedRef={animatedRef as AnimatedRef<Animated.FlatList<T>>}
       refreshControl={props.refreshControl}
       refreshing={props.refreshing}
       onRefresh={props.onRefresh}
       progressViewOffset={props.progressViewOffset}
     >
       {(
-        { onScroll, refreshControl: managedRefreshControl, ...scrollViewProps },
+        {
+          onScroll,
+          refreshControl: managedRefreshControl,
+          ref,
+          ...scrollViewProps
+        },
         { originalHeaderHeight, minHeightContentContainerStyle }
       ) => (
         <Animated.FlatList
           {...scrollViewProps}
           {...props}
+          ref={ref}
           onScroll={onScroll}
           {...(managedRefreshControl && {
             refreshControl: managedRefreshControl,

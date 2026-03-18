@@ -19,6 +19,7 @@ import {
   getInitialScrollValue,
   type ResolveRefreshControlOptions,
 } from '../utils';
+import type { InstanceOrElement } from 'react-native-reanimated/lib/typescript/commonTypes';
 
 type ScrollHandlerContext = {
   lastOffset: number | undefined;
@@ -63,13 +64,12 @@ const SCROLL_TOLERANCE = 0.5;
  * }
  * ```
  */
-export interface UseScrollManagerOptions<TRef = any>
+export interface UseScrollManagerOptions<TRef extends InstanceOrElement = any>
   extends Omit<ResolveRefreshControlOptions, 'progressViewOffset'> {
   /**
    * Optional animated ref to use instead of creating one internally.
    * Useful when you need access to the scroll view ref from outside.
    */
-  // @ts-expect-error 4.2.0 of reanimated should help here? TODO
   animatedRef?: AnimatedRef<TRef>;
   /**
    * Optional refresh progress offset override.
@@ -78,7 +78,7 @@ export interface UseScrollManagerOptions<TRef = any>
   progressViewOffset?: ResolveRefreshControlOptions['progressViewOffset'];
 }
 
-export function useScrollManager<TRef = any>(
+export function useScrollManager<TRef extends InstanceOrElement = any>(
   scrollId?: string,
   options?: UseScrollManagerOptions<TRef>
 ): ScrollManagerConfig<TRef> {
@@ -100,7 +100,6 @@ export function useScrollManager<TRef = any>(
   } = ctxValue;
   const id = scrollId ?? DEFAULT_SCROLL_ID;
 
-  // @ts-expect-error 4.2.0 of reanimated should help here? TODO
   const localRef = useAnimatedRef<TRef>();
   const animatedRef = options?.animatedRef ?? localRef;
   const refreshControl = options?.refreshControl;
@@ -118,7 +117,6 @@ export function useScrollManager<TRef = any>(
           'worklet';
           const { isValueDelta = true, animated = false } = scrollOptions;
           const newY = isValueDelta ? scrollValues.get()[id]!.current - y : y;
-          // @ts-expect-error 4.2.0 of reanimated should help here? TODO
           scrollTo(animatedRef, 0, newY, animated);
         };
       }
@@ -178,7 +176,6 @@ export function useScrollManager<TRef = any>(
       });
 
       if (newCur >= 0) {
-        // @ts-expect-error 4.2.0 of reanimated should help here? TODO
         scrollTo(animatedRef, 0, newCur, false);
       }
     }
@@ -266,7 +263,6 @@ export function useScrollManager<TRef = any>(
       return {};
     }
 
-    // @ts-expect-error 4.2.0 of reanimated should help here? TODO
     const measurement = measure(animatedRef);
 
     if (!measurement) {

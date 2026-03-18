@@ -2,6 +2,7 @@ import type { ReactElement } from 'react';
 import type { LayoutChangeEvent, ScrollViewProps } from 'react-native';
 import type { AnimatedRef, SharedValue } from 'react-native-reanimated';
 import { DEFAULT_SCROLL_ID } from './utils/defaults';
+import type { InstanceOrElement } from 'react-native-reanimated/lib/typescript/commonTypes';
 
 export type Progress = SharedValue<number>;
 
@@ -61,12 +62,11 @@ export interface ScrollManagerHeaderMotionContext {
       };
 }
 
-export interface ScrollManagerConfig<TRef = any> {
+export interface ScrollManagerConfig<TRef extends InstanceOrElement = any> {
   scrollableProps: Required<
     Pick<ScrollViewProps, 'onScroll' | 'scrollEventThrottle'>
   > & {
     refreshControl?: ReactElement;
-    // @ts-expect-error 4.2.0 of reanimated should help here? TODO
     ref: AnimatedRef<TRef>;
   };
   headerMotionContext: ScrollManagerHeaderMotionContext;
