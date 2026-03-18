@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { StyleSheet, View, type ViewProps } from 'react-native';
+import { Platform, StyleSheet, View, type ViewProps } from 'react-native';
 import {
   Gesture,
   GestureDetector,
@@ -10,6 +10,11 @@ import Animated, {
   withDecay,
   type AnimatedProps,
 } from 'react-native-reanimated';
+
+const PLATFORM_PANNING_ENABLED = Platform.select({
+  default: true,
+  android: false,
+});
 
 import type { MotionProgress } from '../types';
 
@@ -79,10 +84,12 @@ export function AnimatedHeaderBase({
     }
   );
 
+  const isPanEnabled = PLATFORM_PANNING_ENABLED && enableHeaderPan;
+
   const pan = useMemo(
     () =>
       Gesture.Pan()
-        .enabled(enableHeaderPan)
+        .enabled(isPanEnabled)
         .onChange((e) => {
           const dy = e.changeY;
           scrollToRef.current?.(dy);
@@ -92,16 +99,14 @@ export function AnimatedHeaderBase({
             withDecay(
               {
                 velocity: e.velocityY,
-                // todo: some clamp?
               },
               () => momentumScrollOffset.set(null)
             )
           );
         })
         .shouldCancelWhenOutside(false),
-    // TODO: Android seems to work without gesture handler at all? probably need a prop to control how it should behave and then we either block external gesture and let GH handle it fully OR disable this on android completely
-    // .blocksExternalGesture(scrollRef), <-- maybe not needed
-    [enableHeaderPan, scrollToRef, momentumScrollOffset]
+    // Note: In first testing Android works without gesture handler whatsoever. If this functionality is needed, we can further control it with a prop in the future
+    [isPanEnabled, scrollToRef, momentumScrollOffset]
   );
 
   return (
