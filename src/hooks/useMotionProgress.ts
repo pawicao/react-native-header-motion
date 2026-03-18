@@ -49,12 +49,8 @@ export function useMotionProgress(): MotionProgress {
     measureTotalHeight,
     measureDynamic,
     progressThreshold,
-    enableHeaderPan,
-    headerPanMomentumOffset,
     animatedHeaderBaseProps,
     activeScrollId,
-    scrollValues,
-    scrollToRef,
   } = ctxValue;
 
   return {
@@ -62,11 +58,7 @@ export function useMotionProgress(): MotionProgress {
     measureTotalHeight,
     measureDynamic,
     progressThreshold,
-    enableHeaderPan,
-    headerPanMomentumOffset,
     animatedHeaderBaseProps,
     activeScrollId,
-    scrollValues,
-    scrollToRef,
   };
 }
