@@ -20,7 +20,13 @@ import type { MotionProgress } from '../types';
 
 export type HeaderBaseProps = ViewProps;
 export type AnimatedHeaderBaseProps = AnimatedProps<ViewProps> &
-  Pick<MotionProgress, 'animatedHeaderBaseProps'>;
+  Pick<MotionProgress, 'animatedHeaderBaseProps'> & {
+    /**
+     * Wraps the header with GestureHandlerRootView.
+     * Keep this disabled when your app already has a root-level GestureHandlerRootView.
+     */
+    withGestureHandlerRootView?: boolean;
+  };
 
 /**
  * Base header component with absolute positioning.
@@ -60,6 +66,7 @@ export function HeaderBase({ style, ...rest }: HeaderBaseProps) {
 export function AnimatedHeaderBase({
   style,
   animatedHeaderBaseProps,
+  withGestureHandlerRootView = false,
   ...rest
 }: AnimatedHeaderBaseProps) {
   if (!animatedHeaderBaseProps) {
@@ -109,13 +116,17 @@ export function AnimatedHeaderBase({
     [isPanEnabled, scrollToRef, momentumScrollOffset]
   );
 
-  return (
-    <GestureHandlerRootView>
-      <GestureDetector gesture={pan}>
-        <Animated.View style={[style, styles.container]} {...rest} />
-      </GestureDetector>
-    </GestureHandlerRootView>
+  const content = (
+    <GestureDetector gesture={pan}>
+      <Animated.View style={[style, styles.container]} {...rest} />
+    </GestureDetector>
   );
+
+  if (!withGestureHandlerRootView) {
+    return content;
+  }
+
+  return <GestureHandlerRootView>{content}</GestureHandlerRootView>;
 }
 
 const styles = StyleSheet.create({
