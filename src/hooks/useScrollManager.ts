@@ -8,9 +8,10 @@ import {
   useAnimatedScrollHandler,
   useAnimatedStyle,
   type AnimatedRef,
+  type AnimatedScrollViewProps,
   type ScrollHandler,
 } from 'react-native-reanimated';
-import { RuntimeKind, scheduleOnUI } from 'react-native-worklets';
+import { RuntimeKind, scheduleOnRN, scheduleOnUI } from 'react-native-worklets';
 import { HeaderMotionContext } from '../context';
 import type { ScrollManagerConfig } from '../types';
 import {
@@ -25,6 +26,15 @@ import type { InstanceOrElement } from 'react-native-reanimated/lib/typescript/c
 type ScrollHandlerContext = {
   lastOffset: number | undefined;
 };
+type ConsumerScrollEventHandlers = Pick<
+  AnimatedScrollViewProps,
+  | 'onScroll'
+  | 'onScrollBeginDrag'
+  | 'onScrollEndDrag'
+  | 'onMomentumScrollBegin'
+  | 'onMomentumScrollEnd'
+>;
+type ConsumerScrollHandler = (event: unknown) => void;
 
 const SCROLL_TOLERANCE = 0.5;
 
@@ -66,7 +76,8 @@ const SCROLL_TOLERANCE = 0.5;
  * ```
  */
 export interface UseScrollManagerOptions<TRef extends InstanceOrElement = any>
-  extends Omit<ResolveRefreshControlOptions, 'progressViewOffset'> {
+  extends Omit<ResolveRefreshControlOptions, 'progressViewOffset'>,
+    ConsumerScrollEventHandlers {
   /**
    * Optional animated ref to use instead of creating one internally.
    * Useful when you need access to the scroll view ref from outside.
@@ -106,8 +117,34 @@ export function useScrollManager<TRef extends InstanceOrElement = any>(
   const refreshControl = options?.refreshControl;
   const refreshing = options?.refreshing;
   const onRefresh = options?.onRefresh;
+  const consumerOnScroll =
+    typeof options?.onScroll === 'function'
+      ? (options.onScroll as ConsumerScrollHandler)
+      : undefined;
+  const consumerOnScrollBeginDrag =
+    typeof options?.onScrollBeginDrag === 'function'
+      ? (options.onScrollBeginDrag as ConsumerScrollHandler)
+      : undefined;
+  const consumerOnScrollEndDrag =
+    typeof options?.onScrollEndDrag === 'function'
+      ? (options.onScrollEndDrag as ConsumerScrollHandler)
+      : undefined;
+  const consumerOnMomentumScrollBegin =
+    typeof options?.onMomentumScrollBegin === 'function'
+      ? (options.onMomentumScrollBegin as ConsumerScrollHandler)
+      : undefined;
+  const consumerOnMomentumScrollEnd =
+    typeof options?.onMomentumScrollEnd === 'function'
+      ? (options.onMomentumScrollEnd as ConsumerScrollHandler)
+      : undefined;
   const progressViewOffset =
     options?.progressViewOffset ?? originalHeaderHeight;
+  const toNativeSyntheticEvent = (
+    event: Parameters<ScrollHandler<ScrollHandlerContext>>[0]
+  ) => {
+    'worklet';
+    return { nativeEvent: event } as unknown;
+  };
 
   useAnimatedReaction(
     () => activeScrollId?.get(),
@@ -182,6 +219,10 @@ export function useScrollManager<TRef extends InstanceOrElement = any>(
   const onScroll = useCallback<ScrollHandler<ScrollHandlerContext>>(
     (e, ctx) => {
       'worklet';
+      if (consumerOnScroll) {
+        scheduleOnRN(consumerOnScroll, toNativeSyntheticEvent(e));
+      }
+
       const newCurrent = e.contentOffset.y;
 
       if (
@@ -236,22 +277,70 @@ export function useScrollManager<TRef extends InstanceOrElement = any>(
         return value;
       });
     },
-    [scrollValues, id, activeScrollId, progressThreshold]
+    [scrollValues, id, activeScrollId, progressThreshold, consumerOnScroll]
   );
 
-  const onBeginDrag = useCallback<ScrollHandler<ScrollHandlerContext>>(() => {
-    'worklet';
-    if (headerPanMomentumOffset.get() === null) {
-      return;
-    }
+  const onBeginDrag = useCallback<ScrollHandler<ScrollHandlerContext>>(
+    (e) => {
+      'worklet';
+      if (consumerOnScrollBeginDrag) {
+        scheduleOnRN(consumerOnScrollBeginDrag, toNativeSyntheticEvent(e));
+      }
 
-    cancelAnimation(headerPanMomentumOffset);
-    headerPanMomentumOffset.set(null);
-  }, [headerPanMomentumOffset]);
+      if (headerPanMomentumOffset.get() === null) {
+        return;
+      }
+
+      cancelAnimation(headerPanMomentumOffset);
+      headerPanMomentumOffset.set(null);
+    },
+    [headerPanMomentumOffset, consumerOnScrollBeginDrag]
+  );
+
+  const onEndDrag = useCallback<ScrollHandler<ScrollHandlerContext>>(
+    (e) => {
+      'worklet';
+      if (!consumerOnScrollEndDrag) {
+        return;
+      }
+
+      scheduleOnRN(consumerOnScrollEndDrag, toNativeSyntheticEvent(e));
+    },
+    [consumerOnScrollEndDrag]
+  );
+
+  const onMomentumBegin = useCallback<ScrollHandler<ScrollHandlerContext>>(
+    (e) => {
+      'worklet';
+      if (!consumerOnMomentumScrollBegin) {
+        return;
+      }
+
+      scheduleOnRN(consumerOnMomentumScrollBegin, toNativeSyntheticEvent(e));
+    },
+    [consumerOnMomentumScrollBegin]
+  );
+
+  const onMomentumEnd = useCallback<ScrollHandler<ScrollHandlerContext>>(
+    (e) => {
+      'worklet';
+      if (!consumerOnMomentumScrollEnd) {
+        return;
+      }
+
+      scheduleOnRN(consumerOnMomentumScrollEnd, toNativeSyntheticEvent(e));
+    },
+    [consumerOnMomentumScrollEnd]
+  );
 
   const animatedOnScroll = useAnimatedScrollHandler({
     onBeginDrag,
     onScroll,
+    onEndDrag: consumerOnScrollEndDrag ? onEndDrag : undefined,
+    onMomentumBegin: consumerOnMomentumScrollBegin
+      ? onMomentumBegin
+      : undefined,
+    onMomentumEnd: consumerOnMomentumScrollEnd ? onMomentumEnd : undefined,
   });
 
   const minHeightContentContainerStyle = useAnimatedStyle(() => {

@@ -74,11 +74,10 @@ function useScrollHandlerLoggers() {
     onContentSizeChange: useCallback((w: number, h: number) => {
       console.log(prefix, 'onContentSizeChange', { width: w, height: h });
     }, []),
-    onScroll: useCallback(() => {
-      console.log(
-        prefix,
-        'onScroll (consumer — expect no logs; HeaderMotion replaces this)'
-      );
+    onScroll: useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => {
+      console.log(prefix, 'onScroll', {
+        y: e.nativeEvent.contentOffset.y,
+      });
     }, []),
   };
 }

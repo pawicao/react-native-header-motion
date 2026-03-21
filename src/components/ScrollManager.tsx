@@ -55,6 +55,11 @@ export function HeaderMotionScrollManager<
   refreshing,
   onRefresh,
   progressViewOffset,
+  onScroll,
+  onScrollBeginDrag,
+  onScrollEndDrag,
+  onMomentumScrollBegin,
+  onMomentumScrollEnd,
 }: HeaderMotionScrollManagerProps<TRef>) {
   if (typeof children !== 'function') {
     throw new Error(
@@ -70,6 +75,11 @@ export function HeaderMotionScrollManager<
       refreshing,
       onRefresh,
       progressViewOffset,
+      onScroll,
+      onScrollBeginDrag,
+      onScrollEndDrag,
+      onMomentumScrollBegin,
+      onMomentumScrollEnd,
     }
   );
 
