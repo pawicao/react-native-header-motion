@@ -4,18 +4,22 @@ import HeaderMotion, {
   type WithCollapsibleHeaderProps,
 } from 'react-native-header-motion';
 import { Stack } from 'expo-router';
-import { useCallback } from 'react';
-import type { NativeScrollEvent, NativeSyntheticEvent } from 'react-native';
 import { StyleSheet, View } from 'react-native';
 import Animated, {
   Extrapolation,
   interpolate,
+  useAnimatedScrollHandler,
   useAnimatedStyle,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function Screen() {
-  const scrollHandlers = useScrollHandlerLoggers();
+  const onScroll = useAnimatedScrollHandler({
+    onScroll: () => {
+      'worklet';
+      console.log('consumer onScroll');
+    },
+  });
 
   return (
     <HeaderMotion>
@@ -28,58 +32,11 @@ export default function Screen() {
           />
         )}
       </HeaderMotion.Header>
-      <HeaderMotion.ScrollView {...scrollHandlers}>
+      <HeaderMotion.ScrollView onScroll={onScroll}>
         {content}
       </HeaderMotion.ScrollView>
     </HeaderMotion>
   );
-}
-
-function useScrollHandlerLoggers() {
-  const prefix = '[HeaderMotion.ScrollView consumer]';
-
-  return {
-    onScrollBeginDrag: useCallback(
-      (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-        console.log(prefix, 'onScrollBeginDrag', {
-          y: e.nativeEvent.contentOffset.y,
-        });
-      },
-      []
-    ),
-    onScrollEndDrag: useCallback(
-      (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-        console.log(prefix, 'onScrollEndDrag', {
-          y: e.nativeEvent.contentOffset.y,
-        });
-      },
-      []
-    ),
-    onMomentumScrollBegin: useCallback(
-      (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-        console.log(prefix, 'onMomentumScrollBegin', {
-          y: e.nativeEvent.contentOffset.y,
-        });
-      },
-      []
-    ),
-    onMomentumScrollEnd: useCallback(
-      (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-        console.log(prefix, 'onMomentumScrollEnd', {
-          y: e.nativeEvent.contentOffset.y,
-        });
-      },
-      []
-    ),
-    onContentSizeChange: useCallback((w: number, h: number) => {
-      console.log(prefix, 'onContentSizeChange', { width: w, height: h });
-    }, []),
-    onScroll: useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => {
-      console.log(prefix, 'onScroll', {
-        y: e.nativeEvent.contentOffset.y,
-      });
-    }, []),
-  };
 }
 
 function CollapsibleHeader({
@@ -90,7 +47,6 @@ function CollapsibleHeader({
 }: WithCollapsibleHeaderProps) {
   const insets = useSafeAreaInsets();
 
-  // 1. Container Animation (Moves UP)
   const containerStyle = useAnimatedStyle(() => {
     const translateY = interpolate(
       progress.value,
@@ -101,7 +57,6 @@ function CollapsibleHeader({
     return { transform: [{ translateY }] };
   });
 
-  // 2. Title Animation (Counter-Moves DOWN to stay sticky)
   const titleStyle = useAnimatedStyle(() => {
     const translateY = interpolate(
       progress.value,
@@ -112,7 +67,6 @@ function CollapsibleHeader({
     return { transform: [{ translateY }] };
   });
 
-  // 3. Content Animation (Parallax + Opacity + Scale)
   const boxSectionStyle = useAnimatedStyle(() => {
     const parallaxTranslateY = interpolate(
       progress.value,

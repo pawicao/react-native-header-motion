@@ -66,3 +66,7 @@ export interface ScrollManagerConfig {
   };
   headerMotionContext: ScrollManagerHeaderMotionContext;
 }
+
+export type ScrollHandlerContext = {
+  lastOffset: number | undefined;
+};

@@ -28,6 +28,9 @@ export default function Screen() {
       <Link style={styles.link} href="/flatlist-handlers">
         FlatList consumer handlers (console)
       </Link>
+      <Link style={styles.link} href="/animated-on-scroll">
+        ScrollView consumer animated handler (console)
+      </Link>
       <Link style={styles.link} href="/refresh-scrollview-control">
         Refresh ScrollView
       </Link>

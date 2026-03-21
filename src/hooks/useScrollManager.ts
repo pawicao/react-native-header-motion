@@ -17,6 +17,11 @@ import {
   resolveRefreshControl,
   type ResolveRefreshControlOptions,
 } from './refreshControl';
+import {
+  useConsumerScrollHandlers,
+  useScrollHandlerComposition,
+  type ConsumerScrollEventHandlers,
+} from './useConsumerScrollHandlers';
 
 /**
  * Hook that manages scroll tracking and synchronization for header animations.
@@ -56,7 +61,8 @@ import {
  * ```
  */
 export interface UseScrollManagerOptions
-  extends Omit<ResolveRefreshControlOptions, 'progressViewOffset'> {
+  extends Omit<ResolveRefreshControlOptions, 'progressViewOffset'>,
+    ConsumerScrollEventHandlers {
   /**
    * Optional animated ref to use instead of creating one internally.
    * Useful when you need access to the scroll view ref from outside.
@@ -96,6 +102,15 @@ export function useScrollManager(
   const onRefresh = options?.onRefresh;
   const progressViewOffset =
     options?.progressViewOffset ?? originalHeaderHeight;
+
+  const { onScroll, onBeginDrag, onEndDrag, onMomentumBegin, onMomentumEnd } =
+    useConsumerScrollHandlers({
+      onScroll: options?.onScroll,
+      onScrollBeginDrag: options?.onScrollBeginDrag,
+      onScrollEndDrag: options?.onScrollEndDrag,
+      onMomentumScrollBegin: options?.onMomentumScrollBegin,
+      onMomentumScrollEnd: options?.onMomentumScrollEnd,
+    });
 
   useEffect(() => {
     return () => {
@@ -157,6 +172,7 @@ export function useScrollManager(
   const scrollHandler = useCallback<ScrollHandler>(
     (e) => {
       'worklet';
+      onScroll?.(e);
 
       scrollValues.modify((value) => {
         if (!value[id]) {
@@ -182,10 +198,16 @@ export function useScrollManager(
         return value;
       });
     },
-    [scrollValues, id, activeScrollId, progressThreshold]
+    [scrollValues, id, activeScrollId, progressThreshold, onScroll]
   );
 
-  const onScroll = useAnimatedScrollHandler(scrollHandler);
+  const animatedScrollHandler = useAnimatedScrollHandler({
+    onScroll: scrollHandler,
+    onBeginDrag,
+    onEndDrag,
+    onMomentumBegin,
+    onMomentumEnd,
+  });
 
   const minHeightContentContainerStyle = useAnimatedStyle(() => {
     if (globalThis.__RUNTIME_KIND === RuntimeKind.ReactNative) {
@@ -211,7 +233,10 @@ export function useScrollManager(
   });
 
   const scrollableProps = {
-    onScroll,
+    onScroll: useScrollHandlerComposition(
+      animatedScrollHandler,
+      options?.onScroll
+    ),
     scrollEventThrottle: 16,
     ref: animatedRef,
     refreshControl: resolvedRefreshControl,

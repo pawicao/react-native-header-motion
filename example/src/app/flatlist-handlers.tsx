@@ -106,11 +106,10 @@ function useFlatListHandlerLoggers() {
       },
       []
     ),
-    onScroll: useCallback<NonNullable<FL['onScroll']>>(() => {
-      console.log(
-        prefix,
-        'onScroll (consumer — expect no logs; HeaderMotion replaces this)'
-      );
+    onScroll: useCallback<NonNullable<FL['onScroll']>>((e) => {
+      console.log(prefix, 'onScroll', {
+        y: e.nativeEvent.contentOffset.y,
+      });
     }, []),
     viewabilityConfig,
     onViewableItemsChanged,

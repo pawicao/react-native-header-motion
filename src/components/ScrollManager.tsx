@@ -3,6 +3,7 @@ import type { ScrollManagerConfig } from '../types';
 import type { ResolveRefreshControlOptions } from '../hooks/refreshControl';
 import type { ReactNode } from 'react';
 import type { AnimatedRef } from 'react-native-reanimated';
+import type { ConsumerScrollEventHandlers } from '../hooks/useConsumerScrollHandlers';
 
 type ScrollManagerRenderChildren = (
   scrollableProps: ScrollManagerConfig['scrollableProps'],
@@ -10,7 +11,8 @@ type ScrollManagerRenderChildren = (
 ) => ReactNode;
 
 export interface HeaderMotionScrollManagerProps
-  extends Omit<ResolveRefreshControlOptions, 'progressViewOffset'> {
+  extends Omit<ResolveRefreshControlOptions, 'progressViewOffset'>,
+    ConsumerScrollEventHandlers {
   /**
    * Optional unique identifier for this scroll view.
    * Use this when you have multiple scroll views (e.g., in tabs) to track them separately.
@@ -63,6 +65,11 @@ export function HeaderMotionScrollManager({
   refreshing,
   onRefresh,
   progressViewOffset,
+  onScroll,
+  onScrollBeginDrag,
+  onScrollEndDrag,
+  onMomentumScrollBegin,
+  onMomentumScrollEnd,
 }: HeaderMotionScrollManagerProps) {
   if (typeof children !== 'function') {
     throw new Error(
@@ -76,6 +83,11 @@ export function HeaderMotionScrollManager({
     refreshing,
     onRefresh,
     progressViewOffset,
+    onScroll,
+    onScrollBeginDrag,
+    onScrollEndDrag,
+    onMomentumScrollBegin,
+    onMomentumScrollEnd,
   });
 
   return children(scrollableProps, headerMotionContext);
