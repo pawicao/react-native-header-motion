@@ -22,6 +22,12 @@ export default function Screen() {
       <Link style={styles.link} href="/scroll-manager">
         ScrollManager
       </Link>
+      <Link style={styles.link} href="/scroll-handlers">
+        ScrollView consumer handlers (console)
+      </Link>
+      <Link style={styles.link} href="/flatlist-handlers">
+        FlatList consumer handlers (console)
+      </Link>
       <Link style={styles.link} href="/refresh-scrollview-control">
         Refresh ScrollView
       </Link>
