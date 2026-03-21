@@ -1,11 +1,15 @@
 import { useCallback } from 'react';
-import type {
-  AnimatedScrollViewProps,
-  ScrollHandler,
+import {
+  useComposedEventHandler,
+  type AnimatedScrollViewProps,
+  type ScrollHandler,
+  type ScrollHandlerProcessed,
 } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
+import type { ScrollHandlerContext } from '../types';
 
 type ConsumerScrollHandler = (event: unknown) => void;
+type AnimatedScrollViewOnScroll = AnimatedScrollViewProps['onScroll'];
 type ScrollEvent = Parameters<ScrollHandler<Record<string, unknown>>>[0];
 
 export type ConsumerScrollEventHandlers = Pick<
@@ -121,4 +125,24 @@ export function useConsumerScrollHandlers({
     onMomentumBegin: onMomentumBeginBridge,
     onMomentumEnd: onMomentumEndBridge,
   };
+}
+
+export function useScrollHandlerComposition(
+  ownScrollHandler: ScrollHandlerProcessed<ScrollHandlerContext>,
+  consumerScrollHandler: AnimatedScrollViewOnScroll | undefined
+) {
+  // TODO: I guess the typing here could be more precise
+  const consumerWorkletHandler = isAnimatedScrollHandler(consumerScrollHandler)
+    ? (consumerScrollHandler as ScrollHandlerProcessed<ScrollHandlerContext>)
+    : null;
+
+  return useComposedEventHandler([ownScrollHandler, consumerWorkletHandler]);
+}
+
+function isAnimatedScrollHandler(
+  handler: AnimatedScrollViewOnScroll | undefined
+): handler is AnimatedScrollViewOnScroll {
+  // FUTURE: we could be checking just by typeof handler === 'object'?
+  // This seems safer for now, unless Reanimated changes this shape. Revisit
+  return !!handler && 'workletEventHandler' in handler;
 }

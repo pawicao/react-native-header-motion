@@ -12,7 +12,7 @@ import {
 } from 'react-native-reanimated';
 import { RuntimeKind, scheduleOnUI } from 'react-native-worklets';
 import { HeaderMotionContext } from '../context';
-import type { ScrollManagerConfig } from '../types';
+import type { ScrollManagerConfig, ScrollHandlerContext } from '../types';
 import {
   resolveRefreshControl,
   DEFAULT_SCROLL_ID,
@@ -23,12 +23,9 @@ import {
 import type { InstanceOrElement } from 'react-native-reanimated/lib/typescript/commonTypes';
 import {
   useConsumerScrollHandlers,
+  useScrollHandlerComposition,
   type ConsumerScrollEventHandlers,
 } from './useConsumerScrollHandlers';
-
-type ScrollHandlerContext = {
-  lastOffset: number | undefined;
-};
 
 const SCROLL_TOLERANCE = 0.5;
 
@@ -303,7 +300,7 @@ export function useScrollManager<TRef extends InstanceOrElement = any>(
   });
 
   const scrollableProps = {
-    onScroll: animatedOnScroll,
+    onScroll: useScrollHandlerComposition(animatedOnScroll, options?.onScroll),
     scrollEventThrottle: 16,
     ref: animatedRef,
     refreshControl: resolvedRefreshControl,
