@@ -40,6 +40,11 @@ export function HeaderMotionFlatList<T = any>({
   scrollId,
   animatedRef,
   contentContainerStyle,
+  onScroll,
+  onScrollBeginDrag,
+  onScrollEndDrag,
+  onMomentumScrollBegin,
+  onMomentumScrollEnd,
   ...props
 }: HeaderMotionFlatListProps<T>) {
   return (
@@ -50,10 +55,15 @@ export function HeaderMotionFlatList<T = any>({
       refreshing={props.refreshing}
       onRefresh={props.onRefresh}
       progressViewOffset={props.progressViewOffset}
+      onScroll={onScroll}
+      onScrollBeginDrag={onScrollBeginDrag}
+      onScrollEndDrag={onScrollEndDrag}
+      onMomentumScrollBegin={onMomentumScrollBegin}
+      onMomentumScrollEnd={onMomentumScrollEnd}
     >
       {(
         {
-          onScroll,
+          onScroll: managedOnScroll,
           refreshControl: managedRefreshControl,
           ref,
           ...scrollViewProps
@@ -64,7 +74,7 @@ export function HeaderMotionFlatList<T = any>({
           {...scrollViewProps}
           {...props}
           ref={ref}
-          onScroll={onScroll}
+          onScroll={managedOnScroll}
           {...(managedRefreshControl && {
             refreshControl: managedRefreshControl,
           })}

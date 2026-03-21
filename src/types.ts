@@ -74,6 +74,10 @@ export interface ScrollManagerConfig<TRef extends InstanceOrElement = any> {
 
 export type ScrollTo = (y: number, options?: ScrollToOptions) => void;
 
+export type ScrollHandlerContext = {
+  lastOffset: number | undefined;
+};
+
 interface ScrollToOptions {
   isValueDelta?: boolean;
   animated?: boolean;

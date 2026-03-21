@@ -12,7 +12,7 @@ import {
 } from 'react-native-reanimated';
 import { RuntimeKind, scheduleOnUI } from 'react-native-worklets';
 import { HeaderMotionContext } from '../context';
-import type { ScrollManagerConfig } from '../types';
+import type { ScrollManagerConfig, ScrollHandlerContext } from '../types';
 import {
   resolveRefreshControl,
   DEFAULT_SCROLL_ID,
@@ -21,10 +21,11 @@ import {
   type ResolveRefreshControlOptions,
 } from '../utils';
 import type { InstanceOrElement } from 'react-native-reanimated/lib/typescript/commonTypes';
-
-type ScrollHandlerContext = {
-  lastOffset: number | undefined;
-};
+import {
+  useConsumerScrollHandlers,
+  useScrollHandlerComposition,
+  type ConsumerScrollEventHandlers,
+} from './useConsumerScrollHandlers';
 
 const SCROLL_TOLERANCE = 0.5;
 
@@ -66,7 +67,8 @@ const SCROLL_TOLERANCE = 0.5;
  * ```
  */
 export interface UseScrollManagerOptions<TRef extends InstanceOrElement = any>
-  extends Omit<ResolveRefreshControlOptions, 'progressViewOffset'> {
+  extends Omit<ResolveRefreshControlOptions, 'progressViewOffset'>,
+    ConsumerScrollEventHandlers {
   /**
    * Optional animated ref to use instead of creating one internally.
    * Useful when you need access to the scroll view ref from outside.
@@ -106,6 +108,14 @@ export function useScrollManager<TRef extends InstanceOrElement = any>(
   const refreshControl = options?.refreshControl;
   const refreshing = options?.refreshing;
   const onRefresh = options?.onRefresh;
+  const { onScroll, onBeginDrag, onEndDrag, onMomentumBegin, onMomentumEnd } =
+    useConsumerScrollHandlers({
+      onScroll: options?.onScroll,
+      onScrollBeginDrag: options?.onScrollBeginDrag,
+      onScrollEndDrag: options?.onScrollEndDrag,
+      onMomentumScrollBegin: options?.onMomentumScrollBegin,
+      onMomentumScrollEnd: options?.onMomentumScrollEnd,
+    });
   const progressViewOffset =
     options?.progressViewOffset ?? originalHeaderHeight;
 
@@ -179,9 +189,11 @@ export function useScrollManager<TRef extends InstanceOrElement = any>(
     }
   );
 
-  const onScroll = useCallback<ScrollHandler<ScrollHandlerContext>>(
+  const handleScroll = useCallback<ScrollHandler<ScrollHandlerContext>>(
     (e, ctx) => {
       'worklet';
+      onScroll?.(e);
+
       const newCurrent = e.contentOffset.y;
 
       if (
@@ -236,22 +248,30 @@ export function useScrollManager<TRef extends InstanceOrElement = any>(
         return value;
       });
     },
-    [scrollValues, id, activeScrollId, progressThreshold]
+    [scrollValues, id, activeScrollId, progressThreshold, onScroll]
   );
 
-  const onBeginDrag = useCallback<ScrollHandler<ScrollHandlerContext>>(() => {
-    'worklet';
-    if (headerPanMomentumOffset.get() === null) {
-      return;
-    }
+  const handleBeginDrag = useCallback<ScrollHandler<ScrollHandlerContext>>(
+    (e) => {
+      'worklet';
+      onBeginDrag?.(e);
 
-    cancelAnimation(headerPanMomentumOffset);
-    headerPanMomentumOffset.set(null);
-  }, [headerPanMomentumOffset]);
+      if (headerPanMomentumOffset.get() === null) {
+        return;
+      }
+
+      cancelAnimation(headerPanMomentumOffset);
+      headerPanMomentumOffset.set(null);
+    },
+    [headerPanMomentumOffset, onBeginDrag]
+  );
 
   const animatedOnScroll = useAnimatedScrollHandler({
-    onBeginDrag,
-    onScroll,
+    onBeginDrag: handleBeginDrag,
+    onScroll: handleScroll,
+    onEndDrag,
+    onMomentumBegin,
+    onMomentumEnd,
   });
 
   const minHeightContentContainerStyle = useAnimatedStyle(() => {
@@ -280,7 +300,7 @@ export function useScrollManager<TRef extends InstanceOrElement = any>(
   });
 
   const scrollableProps = {
-    onScroll: animatedOnScroll,
+    onScroll: useScrollHandlerComposition(animatedOnScroll, options?.onScroll),
     scrollEventThrottle: 16,
     ref: animatedRef,
     refreshControl: resolvedRefreshControl,
