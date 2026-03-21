@@ -115,14 +115,10 @@ export function useConsumerScrollHandlers({
   );
 
   return {
-    onScroll: consumerOnScroll ? onScrollBridge : undefined,
-    onBeginDrag: consumerOnScrollBeginDrag ? onBeginDragBridge : undefined,
-    onEndDrag: consumerOnScrollEndDrag ? onEndDragBridge : undefined,
-    onMomentumBegin: consumerOnMomentumScrollBegin
-      ? onMomentumBeginBridge
-      : undefined,
-    onMomentumEnd: consumerOnMomentumScrollEnd
-      ? onMomentumEndBridge
-      : undefined,
+    onScroll: onScrollBridge,
+    onBeginDrag: onBeginDragBridge,
+    onEndDrag: onEndDragBridge,
+    onMomentumBegin: onMomentumBeginBridge,
+    onMomentumEnd: onMomentumEndBridge,
   };
 }
