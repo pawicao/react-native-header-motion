@@ -3,24 +3,23 @@ import Animated, { type AnimatedRef } from 'react-native-reanimated';
 import type { HeaderMotionOffsetProps } from '../types';
 import { resolveHeaderOffsetStyle } from '../utils';
 import { HeaderMotionScrollManager } from './ScrollManager';
-
 import type { ScrollViewProps } from 'react-native';
 
 export type HeaderMotionFlatListProps<T = any> = ComponentProps<
   typeof Animated.FlatList<T>
 > &
   HeaderMotionOffsetProps & {
-  /**
-   * Optional unique identifier for this scroll view.
-   * Use this when you have multiple scroll views (e.g. in tabs) to track them separately.
-   */
-  scrollId?: string;
-  /**
-   * Optional animated ref to use for the flat list.
-   * When provided, the scroll manager will use this ref instead of creating its own.
-   */
-  animatedRef?: AnimatedRef<Animated.FlatList<T>> | AnimatedRef;
-};
+    /**
+     * Optional unique identifier for this scroll view.
+     * Use this when you have multiple scroll views (e.g. in tabs) to track them separately.
+     */
+    scrollId?: string;
+    /**
+     * Optional animated ref to use for the flat list.
+     * When provided, the scroll manager will use this ref instead of creating its own.
+     */
+    animatedRef?: AnimatedRef<Animated.FlatList<T>> | AnimatedRef;
+  };
 
 /**
  * Animated FlatList component that integrates with HeaderMotion.

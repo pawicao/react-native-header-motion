@@ -8,17 +8,17 @@ import { HeaderMotionScrollManager } from './ScrollManager';
 
 export type HeaderMotionScrollViewProps = AnimatedScrollViewProps &
   HeaderMotionOffsetProps & {
-  /**
-   * Optional unique identifier for this scroll view.
-   * Use this when you have multiple scroll views (e.g. in tabs) to track them separately.
-   */
-  scrollId?: string;
-  /**
-   * Optional animated ref to use for the scroll view.
-   * When provided, the scroll manager will use this ref instead of creating its own.
-   */
-  animatedRef?: AnimatedRef<Animated.ScrollView> | AnimatedRef;
-};
+    /**
+     * Optional unique identifier for this scroll view.
+     * Use this when you have multiple scroll views (e.g. in tabs) to track them separately.
+     */
+    scrollId?: string;
+    /**
+     * Optional animated ref to use for the scroll view.
+     * When provided, the scroll manager will use this ref instead of creating its own.
+     */
+    animatedRef?: AnimatedRef<Animated.ScrollView> | AnimatedRef;
+  };
 
 /**
  * Animated ScrollView component that integrates with HeaderMotion.

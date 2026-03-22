@@ -71,10 +71,7 @@ describe('HeaderMotionFlatList', () => {
 
     expect(wrapper.props.style).toEqual([
       {},
-      {
-        transform: [{ translateY: 0 }],
-        paddingBottom: 0,
-      },
+      { transform: [{ translateY: 0 }], paddingBottom: 0 },
       undefined,
     ]);
   });

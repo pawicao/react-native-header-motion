@@ -48,10 +48,6 @@ describe('HeaderMotionScrollView', () => {
     const scrollView = element.props.children;
     const wrapper = scrollView.props.children;
 
-    expect(wrapper.props.style).toEqual([
-      {},
-      { marginTop: 0 },
-      undefined,
-    ]);
+    expect(wrapper.props.style).toEqual([{}, { marginTop: 0 }, undefined]);
   });
 });
