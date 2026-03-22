@@ -1,21 +1,22 @@
-import Animated, {
-  type AnimatedRef,
-  type AnimatedScrollViewProps,
-} from 'react-native-reanimated';
-import { HeaderMotionScrollManager } from './ScrollManager';
+import type { ComponentProps } from 'react';
+import Animated from 'react-native-reanimated';
+import {
+  createHeaderMotionScrollableComponent,
+  type HeaderMotionScrollableOwnProps,
+} from './createHeaderMotionScrollableComponent';
 
-export type HeaderMotionScrollViewProps = AnimatedScrollViewProps & {
-  /**
-   * Optional unique identifier for this scroll view.
-   * Use this when you have multiple scroll views (e.g. in tabs) to track them separately.
-   */
-  scrollId?: string;
-  /**
-   * Optional animated ref to use for the scroll view.
-   * When provided, the scroll manager will use this ref instead of creating its own.
-   */
-  animatedRef?: AnimatedRef<Animated.ScrollView> | AnimatedRef;
-};
+export type HeaderMotionScrollViewProps = ComponentProps<
+  typeof Animated.ScrollView
+> &
+  HeaderMotionScrollableOwnProps<Animated.ScrollView>;
+
+export const HeaderMotionScrollView = createHeaderMotionScrollableComponent(
+  Animated.ScrollView,
+  {
+    displayName: 'HeaderMotion.ScrollView',
+    componentAnimation: 'assume-animated',
+  }
+);
 
 /**
  * Animated ScrollView component that integrates with HeaderMotion.
@@ -31,59 +32,3 @@ export type HeaderMotionScrollViewProps = AnimatedScrollViewProps & {
  * </HeaderMotion>
  * ```
  */
-export function HeaderMotionScrollView({
-  scrollId,
-  animatedRef,
-  children,
-  contentContainerStyle,
-  refreshControl,
-  onScroll,
-  onScrollBeginDrag,
-  onScrollEndDrag,
-  onMomentumScrollBegin,
-  onMomentumScrollEnd,
-  ...props
-}: HeaderMotionScrollViewProps) {
-  return (
-    <HeaderMotionScrollManager
-      scrollId={scrollId}
-      animatedRef={animatedRef as AnimatedRef<Animated.ScrollView>}
-      refreshControl={refreshControl}
-      onScroll={onScroll}
-      onScrollBeginDrag={onScrollBeginDrag}
-      onScrollEndDrag={onScrollEndDrag}
-      onMomentumScrollBegin={onMomentumScrollBegin}
-      onMomentumScrollEnd={onMomentumScrollEnd}
-    >
-      {(
-        {
-          onScroll: managedOnScroll,
-          ref,
-          refreshControl: managedRefreshControl,
-          ...scrollViewProps
-        },
-        { originalHeaderHeight, minHeightContentContainerStyle }
-      ) => (
-        <Animated.ScrollView
-          {...scrollViewProps}
-          {...props}
-          ref={ref}
-          onScroll={managedOnScroll}
-          {...(managedRefreshControl && {
-            refreshControl: managedRefreshControl,
-          })}
-        >
-          <Animated.View
-            style={[
-              minHeightContentContainerStyle,
-              { paddingTop: originalHeaderHeight },
-              contentContainerStyle,
-            ]}
-          >
-            {children}
-          </Animated.View>
-        </Animated.ScrollView>
-      )}
-    </HeaderMotionScrollManager>
-  );
-}

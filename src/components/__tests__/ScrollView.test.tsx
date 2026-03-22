@@ -3,7 +3,7 @@ import React from 'react';
 jest.mock('react-native-reanimated', () => ({
   __esModule: true,
   default: {
-    FlatList: 'Animated.FlatList',
+    ScrollView: 'Animated.ScrollView',
   },
 }));
 
@@ -13,35 +13,32 @@ jest.mock('../createHeaderMotionScrollableComponent', () => {
   return {
     __esModule: true,
     createHeaderMotionScrollableComponent: jest.fn(
-      () => (props: any) => ReactActual.createElement('CreatedFlatList', props)
+      () => (props: any) =>
+        ReactActual.createElement('CreatedScrollView', props)
     ),
   };
 });
 
 import { createHeaderMotionScrollableComponent } from '../createHeaderMotionScrollableComponent';
-import { HeaderMotionFlatList } from '../FlatList';
+import { HeaderMotionScrollView } from '../ScrollView';
 
-describe('HeaderMotionFlatList', () => {
+describe('HeaderMotionScrollView', () => {
   it('creates the built-in wrapper from the shared factory', () => {
     expect(
       createHeaderMotionScrollableComponent as jest.Mock
     ).toHaveBeenCalledWith(
-      'Animated.FlatList',
+      'Animated.ScrollView',
       expect.objectContaining({
-        displayName: 'HeaderMotion.FlatList',
-        contentContainerMode: 'renderScrollComponent',
+        displayName: 'HeaderMotion.ScrollView',
       })
     );
   });
 
   it('passes animatedRef through to the generated component', () => {
     const animatedRef = { current: null } as any;
-    const element = HeaderMotionFlatList<{ id: string; label: string }>({
-      data: [{ id: '1', label: 'Item 1' }],
-      keyExtractor: (item: { id: string }) => item.id,
-      renderItem: ({ item }: { item: { id: string; label: string } }) =>
-        React.createElement('View', null, item.label),
+    const element = HeaderMotionScrollView({
       animatedRef,
+      children: React.createElement('View'),
     });
 
     expect(React.isValidElement(element)).toBe(true);

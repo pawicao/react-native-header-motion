@@ -116,9 +116,9 @@ Navigation headers are special:
 You can use either style; pick based on your integration needs:
 
 - Prefer **components** when you want a “batteries included” wiring:
-
   - `HeaderMotion.ScrollView` / `HeaderMotion.FlatList` for common scrollables
-  - `HeaderMotion.ScrollManager` for custom scrollables via render-props
+  - `createHeaderMotionScrollableComponent()` for reusable wrappers around custom scrollables
+  - `HeaderMotion.ScrollManager` for one-off custom scrollables via render-props
 
 - Prefer **hooks** when you want to build your own wrappers:
   - `useScrollManager()` (same engine as `HeaderMotion.ScrollManager`, but hook-based)
@@ -393,6 +393,7 @@ The package exports a default compound component plus hooks, types, and a couple
 - `HeaderMotion.Header` (bridge for navigation headers)
 - `HeaderMotion.ScrollView` (pre-wired Animated.ScrollView)
 - `HeaderMotion.FlatList` (pre-wired Animated.FlatList)
+- `createHeaderMotionScrollableComponent` (factory for reusable custom scrollables)
 - `HeaderMotion.ScrollManager` (render-prop API for custom scrollables)
 
 #### Props
@@ -438,6 +439,37 @@ Supports `scrollId?: string` for multi-scroll scenarios.
 Animated FlatList wired similarly to the ScrollView.
 
 Supports `scrollId?: string` for multi-scroll scenarios.
+
+#### `createHeaderMotionScrollableComponent(Component, options?)`
+
+Named export for building reusable scrollable wrappers on top of `useScrollManager()`.
+This is the same abstraction used internally by `HeaderMotion.ScrollView` and `HeaderMotion.FlatList`.
+
+Use:
+
+- `contentContainerMode: 'children'` for ScrollView-like components
+- `contentContainerMode: 'renderScrollComponent'` for FlatList-like components
+- `componentAnimation: 'assume-animated'` when you pass an already animated component
+
+By default, the factory wraps the provided component with
+`Animated.createAnimatedComponent()` only when the managed animated ref
+targets the outer component. For integrations like FlashList or LegendList
+where the real scroll target lives in `renderScrollComponent`, you can pass the
+plain component and keep `animatedRefTarget: 'scrollComponent'`.
+
+Example:
+
+```tsx
+import { FlashList } from '@shopify/flash-list';
+import {
+  createHeaderMotionScrollableComponent,
+} from 'react-native-header-motion';
+
+const HeaderMotionFlashList = createHeaderMotionScrollableComponent(FlashList, {
+  contentContainerMode: 'renderScrollComponent',
+  animatedRefTarget: 'scrollComponent',
+});
+```
 
 #### `HeaderMotion.ScrollManager`
 

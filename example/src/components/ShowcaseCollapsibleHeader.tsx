@@ -1,9 +1,7 @@
-import { ContentCard, DynamicBox, TitleWithSubtitle } from '@/components';
-import HeaderMotion, {
+import {
   AnimatedHeaderBase,
   type WithCollapsibleHeaderProps,
 } from 'react-native-header-motion';
-import { Stack } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 import Animated, {
   Extrapolation,
@@ -11,45 +9,27 @@ import Animated, {
   useAnimatedStyle,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { DynamicBox } from './DynamicBox';
+import { TitleWithSubtitle } from './TitleWithSubtitle';
 
-type ListRow = {
-  index: number;
-  label: string;
-};
-
-export default function Screen() {
-  return (
-    <HeaderMotion>
-      <HeaderMotion.Header>
-        {(headerProps) => (
-          <Stack.Screen
-            options={{
-              header: () => <CollapsibleHeader {...headerProps} />,
-            }}
-          />
-        )}
-      </HeaderMotion.Header>
-      <HeaderMotion.FlatList
-        data={content}
-        keyExtractor={(item) => `${item.index}`}
-        renderItem={({ item }) => (
-          <ContentCard index={item.index} label={item.label} />
-        )}
-      />
-    </HeaderMotion>
-  );
+interface ShowcaseCollapsibleHeaderProps extends WithCollapsibleHeaderProps {
+  title: string;
+  subtitle: string;
+  backgroundColor: string;
 }
 
-function CollapsibleHeader({
+export function ShowcaseCollapsibleHeader({
   progress,
   measureTotalHeight,
   measureDynamic,
   progressThreshold,
   animatedHeaderBaseProps,
-}: WithCollapsibleHeaderProps) {
+  title,
+  subtitle,
+  backgroundColor,
+}: ShowcaseCollapsibleHeaderProps) {
   const insets = useSafeAreaInsets();
 
-  // 1. Container Animation (Moves UP)
   const containerStyle = useAnimatedStyle(() => {
     const threshold = progressThreshold.get();
     const translateY = interpolate(
@@ -61,7 +41,6 @@ function CollapsibleHeader({
     return { transform: [{ translateY }] };
   });
 
-  // 2. Title Animation (Counter-Moves DOWN to stay sticky)
   const titleStyle = useAnimatedStyle(() => {
     const threshold = progressThreshold.get();
     const translateY = interpolate(
@@ -73,7 +52,6 @@ function CollapsibleHeader({
     return { transform: [{ translateY }] };
   });
 
-  // 3. Content Animation (Parallax + Opacity + Scale)
   const boxSectionStyle = useAnimatedStyle(() => {
     const threshold = progressThreshold.get();
     const parallaxTranslateY = interpolate(
@@ -84,7 +62,7 @@ function CollapsibleHeader({
     );
     const opacity = interpolate(
       progress.get(),
-      [0, 1 * 0.6],
+      [0, 0.6],
       [1, 0],
       Extrapolation.CLAMP
     );
@@ -104,10 +82,14 @@ function CollapsibleHeader({
     <AnimatedHeaderBase
       animatedHeaderBaseProps={animatedHeaderBaseProps}
       onLayout={measureTotalHeight}
-      style={[styles.headerWrapper, { paddingTop: insets.top }, containerStyle]}
+      style={[
+        styles.headerWrapper,
+        { backgroundColor, paddingTop: insets.top },
+        containerStyle,
+      ]}
     >
-      <Animated.View style={[titleStyle]}>
-        <TitleWithSubtitle title="Title" subtitle="Subtitle" />
+      <Animated.View style={titleStyle}>
+        <TitleWithSubtitle title={title} subtitle={subtitle} />
       </Animated.View>
 
       <View style={styles.dynamicContent}>
@@ -125,7 +107,6 @@ function CollapsibleHeader({
 
 const styles = StyleSheet.create({
   headerWrapper: {
-    backgroundColor: '#304077',
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(0,0,0,0.1)',
   },
@@ -140,8 +121,3 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
 });
-
-const content: ListRow[] = Array.from({ length: 500 }, (_, k) => ({
-  index: k + 1,
-  label: 'FlatList Item',
-}));
