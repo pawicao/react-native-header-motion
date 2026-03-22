@@ -5,6 +5,24 @@ import { DEFAULT_SCROLL_ID } from './utils/defaults';
 import type { InstanceOrElement } from 'react-native-reanimated/lib/typescript/commonTypes';
 
 export type Progress = SharedValue<number>;
+export type HeaderMotionOffsetStrategy =
+  | 'padding'
+  | 'margin'
+  | 'top'
+  | 'translate'
+  | 'none';
+
+export interface HeaderMotionOffsetProps {
+  /**
+   * Strategy used to offset the scrollable content by the measured original header height.
+   *
+   * `padding` preserves the current behavior and is the safest default.
+   * `top` and `translate` keep the bottom of the content reachable by compensating with extra bottom space.
+   *
+   * @default 'padding'
+   */
+  headerOffsetStrategy?: HeaderMotionOffsetStrategy;
+}
 
 export type ProgressThreshold =
   | number

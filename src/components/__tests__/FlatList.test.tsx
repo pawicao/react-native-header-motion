@@ -9,6 +9,7 @@ jest.mock('react-native-reanimated', () => {
       FlatList: (props: any) => ReactActual.createElement('FlatList', props),
       ScrollView: (props: any) =>
         ReactActual.createElement('ScrollView', props),
+      View: (props: any) => ReactActual.createElement('View', props),
     },
   };
 });
@@ -52,5 +53,29 @@ describe('HeaderMotionFlatList', () => {
 
     expect(React.isValidElement(element)).toBe(true);
     expect(element.props.progressViewOffset).toBe(24);
+  });
+
+  it('applies the selected header offset strategy to the scroll container', () => {
+    const element = HeaderMotionFlatList({
+      data: [{ id: '1', label: 'Item 1' }],
+      keyExtractor: (item) => item.id,
+      renderItem: ({ item }) => React.createElement('View', null, item.label),
+      headerOffsetStrategy: 'translate',
+    });
+
+    const flatList = element.props.children;
+    const scrollComponent = flatList.props.renderScrollComponent({
+      children: null,
+    });
+    const wrapper = scrollComponent.props.children;
+
+    expect(wrapper.props.style).toEqual([
+      {},
+      {
+        transform: [{ translateY: 0 }],
+        paddingBottom: 0,
+      },
+      undefined,
+    ]);
   });
 });

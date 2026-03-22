@@ -1,12 +1,15 @@
 import { forwardRef, type ComponentProps, type ComponentRef } from 'react';
 import Animated, { type AnimatedRef } from 'react-native-reanimated';
+import type { HeaderMotionOffsetProps } from '../types';
+import { resolveHeaderOffsetStyle } from '../utils';
 import { HeaderMotionScrollManager } from './ScrollManager';
 
 import type { ScrollViewProps } from 'react-native';
 
 export type HeaderMotionFlatListProps<T = any> = ComponentProps<
   typeof Animated.FlatList<T>
-> & {
+> &
+  HeaderMotionOffsetProps & {
   /**
    * Optional unique identifier for this scroll view.
    * Use this when you have multiple scroll views (e.g. in tabs) to track them separately.
@@ -39,6 +42,7 @@ export type HeaderMotionFlatListProps<T = any> = ComponentProps<
 export function HeaderMotionFlatList<T = any>({
   scrollId,
   animatedRef,
+  headerOffsetStrategy,
   contentContainerStyle,
   onScroll,
   onScrollBeginDrag,
@@ -83,7 +87,10 @@ export function HeaderMotionFlatList<T = any>({
               {...scrollComponentProps}
               contentContainerStyle={[
                 minHeightContentContainerStyle,
-                { paddingTop: originalHeaderHeight },
+                resolveHeaderOffsetStyle(
+                  originalHeaderHeight,
+                  headerOffsetStrategy
+                ),
                 contentContainerStyle,
               ]}
             />

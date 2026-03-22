@@ -89,7 +89,7 @@ Read it inside worklets via `progressThreshold.get()` (or `progressThreshold.val
 
 The library gives you two measurement callbacks that you pass to your header layout:
 
-- `measureTotalHeight` – attach to the _outer_ header container to measure the total header height. Scrollables use this to add `paddingTop` so content starts below the header.
+- `measureTotalHeight` – attach to the _outer_ header container to measure the total header height. Scrollables use this to offset content so it starts below the header.
 - `measureDynamic` – attach to the part of the header that determines the threshold (often the animated/dynamic portion).
 
 ## Why `HeaderMotion.Header` exists
@@ -429,15 +429,23 @@ Animated ScrollView wired with:
 
 - `onScroll` handler
 - `ref`
-- automatic `paddingTop` based on measured header height
+- automatic content offset based on measured header height
 
-Supports `scrollId?: string` for multi-scroll scenarios.
+Supports:
+
+- `scrollId?: string` for multi-scroll scenarios
+- `headerOffsetStrategy?: 'padding' | 'margin' | 'top' | 'translate' | 'none'`
+
+`padding` is the default and recommended option. `top` and `translate` also add bottom compensation internally so the end of the content remains reachable.
 
 #### `HeaderMotion.FlatList`
 
 Animated FlatList wired similarly to the ScrollView.
 
-Supports `scrollId?: string` for multi-scroll scenarios.
+Supports:
+
+- `scrollId?: string` for multi-scroll scenarios
+- `headerOffsetStrategy?: 'padding' | 'margin' | 'top' | 'translate' | 'none'`
 
 #### `HeaderMotion.ScrollManager`
 

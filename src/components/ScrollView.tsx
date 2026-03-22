@@ -2,9 +2,12 @@ import Animated, {
   type AnimatedRef,
   type AnimatedScrollViewProps,
 } from 'react-native-reanimated';
+import type { HeaderMotionOffsetProps } from '../types';
+import { resolveHeaderOffsetStyle } from '../utils';
 import { HeaderMotionScrollManager } from './ScrollManager';
 
-export type HeaderMotionScrollViewProps = AnimatedScrollViewProps & {
+export type HeaderMotionScrollViewProps = AnimatedScrollViewProps &
+  HeaderMotionOffsetProps & {
   /**
    * Optional unique identifier for this scroll view.
    * Use this when you have multiple scroll views (e.g. in tabs) to track them separately.
@@ -34,6 +37,7 @@ export type HeaderMotionScrollViewProps = AnimatedScrollViewProps & {
 export function HeaderMotionScrollView({
   scrollId,
   animatedRef,
+  headerOffsetStrategy,
   children,
   contentContainerStyle,
   refreshControl,
@@ -76,7 +80,10 @@ export function HeaderMotionScrollView({
           <Animated.View
             style={[
               minHeightContentContainerStyle,
-              { paddingTop: originalHeaderHeight },
+              resolveHeaderOffsetStyle(
+                originalHeaderHeight,
+                headerOffsetStrategy
+              ),
               contentContainerStyle,
             ]}
           >
