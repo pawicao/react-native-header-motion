@@ -1,18 +1,5 @@
 import React from 'react';
 
-jest.mock('react-native-reanimated', () => {
-  const ReactActual = require('react');
-
-  return {
-    __esModule: true,
-    default: {
-      FlatList: (props: any) => ReactActual.createElement('FlatList', props),
-      ScrollView: (props: any) =>
-        ReactActual.createElement('ScrollView', props),
-    },
-  };
-});
-
 jest.mock('../ScrollManager', () => {
   const ReactActual = require('react');
 
@@ -52,5 +39,57 @@ describe('HeaderMotionFlatList', () => {
 
     expect(React.isValidElement(element)).toBe(true);
     expect(element.props.progressViewOffset).toBe(24);
+  });
+
+  it('skips minHeightContentContainerStyle when disabled', () => {
+    const element = HeaderMotionFlatList({
+      data: [{ id: '1', label: 'Item 1' }],
+      keyExtractor: (item) => item.id,
+      renderItem: ({ item }) => React.createElement('View', null, item.label),
+      ensureScrollableContentMinHeight: false,
+    });
+
+    const renderedElement = element.type(element.props);
+    const flatList = renderedElement.props.children;
+    const scrollComponentElement = flatList.props.renderScrollComponent({
+      children: null,
+    });
+    const scrollComponent = scrollComponentElement.type.render(
+      scrollComponentElement.props,
+      null
+    );
+    const wrapper = scrollComponent.props.children;
+
+    expect(wrapper.props.style).toEqual([
+      undefined,
+      { paddingTop: 0 },
+      undefined,
+    ]);
+  });
+
+  it('applies the selected header offset strategy to the scroll container', () => {
+    const element = HeaderMotionFlatList({
+      data: [{ id: '1', label: 'Item 1' }],
+      keyExtractor: (item) => item.id,
+      renderItem: ({ item }) => React.createElement('View', null, item.label),
+      headerOffsetStrategy: 'translate',
+    });
+
+    const renderedElement = element.type(element.props);
+    const flatList = renderedElement.props.children;
+    const scrollComponentElement = flatList.props.renderScrollComponent({
+      children: null,
+    });
+    const scrollComponent = scrollComponentElement.type.render(
+      scrollComponentElement.props,
+      null
+    );
+    const wrapper = scrollComponent.props.children;
+
+    expect(wrapper.props.style).toEqual([
+      {},
+      { transform: [{ translateY: 0 }], paddingBottom: 0 },
+      undefined,
+    ]);
   });
 });

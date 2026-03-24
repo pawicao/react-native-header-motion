@@ -2,20 +2,23 @@ import Animated, {
   type AnimatedRef,
   type AnimatedScrollViewProps,
 } from 'react-native-reanimated';
+import type { HeaderMotionOffsetProps } from '../types';
+import { resolveHeaderOffsetStyle } from '../utils';
 import { HeaderMotionScrollManager } from './ScrollManager';
 
-export type HeaderMotionScrollViewProps = AnimatedScrollViewProps & {
-  /**
-   * Optional unique identifier for this scroll view.
-   * Use this when you have multiple scroll views (e.g. in tabs) to track them separately.
-   */
-  scrollId?: string;
-  /**
-   * Optional animated ref to use for the scroll view.
-   * When provided, the scroll manager will use this ref instead of creating its own.
-   */
-  animatedRef?: AnimatedRef<Animated.ScrollView> | AnimatedRef;
-};
+export type HeaderMotionScrollViewProps = AnimatedScrollViewProps &
+  HeaderMotionOffsetProps & {
+    /**
+     * Optional unique identifier for this scroll view.
+     * Use this when you have multiple scroll views (e.g. in tabs) to track them separately.
+     */
+    scrollId?: string;
+    /**
+     * Optional animated ref to use for the scroll view.
+     * When provided, the scroll manager will use this ref instead of creating its own.
+     */
+    animatedRef?: AnimatedRef<Animated.ScrollView> | AnimatedRef;
+  };
 
 /**
  * Animated ScrollView component that integrates with HeaderMotion.
@@ -34,6 +37,8 @@ export type HeaderMotionScrollViewProps = AnimatedScrollViewProps & {
 export function HeaderMotionScrollView({
   scrollId,
   animatedRef,
+  headerOffsetStrategy,
+  ensureScrollableContentMinHeight = true,
   children,
   contentContainerStyle,
   refreshControl,
@@ -75,8 +80,13 @@ export function HeaderMotionScrollView({
         >
           <Animated.View
             style={[
-              minHeightContentContainerStyle,
-              { paddingTop: originalHeaderHeight },
+              ensureScrollableContentMinHeight
+                ? minHeightContentContainerStyle
+                : undefined,
+              resolveHeaderOffsetStyle(
+                originalHeaderHeight,
+                headerOffsetStrategy
+              ),
               contentContainerStyle,
             ]}
           >
