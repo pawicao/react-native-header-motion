@@ -87,9 +87,7 @@ export interface ScrollManagerHeaderMotionContext {
 }
 
 export interface ScrollManagerConfig<TRef extends InstanceOrElement = any> {
-  scrollableProps: Required<
-    Pick<ScrollViewProps, 'onScroll' | 'scrollEventThrottle'>
-  > & {
+  scrollableProps: Pick<ScrollViewProps, 'onScroll'> & {
     refreshControl?: ReactElement;
     ref: AnimatedRef<TRef>;
   };

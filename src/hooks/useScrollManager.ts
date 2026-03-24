@@ -46,7 +46,7 @@ const SCROLL_TOLERANCE = 0.5;
  * @param options.animatedRef - Optional animated ref to use instead of creating one internally.
  *                              Useful when you need access to the scroll view ref from outside.
  * @returns Configuration object containing:
- * - `scrollableProps`: Props to apply to scrollable component (onScroll, scrollEventThrottle, ref)
+ * - `scrollableProps`: Props to apply to scrollable component (onScroll, ref)
  * - `headerMotionContext`: Header context values (originalHeaderHeight, minHeightContentContainerStyle)
  *
  * @throws Error if used outside of a HeaderMotion component
@@ -301,7 +301,6 @@ export function useScrollManager<TRef extends InstanceOrElement = any>(
 
   const scrollableProps = {
     onScroll: useScrollHandlerComposition(animatedOnScroll, options?.onScroll),
-    scrollEventThrottle: 16,
     ref: animatedRef,
     refreshControl: resolvedRefreshControl,
   };

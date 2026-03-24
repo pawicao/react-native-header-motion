@@ -531,7 +531,7 @@ Only use inside the `HeaderMotion` provider tree.
 
 Lower-level orchestration hook that powers the component APIs. Returns:
 
-- `scrollableProps`: `{ onScroll, scrollEventThrottle, ref }`
+- `scrollableProps`: `{ onScroll, ref }`
 - `headerMotionContext`:
   - `originalHeaderHeight` (`SharedValue<number>`)
   - `minHeightContentContainerStyle` (helps when content is shorter than the threshold)
@@ -564,6 +564,13 @@ Reanimated-powered, absolutely positioned header base.
 - `WithCollapsiblePagedHeaderProps` – like above, plus `activeTab` and `onTabChange`.
 
 ## Additional notes
+
+### Scroll event frequency
+
+`scrollEventThrottle` is intentionally not managed by this library.
+
+- Pass it directly to your scrollable when you need it.
+- If you run into performance issues, try adjusting `scrollEventThrottle` to reduce how many scroll events this library processes.
 
 ### Refresh Control (v.0.3.0+)
 
