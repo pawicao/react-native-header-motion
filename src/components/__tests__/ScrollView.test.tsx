@@ -1,19 +1,5 @@
 import React from 'react';
 
-jest.mock('react-native-reanimated', () => {
-  const ReactActual = require('react');
-
-  return {
-    __esModule: true,
-    default: {
-      FlatList: (props: any) => ReactActual.createElement('FlatList', props),
-      ScrollView: (props: any) =>
-        ReactActual.createElement('ScrollView', props),
-      View: (props: any) => ReactActual.createElement('View', props),
-    },
-  };
-});
-
 jest.mock('../ScrollManager', () => {
   const ReactActual = require('react');
 
@@ -45,7 +31,8 @@ describe('HeaderMotionScrollView', () => {
       children: React.createElement('View'),
     });
 
-    const scrollView = element.props.children;
+    const renderedElement = element.type(element.props);
+    const scrollView = renderedElement.props.children;
     const wrapper = scrollView.props.children;
 
     expect(wrapper.props.style).toEqual([{}, { marginTop: 0 }, undefined]);

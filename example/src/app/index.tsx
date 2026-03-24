@@ -19,6 +19,21 @@ export default function Screen() {
       <Link style={styles.link} href="/flatlist">
         FlatList
       </Link>
+      <Link style={styles.link} href="/offset-padding">
+        Offset: padding
+      </Link>
+      <Link style={styles.link} href="/offset-margin">
+        Offset: margin
+      </Link>
+      <Link style={styles.link} href="/offset-top">
+        Offset: top
+      </Link>
+      <Link style={styles.link} href="/offset-transform">
+        Offset: translate
+      </Link>
+      <Link style={styles.link} href="/offset-none">
+        Offset: none
+      </Link>
       <Link style={styles.link} href="/scroll-manager">
         ScrollManager
       </Link>

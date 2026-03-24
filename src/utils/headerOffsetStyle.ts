@@ -5,7 +5,7 @@ import { DEFAULT_HEADER_OFFSET_STRATEGY } from './defaults';
 type HeaderOffsetValue = number | SharedValue<number>;
 
 type HeaderOffsetStyle =
-  | {}
+  | undefined
   | { paddingTop: HeaderOffsetValue }
   | { marginTop: HeaderOffsetValue }
   | { top: HeaderOffsetValue; paddingBottom: HeaderOffsetValue }
@@ -20,7 +20,7 @@ export function resolveHeaderOffsetStyle(
 ): HeaderOffsetStyle {
   switch (headerOffsetStrategy) {
     case 'none':
-      return {};
+      return undefined;
     case 'margin':
       return { marginTop: originalHeaderHeight };
     case 'top':

@@ -24,6 +24,6 @@ describe('resolveHeaderOffsetStyle', () => {
   });
 
   it('returns no extra style for none strategy', () => {
-    expect(resolveHeaderOffsetStyle(48, 'none')).toEqual({});
+    expect(resolveHeaderOffsetStyle(48, 'none')).toBeUndefined();
   });
 });

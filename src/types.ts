@@ -16,7 +16,6 @@ export interface HeaderMotionOffsetProps {
   /**
    * Strategy used to offset the scrollable content by the measured original header height.
    *
-   * `padding` preserves the current behavior and is the safest default.
    * `top` and `translate` keep the bottom of the content reachable by compensating with extra bottom space.
    *
    * @default 'padding'

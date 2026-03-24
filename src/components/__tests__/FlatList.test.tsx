@@ -1,19 +1,5 @@
 import React from 'react';
 
-jest.mock('react-native-reanimated', () => {
-  const ReactActual = require('react');
-
-  return {
-    __esModule: true,
-    default: {
-      FlatList: (props: any) => ReactActual.createElement('FlatList', props),
-      ScrollView: (props: any) =>
-        ReactActual.createElement('ScrollView', props),
-      View: (props: any) => ReactActual.createElement('View', props),
-    },
-  };
-});
-
 jest.mock('../ScrollManager', () => {
   const ReactActual = require('react');
 
@@ -63,10 +49,15 @@ describe('HeaderMotionFlatList', () => {
       headerOffsetStrategy: 'translate',
     });
 
-    const flatList = element.props.children;
-    const scrollComponent = flatList.props.renderScrollComponent({
+    const renderedElement = element.type(element.props);
+    const flatList = renderedElement.props.children;
+    const scrollComponentElement = flatList.props.renderScrollComponent({
       children: null,
     });
+    const scrollComponent = scrollComponentElement.type.render(
+      scrollComponentElement.props,
+      null
+    );
     const wrapper = scrollComponent.props.children;
 
     expect(wrapper.props.style).toEqual([
