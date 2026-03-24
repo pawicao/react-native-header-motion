@@ -41,6 +41,32 @@ describe('HeaderMotionFlatList', () => {
     expect(element.props.progressViewOffset).toBe(24);
   });
 
+  it('skips minHeightContentContainerStyle when disabled', () => {
+    const element = HeaderMotionFlatList({
+      data: [{ id: '1', label: 'Item 1' }],
+      keyExtractor: (item) => item.id,
+      renderItem: ({ item }) => React.createElement('View', null, item.label),
+      ensureScrollableContentMinHeight: false,
+    });
+
+    const renderedElement = element.type(element.props);
+    const flatList = renderedElement.props.children;
+    const scrollComponentElement = flatList.props.renderScrollComponent({
+      children: null,
+    });
+    const scrollComponent = scrollComponentElement.type.render(
+      scrollComponentElement.props,
+      null
+    );
+    const wrapper = scrollComponent.props.children;
+
+    expect(wrapper.props.style).toEqual([
+      undefined,
+      { paddingTop: 0 },
+      undefined,
+    ]);
+  });
+
   it('applies the selected header offset strategy to the scroll container', () => {
     const element = HeaderMotionFlatList({
       data: [{ id: '1', label: 'Item 1' }],

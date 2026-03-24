@@ -435,6 +435,7 @@ Supports:
 
 - `scrollId?: string` for multi-scroll scenarios
 - `headerOffsetStrategy?: 'padding' | 'margin' | 'top' | 'translate' | 'none'`
+- `ensureScrollableContentMinHeight?: boolean`
 
 `padding` is the default and recommended option. `top` and `translate` also add bottom compensation internally so the end of the content remains reachable.
 
@@ -446,6 +447,7 @@ Supports:
 
 - `scrollId?: string` for multi-scroll scenarios
 - `headerOffsetStrategy?: 'padding' | 'margin' | 'top' | 'translate' | 'none'`
+- `ensureScrollableContentMinHeight?: boolean`
 
 #### `HeaderMotion.ScrollManager`
 

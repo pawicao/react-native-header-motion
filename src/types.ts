@@ -21,6 +21,13 @@ export interface HeaderMotionOffsetProps {
    * @default 'padding'
    */
   headerOffsetStrategy?: HeaderMotionOffsetStrategy;
+  /**
+   * Ensures the content container gets a minimum height large enough for short
+   * content to still scroll far enough to drive the header to its collapsed state.
+   *
+   * @default true
+   */
+  ensureScrollableContentMinHeight?: boolean;
 }
 
 export type ProgressThreshold =

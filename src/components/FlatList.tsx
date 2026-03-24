@@ -42,6 +42,7 @@ export function HeaderMotionFlatList<T = any>({
   scrollId,
   animatedRef,
   headerOffsetStrategy,
+  ensureScrollableContentMinHeight = true,
   contentContainerStyle,
   onScroll,
   onScrollBeginDrag,
@@ -85,7 +86,9 @@ export function HeaderMotionFlatList<T = any>({
             <AnimatedScrollContainer
               {...scrollComponentProps}
               contentContainerStyle={[
-                minHeightContentContainerStyle,
+                ensureScrollableContentMinHeight
+                  ? minHeightContentContainerStyle
+                  : undefined,
                 resolveHeaderOffsetStyle(
                   originalHeaderHeight,
                   headerOffsetStrategy

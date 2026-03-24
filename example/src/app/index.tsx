@@ -61,6 +61,9 @@ export default function Screen() {
       <Link style={styles.link} href="/short-content">
         Short Content (min height)
       </Link>
+      <Link style={styles.link} href="/short-content-no-min-height">
+        Short Content (min height disabled)
+      </Link>
       <Link style={styles.link} href="/external-ref">
         External Ref (short content)
       </Link>

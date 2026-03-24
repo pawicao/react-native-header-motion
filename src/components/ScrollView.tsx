@@ -38,6 +38,7 @@ export function HeaderMotionScrollView({
   scrollId,
   animatedRef,
   headerOffsetStrategy,
+  ensureScrollableContentMinHeight = true,
   children,
   contentContainerStyle,
   refreshControl,
@@ -79,7 +80,9 @@ export function HeaderMotionScrollView({
         >
           <Animated.View
             style={[
-              minHeightContentContainerStyle,
+              ensureScrollableContentMinHeight
+                ? minHeightContentContainerStyle
+                : undefined,
               resolveHeaderOffsetStyle(
                 originalHeaderHeight,
                 headerOffsetStrategy
