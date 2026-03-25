@@ -10,7 +10,7 @@ export default function RootLayout() {
         <Stack>
           <Stack.Screen
             name="index"
-            options={{ title: 'React Native Header Motion - Showcase' }}
+            options={{ title: 'React Native Header Motion' }}
           />
         </Stack>
         <StatusBar style="auto" />
