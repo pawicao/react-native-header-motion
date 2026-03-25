@@ -7,25 +7,23 @@ jest.mock('react-native-reanimated', () => ({
   },
 }));
 
-jest.mock('../createHeaderMotionScrollableComponent', () => {
+jest.mock('../createHeaderMotionScrollable', () => {
   const ReactActual = require('react');
 
   return {
     __esModule: true,
-    createHeaderMotionScrollableComponent: jest.fn(
+    createHeaderMotionScrollable: jest.fn(
       () => (props: any) => ReactActual.createElement('CreatedFlatList', props)
     ),
   };
 });
 
-import { createHeaderMotionScrollableComponent } from '../createHeaderMotionScrollableComponent';
+import { createHeaderMotionScrollable } from '../createHeaderMotionScrollable';
 import { HeaderMotionFlatList } from '../FlatList';
 
 describe('HeaderMotionFlatList', () => {
   it('creates the built-in wrapper from the shared factory', () => {
-    expect(
-      createHeaderMotionScrollableComponent as jest.Mock
-    ).toHaveBeenCalledWith(
+    expect(createHeaderMotionScrollable as jest.Mock).toHaveBeenCalledWith(
       'Animated.FlatList',
       expect.objectContaining({
         displayName: 'HeaderMotion.FlatList',

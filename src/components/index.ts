@@ -4,4 +4,4 @@ export * from './HeaderBase';
 export * from './HeaderMotion';
 export * from './ScrollManager';
 export * from './ScrollView';
-export * from './createHeaderMotionScrollableComponent';
+export * from './createHeaderMotionScrollable';

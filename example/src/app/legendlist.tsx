@@ -1,6 +1,6 @@
 import { ContentCard, ShowcaseCollapsibleHeader } from '@/components';
 import HeaderMotion, {
-  createHeaderMotionScrollableComponent,
+  createHeaderMotionScrollable,
 } from 'react-native-header-motion';
 import { Stack } from 'expo-router';
 
@@ -11,13 +11,11 @@ type ListRow = {
   label: string;
 };
 
-const HeaderMotionLegendList = createHeaderMotionScrollableComponent(
+const HeaderMotionLegendList = createHeaderMotionScrollable(
   AnimatedLegendList,
   {
     displayName: 'HeaderMotionLegendList',
-    contentContainerMode: 'renderScrollComponent',
-    animatedRefTarget: 'scrollComponent',
-    componentAnimation: 'assume-animated',
+    isComponentAnimated: true,
   }
 );
 

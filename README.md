@@ -116,8 +116,9 @@ Navigation headers are special:
 You can use either style; pick based on your integration needs:
 
 - Prefer **components** when you want a “batteries included” wiring:
+
   - `HeaderMotion.ScrollView` / `HeaderMotion.FlatList` for common scrollables
-  - `createHeaderMotionScrollableComponent()` for reusable wrappers around custom scrollables
+  - `createHeaderMotionScrollable()` for reusable wrappers around custom scrollables
   - `HeaderMotion.ScrollManager` for one-off custom scrollables via render-props
 
 - Prefer **hooks** when you want to build your own wrappers:
@@ -393,7 +394,7 @@ The package exports a default compound component plus hooks, types, and a couple
 - `HeaderMotion.Header` (bridge for navigation headers)
 - `HeaderMotion.ScrollView` (pre-wired Animated.ScrollView)
 - `HeaderMotion.FlatList` (pre-wired Animated.FlatList)
-- `createHeaderMotionScrollableComponent` (factory for reusable custom scrollables)
+- `createHeaderMotionScrollable` (factory for reusable custom scrollables)
 - `HeaderMotion.ScrollManager` (render-prop API for custom scrollables)
 
 #### Props
@@ -440,7 +441,7 @@ Animated FlatList wired similarly to the ScrollView.
 
 Supports `scrollId?: string` for multi-scroll scenarios.
 
-#### `createHeaderMotionScrollableComponent(Component, options?)`
+#### `createHeaderMotionScrollable(Component, options?)`
 
 Named export for building reusable scrollable wrappers on top of `useScrollManager()`.
 This is the same abstraction used internally by `HeaderMotion.ScrollView` and `HeaderMotion.FlatList`.
@@ -461,11 +462,9 @@ Example:
 
 ```tsx
 import { FlashList } from '@shopify/flash-list';
-import {
-  createHeaderMotionScrollableComponent,
-} from 'react-native-header-motion';
+import { createHeaderMotionScrollable } from 'react-native-header-motion';
 
-const HeaderMotionFlashList = createHeaderMotionScrollableComponent(FlashList, {
+const HeaderMotionFlashList = createHeaderMotionScrollable(FlashList, {
   contentContainerMode: 'renderScrollComponent',
   animatedRefTarget: 'scrollComponent',
 });

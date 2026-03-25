@@ -7,26 +7,24 @@ jest.mock('react-native-reanimated', () => ({
   },
 }));
 
-jest.mock('../createHeaderMotionScrollableComponent', () => {
+jest.mock('../createHeaderMotionScrollable', () => {
   const ReactActual = require('react');
 
   return {
     __esModule: true,
-    createHeaderMotionScrollableComponent: jest.fn(
+    createHeaderMotionScrollable: jest.fn(
       () => (props: any) =>
         ReactActual.createElement('CreatedScrollView', props)
     ),
   };
 });
 
-import { createHeaderMotionScrollableComponent } from '../createHeaderMotionScrollableComponent';
+import { createHeaderMotionScrollable } from '../createHeaderMotionScrollable';
 import { HeaderMotionScrollView } from '../ScrollView';
 
 describe('HeaderMotionScrollView', () => {
   it('creates the built-in wrapper from the shared factory', () => {
-    expect(
-      createHeaderMotionScrollableComponent as jest.Mock
-    ).toHaveBeenCalledWith(
+    expect(createHeaderMotionScrollable as jest.Mock).toHaveBeenCalledWith(
       'Animated.ScrollView',
       expect.objectContaining({
         displayName: 'HeaderMotion.ScrollView',

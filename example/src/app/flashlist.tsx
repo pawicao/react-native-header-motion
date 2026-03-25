@@ -1,7 +1,7 @@
 import { ContentCard, ShowcaseCollapsibleHeader } from '@/components';
 import { FlashList } from '@shopify/flash-list';
 import HeaderMotion, {
-  createHeaderMotionScrollableComponent,
+  createHeaderMotionScrollable,
 } from 'react-native-header-motion';
 import { Stack } from 'expo-router';
 
@@ -10,11 +10,8 @@ type ListRow = {
   label: string;
 };
 
-const HeaderMotionFlashList = createHeaderMotionScrollableComponent(FlashList, {
+const HeaderMotionFlashList = createHeaderMotionScrollable(FlashList, {
   displayName: 'HeaderMotionFlashList',
-  contentContainerMode: 'renderScrollComponent',
-  animatedRefTarget: 'scrollComponent',
-  componentAnimation: 'wrap',
 });
 
 export default function Screen() {
