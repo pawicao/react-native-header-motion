@@ -11,7 +11,7 @@ jest.mock('../ScrollManager', () => {
         props,
         typeof children === 'function'
           ? children(
-              { onScroll: jest.fn(), scrollEventThrottle: 16, ref: {} },
+              { onScroll: jest.fn(), ref: {} },
               {
                 originalHeaderHeight: 0,
                 minHeightContentContainerStyle: {},
