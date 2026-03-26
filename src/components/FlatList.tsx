@@ -1,5 +1,18 @@
-import Animated from 'react-native-reanimated';
-import { createHeaderMotionScrollable } from './createHeaderMotionScrollable';
+import type { ReactElement } from 'react';
+import Animated, {
+  type FlatListPropsWithLayout,
+} from 'react-native-reanimated';
+import {
+  createHeaderMotionScrollable,
+  type HeaderMotionScrollableOwnProps,
+} from './createHeaderMotionScrollable';
+
+export type HeaderMotionFlatListProps<T = any> = FlatListPropsWithLayout<T> &
+  HeaderMotionScrollableOwnProps<Animated.FlatList<T>>;
+
+type HeaderMotionFlatListComponent = <T = any>(
+  props: HeaderMotionFlatListProps<T>
+) => ReactElement | null;
 
 /**
  * Animated FlatList component that integrates with HeaderMotion.
@@ -25,8 +38,4 @@ export const HeaderMotionFlatList = createHeaderMotionScrollable(
     contentContainerMode: 'renderScrollComponent',
     isComponentAnimated: true,
   }
-);
-
-export type HeaderMotionFlatListProps<T = any> = Parameters<
-  typeof HeaderMotionFlatList<T>
->[0];
+) as HeaderMotionFlatListComponent;
