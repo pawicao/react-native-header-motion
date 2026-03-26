@@ -1,23 +1,34 @@
 import {
   forwardRef,
-  useMemo,
   useCallback,
+  useMemo,
   type ComponentRef,
   type ReactElement,
   type ReactNode,
   type Ref,
 } from 'react';
+import type { ScrollViewProps } from 'react-native';
 import Animated, {
   type AnimatedProps,
   type AnimatedRef,
 } from 'react-native-reanimated';
-import { useScrollManager, type UseScrollManagerOptions } from '../hooks';
-import type { ScrollViewProps } from 'react-native';
 import type { InstanceOrElement } from 'react-native-reanimated/lib/typescript/commonTypes';
+import { useScrollManager, type UseScrollManagerOptions } from '../hooks';
+import type { HeaderMotionOffsetProps } from '../types';
+import { resolveHeaderOffsetStyle } from '../utils';
+
+type ContentContainerMode = 'children' | 'renderScrollComponent';
+
+type ScrollableComponent =
+  | ((props: any) => ReactElement | null)
+  | (new (...args: any[]) => any);
+
+declare const noListItemSymbol: unique symbol;
+type NoListItem = { readonly [noListItemSymbol]: true };
 
 export type HeaderMotionScrollableOwnProps<
   TRef extends InstanceOrElement = any
-> = {
+> = HeaderMotionOffsetProps & {
   /**
    * Optional unique identifier for this scroll view.
    * Use this when you have multiple scroll views (e.g. in tabs) to track them separately.
@@ -29,211 +40,6 @@ export type HeaderMotionScrollableOwnProps<
    */
   animatedRef?: AnimatedRef<TRef> | AnimatedRef;
 };
-
-export interface CreateHeaderMotionScrollableOptions<
-  TIsComponentAnimated extends boolean = boolean
-> {
-  displayName?: string;
-  /**
-   * If true, this function will NOT call Animated.createAnimatedComponent internally.
-   * Useful when you are creating a HeaderMotionScrollable from lists that already export their
-   * own (Re)animated components (e.g. LegendList).
-   *
-   * @default false
-   */
-  isComponentAnimated?: TIsComponentAnimated;
-  /**
-   * Strategy used to apply header spacing and min-height handling.
-   * - `children`: wraps `children` in an inner `Animated.View`
-   * - `renderScrollComponent`: injects a custom scroll component that wraps the content
-   *
-   * Use `renderScrollComponent` for FlatList-like implementations.
-   *
-   * @default 'renderScrollComponent'
-   */
-  contentContainerMode?: ContentContainerMode;
-}
-
-export function createHeaderMotionScrollable<
-  TScrollableComponent extends ScrollableComponent,
-  TIsComponentAnimated extends boolean = false
->(
-  ScrollableComponent: TScrollableComponent,
-  options?: CreateHeaderMotionScrollableOptions<TIsComponentAnimated>
-): HeaderMotionScrollableComponent<TScrollableComponent, TIsComponentAnimated> {
-  const {
-    isComponentAnimated = false,
-    contentContainerMode = 'renderScrollComponent',
-    displayName = `HeaderMotion(${getDisplayName(
-      ScrollableComponent as {
-        displayName?: string;
-        name?: string;
-      }
-    )})`,
-  } = options || {};
-
-  const AnimatedScrollable = (isComponentAnimated
-    ? ScrollableComponent
-    : Animated.createAnimatedComponent(
-        ScrollableComponent as never
-      )) as unknown as ScrollableImplementationComponent;
-
-  // TODO: Instead of accepting animatedRef just accept ref and type it to be animated ref? idk
-
-  function HeaderMotionScrollable(props: ScrollableRuntimeProps) {
-    const {
-      scrollId,
-
-      contentContainerStyle,
-      animatedRef,
-      refreshControl,
-      refreshing,
-      onRefresh,
-      progressViewOffset,
-
-      // headerOffsetStrategy,
-      // ensureScrollableContentMinHeight = true,
-
-      onScroll,
-      onScrollBeginDrag,
-      onScrollEndDrag,
-      onMomentumScrollBegin,
-      onMomentumScrollEnd,
-      ...rest
-    } = props;
-    // TODO: Typing in this file probably could be much better
-
-    const { scrollableProps, headerMotionContext } = useScrollManager(
-      scrollId,
-      {
-        refreshControl:
-          (refreshControl as UseScrollManagerOptions['refreshControl']) ??
-          undefined,
-        refreshing: refreshing ?? undefined,
-        onRefresh: onRefresh ?? undefined,
-        progressViewOffset,
-        onScroll,
-        onScrollBeginDrag,
-        onScrollEndDrag,
-        onMomentumScrollBegin,
-        onMomentumScrollEnd,
-        animatedRef,
-      }
-    );
-
-    const {
-      onScroll: managedOnScroll,
-      refreshControl: managedRefreshControl,
-      ref,
-      ...scrollViewProps
-    } = scrollableProps;
-    const { originalHeaderHeight, minHeightContentContainerStyle } =
-      headerMotionContext;
-
-    const managedContentContainerStyle = useMemo(
-      () => [
-        minHeightContentContainerStyle,
-        { paddingTop: originalHeaderHeight },
-        contentContainerStyle,
-      ],
-      [
-        contentContainerStyle,
-        minHeightContentContainerStyle,
-        originalHeaderHeight,
-      ]
-    );
-
-    const refreshControlProps = managedRefreshControl && {
-      refreshControl: managedRefreshControl,
-    };
-
-    const contentContainerProps = useContentContainerProps({
-      children: rest.children,
-      mode: contentContainerMode,
-      style: managedContentContainerStyle,
-    });
-
-    return (
-      <AnimatedScrollable
-        {...scrollViewProps}
-        {...rest}
-        {...refreshControlProps}
-        {...contentContainerProps}
-        ref={ref}
-        onScroll={managedOnScroll}
-      />
-    );
-  }
-
-  const TypedHeaderMotionScrollable =
-    HeaderMotionScrollable as HeaderMotionScrollableComponent<
-      TScrollableComponent,
-      TIsComponentAnimated
-    >;
-
-  TypedHeaderMotionScrollable.displayName = displayName;
-  return TypedHeaderMotionScrollable;
-}
-
-function useContentContainerProps({
-  children: rawChildren,
-  mode,
-  style,
-}: {
-  children?: ReactNode;
-  mode: ContentContainerMode;
-  style?: any;
-}) {
-  const renderScrollComponent = useCallback(
-    (props: ScrollViewProps) => (
-      <AnimatedScrollContainer {...props} contentContainerStyle={style} />
-    ),
-    [style]
-  );
-
-  const children = <Animated.View style={style}>{rawChildren}</Animated.View>;
-
-  if (mode === 'children') {
-    return { children };
-  }
-
-  return {
-    renderScrollComponent,
-  };
-}
-
-const AnimatedScrollContainer = forwardRef<
-  ComponentRef<typeof Animated.ScrollView>,
-  ScrollViewProps
->(({ children, contentContainerStyle, ...rest }, ref) => {
-  return (
-    <Animated.ScrollView {...rest} ref={ref}>
-      <Animated.View style={contentContainerStyle}>{children}</Animated.View>
-    </Animated.ScrollView>
-  );
-});
-
-function getDisplayName(ScrollableComponent: {
-  displayName?: string;
-  name?: string;
-}) {
-  return (
-    ScrollableComponent.displayName ?? ScrollableComponent.name ?? 'Scrollable'
-  );
-}
-
-// TODO: From here below Codex did some absolute TypeScript magic but it seems to work
-// Having limited time, I can't spend more on adjusting this to make it less convoluted
-// But what matters is that it seems that for the user the types work very well
-
-type ContentContainerMode = 'children' | 'renderScrollComponent';
-
-type ScrollableComponent =
-  | ((props: any) => ReactElement | null)
-  | (new (...args: any[]) => any);
-
-declare const noListItemSymbol: unique symbol;
-type NoListItem = { readonly [noListItemSymbol]: true };
 
 type ScrollableComponentProps<TScrollableComponent> =
   TScrollableComponent extends new (props: infer TProps, ...args: any[]) => any
@@ -413,3 +219,193 @@ type ScrollableRuntimeProps = HeaderMotionScrollableOwnProps & {
 type ScrollableImplementationComponent = (
   props: ScrollableRuntimeProps
 ) => ReactElement | null;
+
+export interface CreateHeaderMotionScrollableOptions<
+  TIsComponentAnimated extends boolean = boolean
+> {
+  displayName?: string;
+  /**
+   * If true, this function will NOT call Animated.createAnimatedComponent internally.
+   * Useful when you are creating a HeaderMotionScrollable from lists that already export their
+   * own (Re)animated components (e.g. LegendList).
+   *
+   * @default false
+   */
+  isComponentAnimated?: TIsComponentAnimated;
+  /**
+   * Strategy used to apply header spacing and min-height handling.
+   * - `children`: wraps `children` in an inner `Animated.View`
+   * - `renderScrollComponent`: injects a custom scroll component that wraps the content
+   *
+   * Use `renderScrollComponent` for FlatList-like implementations.
+   *
+   * @default 'renderScrollComponent'
+   */
+  contentContainerMode?: ContentContainerMode;
+}
+
+export function createHeaderMotionScrollable<
+  TScrollableComponent extends ScrollableComponent,
+  TIsComponentAnimated extends boolean = false
+>(
+  ScrollableComponent: TScrollableComponent,
+  options?: CreateHeaderMotionScrollableOptions<TIsComponentAnimated>
+): HeaderMotionScrollableComponent<TScrollableComponent, TIsComponentAnimated> {
+  const {
+    isComponentAnimated = false,
+    contentContainerMode = 'renderScrollComponent',
+    displayName = `HeaderMotion(${getDisplayName(
+      ScrollableComponent as {
+        displayName?: string;
+        name?: string;
+      }
+    )})`,
+  } = options || {};
+
+  const AnimatedScrollable = (isComponentAnimated
+    ? ScrollableComponent
+    : Animated.createAnimatedComponent(
+        ScrollableComponent as never
+      )) as unknown as ScrollableImplementationComponent;
+
+  function HeaderMotionScrollable(props: ScrollableRuntimeProps) {
+    const {
+      scrollId,
+      animatedRef,
+      headerOffsetStrategy,
+      ensureScrollableContentMinHeight = true,
+      contentContainerStyle,
+      refreshControl,
+      refreshing,
+      onRefresh,
+      progressViewOffset,
+      onScroll,
+      onScrollBeginDrag,
+      onScrollEndDrag,
+      onMomentumScrollBegin,
+      onMomentumScrollEnd,
+      ...rest
+    } = props;
+
+    const { scrollableProps, headerMotionContext } = useScrollManager(
+      scrollId,
+      {
+        refreshControl:
+          (refreshControl as UseScrollManagerOptions['refreshControl']) ??
+          undefined,
+        refreshing: refreshing ?? undefined,
+        onRefresh: onRefresh ?? undefined,
+        progressViewOffset,
+        onScroll,
+        onScrollBeginDrag,
+        onScrollEndDrag,
+        onMomentumScrollBegin,
+        onMomentumScrollEnd,
+        animatedRef,
+      }
+    );
+
+    const {
+      onScroll: managedOnScroll,
+      refreshControl: managedRefreshControl,
+      ref,
+      ...scrollViewProps
+    } = scrollableProps;
+    const { originalHeaderHeight, minHeightContentContainerStyle } =
+      headerMotionContext;
+
+    const managedContentContainerStyle = useMemo(
+      () => [
+        ensureScrollableContentMinHeight
+          ? minHeightContentContainerStyle
+          : undefined,
+        resolveHeaderOffsetStyle(originalHeaderHeight, headerOffsetStrategy),
+        contentContainerStyle,
+      ],
+      [
+        contentContainerStyle,
+        ensureScrollableContentMinHeight,
+        headerOffsetStrategy,
+        minHeightContentContainerStyle,
+        originalHeaderHeight,
+      ]
+    );
+
+    const refreshControlProps = managedRefreshControl && {
+      refreshControl: managedRefreshControl,
+    };
+
+    const contentContainerProps = useContentContainerProps({
+      children: rest.children,
+      mode: contentContainerMode,
+      style: managedContentContainerStyle,
+    });
+
+    return (
+      <AnimatedScrollable
+        {...scrollViewProps}
+        {...rest}
+        {...refreshControlProps}
+        {...contentContainerProps}
+        ref={ref}
+        onScroll={managedOnScroll}
+      />
+    );
+  }
+
+  const TypedHeaderMotionScrollable =
+    HeaderMotionScrollable as HeaderMotionScrollableComponent<
+      TScrollableComponent,
+      TIsComponentAnimated
+    >;
+
+  TypedHeaderMotionScrollable.displayName = displayName;
+  return TypedHeaderMotionScrollable;
+}
+
+function useContentContainerProps({
+  children: rawChildren,
+  mode,
+  style,
+}: {
+  children?: ReactNode;
+  mode: ContentContainerMode;
+  style?: any;
+}) {
+  const renderScrollComponent = useCallback(
+    (props: ScrollViewProps) => (
+      <AnimatedScrollContainer {...props} contentContainerStyle={style} />
+    ),
+    [style]
+  );
+
+  const children = <Animated.View style={style}>{rawChildren}</Animated.View>;
+
+  if (mode === 'children') {
+    return { children };
+  }
+
+  return {
+    renderScrollComponent,
+  };
+}
+
+const AnimatedScrollContainer = forwardRef<
+  ComponentRef<typeof Animated.ScrollView>,
+  ScrollViewProps
+>(({ children, contentContainerStyle, ...rest }, ref) => {
+  return (
+    <Animated.ScrollView {...rest} ref={ref}>
+      <Animated.View style={contentContainerStyle}>{children}</Animated.View>
+    </Animated.ScrollView>
+  );
+});
+
+function getDisplayName(ScrollableComponent: {
+  displayName?: string;
+  name?: string;
+}) {
+  return (
+    ScrollableComponent.displayName ?? ScrollableComponent.name ?? 'Scrollable'
+  );
+}

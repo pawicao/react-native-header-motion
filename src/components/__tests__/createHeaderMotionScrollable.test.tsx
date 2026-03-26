@@ -36,6 +36,8 @@ const validElement = (
   <HeaderMotionGenericList
     data={[{ id: '1', label: 'Row' }]}
     estimatedItemSize={120}
+    ensureScrollableContentMinHeight={false}
+    headerOffsetStrategy="none"
     renderItem={({ item }) =>
       React.createElement(React.Fragment, null, item.label)
     }
@@ -47,6 +49,8 @@ const typedProps: Parameters<
   typeof HeaderMotionGenericList<{ id: string; label: string }>
 >[0] = {
   data: [{ id: '1', label: 'Row' }],
+  ensureScrollableContentMinHeight: false,
+  headerOffsetStrategy: 'padding',
   renderItem: ({ item }) =>
     React.createElement(React.Fragment, null, item.label),
 };

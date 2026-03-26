@@ -5,6 +5,30 @@ import { DEFAULT_SCROLL_ID } from './utils/defaults';
 import type { InstanceOrElement } from 'react-native-reanimated/lib/typescript/commonTypes';
 
 export type Progress = SharedValue<number>;
+export type HeaderMotionOffsetStrategy =
+  | 'padding'
+  | 'margin'
+  | 'top'
+  | 'translate'
+  | 'none';
+
+export interface HeaderMotionOffsetProps {
+  /**
+   * Strategy used to offset the scrollable content by the measured original header height.
+   *
+   * `top` and `translate` keep the bottom of the content reachable by compensating with extra bottom space.
+   *
+   * @default 'padding'
+   */
+  headerOffsetStrategy?: HeaderMotionOffsetStrategy;
+  /**
+   * Ensures the content container gets a minimum height large enough for short
+   * content to still scroll far enough to drive the header to its collapsed state.
+   *
+   * @default true
+   */
+  ensureScrollableContentMinHeight?: boolean;
+}
 
 export type ProgressThreshold =
   | number
@@ -63,9 +87,7 @@ export interface ScrollManagerHeaderMotionContext {
 }
 
 export interface ScrollManagerConfig<TRef extends InstanceOrElement = any> {
-  scrollableProps: Required<
-    Pick<ScrollViewProps, 'onScroll' | 'scrollEventThrottle'>
-  > & {
+  scrollableProps: Pick<ScrollViewProps, 'onScroll'> & {
     refreshControl?: ReactElement;
     ref: AnimatedRef<TRef>;
   };

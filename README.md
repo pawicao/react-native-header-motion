@@ -89,7 +89,7 @@ Read it inside worklets via `progressThreshold.get()` (or `progressThreshold.val
 
 The library gives you two measurement callbacks that you pass to your header layout:
 
-- `measureTotalHeight` – attach to the _outer_ header container to measure the total header height. Scrollables use this to add `paddingTop` so content starts below the header.
+- `measureTotalHeight` – attach to the _outer_ header container to measure the total header height. Scrollables use this to offset content so it starts below the header.
 - `measureDynamic` – attach to the part of the header that determines the threshold (often the animated/dynamic portion).
 
 ## Why `HeaderMotion.Header` exists
@@ -431,32 +431,49 @@ Animated ScrollView wired with:
 
 - `onScroll` handler
 - `ref`
-- automatic `paddingTop` based on measured header height
+- automatic content offset based on measured header height
 
-Supports `scrollId?: string` for multi-scroll scenarios.
+Supports:
+
+- `scrollId?: string` for multi-scroll scenarios
+- `headerOffsetStrategy?: 'padding' | 'margin' | 'top' | 'translate' | 'none'`
+- `ensureScrollableContentMinHeight?: boolean`
+
+`padding` is the default and recommended option. `top` and `translate` also add bottom compensation internally so the end of the content remains reachable.
 
 #### `HeaderMotion.FlatList`
 
 Animated FlatList wired similarly to the ScrollView.
 
-Supports `scrollId?: string` for multi-scroll scenarios.
+Supports:
+
+- `scrollId?: string` for multi-scroll scenarios
+- `headerOffsetStrategy?: 'padding' | 'margin' | 'top' | 'translate' | 'none'`
+- `ensureScrollableContentMinHeight?: boolean`
 
 #### `createHeaderMotionScrollable(Component, options?)`
 
 Named export for building reusable scrollable wrappers on top of `useScrollManager()`.
 This is the same abstraction used internally by `HeaderMotion.ScrollView` and `HeaderMotion.FlatList`.
 
+Returned components support:
+
+- `scrollId?: string`
+- `headerOffsetStrategy?: 'padding' | 'margin' | 'top' | 'translate' | 'none'`
+- `ensureScrollableContentMinHeight?: boolean`
+
 Use:
 
 - `contentContainerMode: 'children'` for ScrollView-like components
 - `contentContainerMode: 'renderScrollComponent'` for FlatList-like components
-- `componentAnimation: 'assume-animated'` when you pass an already animated component
+- `isComponentAnimated: true` when you pass an already animated component
+
+The returned component keeps the wrapped component's prop shape, and list-like
+generic components preserve item inference at usage time. Users do not need to
+pass generics to `createHeaderMotionScrollable()` itself.
 
 By default, the factory wraps the provided component with
-`Animated.createAnimatedComponent()` only when the managed animated ref
-targets the outer component. For integrations like FlashList or LegendList
-where the real scroll target lives in `renderScrollComponent`, you can pass the
-plain component and keep `animatedRefTarget: 'scrollComponent'`.
+`Animated.createAnimatedComponent()`.
 
 Example:
 
@@ -465,8 +482,7 @@ import { FlashList } from '@shopify/flash-list';
 import { createHeaderMotionScrollable } from 'react-native-header-motion';
 
 const HeaderMotionFlashList = createHeaderMotionScrollable(FlashList, {
-  contentContainerMode: 'renderScrollComponent',
-  animatedRefTarget: 'scrollComponent',
+  displayName: 'HeaderMotionFlashList',
 });
 ```
 
@@ -552,7 +568,7 @@ Only use inside the `HeaderMotion` provider tree.
 
 Lower-level orchestration hook that powers the component APIs. Returns:
 
-- `scrollableProps`: `{ onScroll, scrollEventThrottle, ref }`
+- `scrollableProps`: `{ onScroll, ref }`
 - `headerMotionContext`:
   - `originalHeaderHeight` (`SharedValue<number>`)
   - `minHeightContentContainerStyle` (helps when content is shorter than the threshold)
@@ -585,6 +601,13 @@ Reanimated-powered, absolutely positioned header base.
 - `WithCollapsiblePagedHeaderProps` – like above, plus `activeTab` and `onTabChange`.
 
 ## Additional notes
+
+### Scroll event frequency
+
+`scrollEventThrottle` is intentionally not managed by this library.
+
+- Pass it directly to your scrollable when you need it.
+- If you run into performance issues, try adjusting `scrollEventThrottle` to reduce how many scroll events this library processes.
 
 ### Refresh Control (v.0.3.0+)
 

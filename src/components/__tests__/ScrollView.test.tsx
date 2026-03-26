@@ -25,17 +25,21 @@ import { HeaderMotionScrollView } from '../ScrollView';
 describe('HeaderMotionScrollView', () => {
   it('creates the built-in wrapper from the shared factory', () => {
     expect(createHeaderMotionScrollable as jest.Mock).toHaveBeenCalledWith(
-      'Animated.ScrollView',
+      expect.any(Function),
       expect.objectContaining({
         displayName: 'HeaderMotion.ScrollView',
+        contentContainerMode: 'children',
+        isComponentAnimated: true,
       })
     );
   });
 
-  it('passes animatedRef through to the generated component', () => {
+  it('passes header motion props through to the generated component', () => {
     const animatedRef = { current: null } as any;
     const element = HeaderMotionScrollView({
       animatedRef,
+      headerOffsetStrategy: 'margin',
+      ensureScrollableContentMinHeight: false,
       children: React.createElement('View'),
     });
 
@@ -43,5 +47,12 @@ describe('HeaderMotionScrollView', () => {
     expect((element as React.ReactElement<any>).props.animatedRef).toBe(
       animatedRef
     );
+    expect(
+      (element as React.ReactElement<any>).props.headerOffsetStrategy
+    ).toBe('margin');
+    expect(
+      (element as React.ReactElement<any>).props
+        .ensureScrollableContentMinHeight
+    ).toBe(false);
   });
 });

@@ -24,15 +24,16 @@ import { HeaderMotionFlatList } from '../FlatList';
 describe('HeaderMotionFlatList', () => {
   it('creates the built-in wrapper from the shared factory', () => {
     expect(createHeaderMotionScrollable as jest.Mock).toHaveBeenCalledWith(
-      'Animated.FlatList',
+      expect.any(Function),
       expect.objectContaining({
         displayName: 'HeaderMotion.FlatList',
         contentContainerMode: 'renderScrollComponent',
+        isComponentAnimated: true,
       })
     );
   });
 
-  it('passes animatedRef through to the generated component', () => {
+  it('passes header motion props through to the generated component', () => {
     const animatedRef = { current: null } as any;
     const element = HeaderMotionFlatList<{ id: string; label: string }>({
       data: [{ id: '1', label: 'Item 1' }],
@@ -40,11 +41,20 @@ describe('HeaderMotionFlatList', () => {
       renderItem: ({ item }: { item: { id: string; label: string } }) =>
         React.createElement('View', null, item.label),
       animatedRef,
+      headerOffsetStrategy: 'translate',
+      ensureScrollableContentMinHeight: false,
     });
 
     expect(React.isValidElement(element)).toBe(true);
     expect((element as React.ReactElement<any>).props.animatedRef).toBe(
       animatedRef
     );
+    expect(
+      (element as React.ReactElement<any>).props.headerOffsetStrategy
+    ).toBe('translate');
+    expect(
+      (element as React.ReactElement<any>).props
+        .ensureScrollableContentMinHeight
+    ).toBe(false);
   });
 });
