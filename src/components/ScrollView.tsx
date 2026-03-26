@@ -1,14 +1,5 @@
-import type { ComponentProps } from 'react';
 import Animated from 'react-native-reanimated';
-import {
-  createHeaderMotionScrollable,
-  type HeaderMotionScrollableOwnProps,
-} from './createHeaderMotionScrollable';
-
-export type HeaderMotionScrollViewProps = ComponentProps<
-  typeof Animated.ScrollView
-> &
-  HeaderMotionScrollableOwnProps<Animated.ScrollView>;
+import { createHeaderMotionScrollable } from './createHeaderMotionScrollable';
 
 /**
  * Animated ScrollView component that integrates with HeaderMotion.
@@ -32,3 +23,7 @@ export const HeaderMotionScrollView = createHeaderMotionScrollable(
     isComponentAnimated: true,
   }
 );
+
+export type HeaderMotionScrollViewProps = Parameters<
+  typeof HeaderMotionScrollView
+>[0];

@@ -3,12 +3,15 @@ import {
   useMemo,
   useCallback,
   type ComponentRef,
+  type ReactElement,
   type ReactNode,
-  type ComponentType,
-  type ComponentProps,
+  type Ref,
 } from 'react';
-import Animated, { type AnimatedRef } from 'react-native-reanimated';
-import { useScrollManager } from '../hooks';
+import Animated, {
+  type AnimatedProps,
+  type AnimatedRef,
+} from 'react-native-reanimated';
+import { useScrollManager, type UseScrollManagerOptions } from '../hooks';
 import type { ScrollViewProps } from 'react-native';
 import type { InstanceOrElement } from 'react-native-reanimated/lib/typescript/commonTypes';
 
@@ -27,9 +30,9 @@ export type HeaderMotionScrollableOwnProps<
   animatedRef?: AnimatedRef<TRef> | AnimatedRef;
 };
 
-type ContentContainerMode = 'children' | 'renderScrollComponent';
-
-export interface CreateHeaderMotionScrollableOptions {
+export interface CreateHeaderMotionScrollableOptions<
+  TIsComponentAnimated extends boolean = boolean
+> {
   displayName?: string;
   /**
    * If true, this function will NOT call Animated.createAnimatedComponent internally.
@@ -38,7 +41,7 @@ export interface CreateHeaderMotionScrollableOptions {
    *
    * @default false
    */
-  isComponentAnimated?: boolean;
+  isComponentAnimated?: TIsComponentAnimated;
   /**
    * Strategy used to apply header spacing and min-height handling.
    * - `children`: wraps `children` in an inner `Animated.View`
@@ -52,36 +55,41 @@ export interface CreateHeaderMotionScrollableOptions {
 }
 
 export function createHeaderMotionScrollable<
-  TScrollableComponent extends ComponentType
+  TScrollableComponent extends ScrollableComponent,
+  TIsComponentAnimated extends boolean = false
 >(
   ScrollableComponent: TScrollableComponent,
-  options?: CreateHeaderMotionScrollableOptions
-) {
+  options?: CreateHeaderMotionScrollableOptions<TIsComponentAnimated>
+): HeaderMotionScrollableComponent<TScrollableComponent, TIsComponentAnimated> {
   const {
     isComponentAnimated = false,
-    contentContainerMode = 'children',
-    displayName = `HeaderMotion(${getDisplayName(ScrollableComponent)})`,
+    contentContainerMode = 'renderScrollComponent',
+    displayName = `HeaderMotion(${getDisplayName(
+      ScrollableComponent as {
+        displayName?: string;
+        name?: string;
+      }
+    )})`,
   } = options || {};
 
-  const AnimatedScrollable = (
-    isComponentAnimated
-      ? ScrollableComponent
-      : Animated.createAnimatedComponent(ScrollableComponent)
-  ) as ComponentType<
-    ComponentProps<typeof Animated.FlatList> & HeaderMotionScrollableOwnProps
-  >;
+  const AnimatedScrollable = (isComponentAnimated
+    ? ScrollableComponent
+    : Animated.createAnimatedComponent(
+        ScrollableComponent as never
+      )) as unknown as ScrollableImplementationComponent;
 
   // TODO: Instead of accepting animatedRef just accept ref and type it to be animated ref? idk
 
-  function HeaderMotionScrollable(
-    props: ComponentProps<TScrollableComponent> &
-      HeaderMotionScrollableOwnProps<TScrollableComponent>
-  ) {
+  function HeaderMotionScrollable(props: ScrollableRuntimeProps) {
     const {
       scrollId,
 
       contentContainerStyle,
       animatedRef,
+      refreshControl,
+      refreshing,
+      onRefresh,
+      progressViewOffset,
 
       // headerOffsetStrategy,
       // ensureScrollableContentMinHeight = true,
@@ -92,18 +100,18 @@ export function createHeaderMotionScrollable<
       onMomentumScrollBegin,
       onMomentumScrollEnd,
       ...rest
-    } = props as unknown as ComponentProps<typeof Animated.FlatList> &
-      HeaderMotionScrollableOwnProps &
-      Pick<ScrollViewProps, 'children'>;
+    } = props;
     // TODO: Typing in this file probably could be much better
 
     const { scrollableProps, headerMotionContext } = useScrollManager(
       scrollId,
       {
-        refreshControl: rest.refreshControl,
-        refreshing: rest.refreshing,
-        onRefresh: rest.onRefresh,
-        progressViewOffset: rest.progressViewOffset,
+        refreshControl:
+          (refreshControl as UseScrollManagerOptions['refreshControl']) ??
+          undefined,
+        refreshing: refreshing ?? undefined,
+        onRefresh: onRefresh ?? undefined,
+        progressViewOffset,
         onScroll,
         onScrollBeginDrag,
         onScrollEndDrag,
@@ -157,8 +165,14 @@ export function createHeaderMotionScrollable<
     );
   }
 
-  HeaderMotionScrollable.displayName = displayName;
-  return HeaderMotionScrollable;
+  const TypedHeaderMotionScrollable =
+    HeaderMotionScrollable as HeaderMotionScrollableComponent<
+      TScrollableComponent,
+      TIsComponentAnimated
+    >;
+
+  TypedHeaderMotionScrollable.displayName = displayName;
+  return TypedHeaderMotionScrollable;
 }
 
 function useContentContainerProps({
@@ -207,3 +221,195 @@ function getDisplayName(ScrollableComponent: {
     ScrollableComponent.displayName ?? ScrollableComponent.name ?? 'Scrollable'
   );
 }
+
+// TODO: From here below Codex did some absolute TypeScript magic but it seems to work
+// Having limited time, I can't spend more on adjusting this to make it less convoluted
+// But what matters is that it seems that for the user the types work very well
+
+type ContentContainerMode = 'children' | 'renderScrollComponent';
+
+type ScrollableComponent =
+  | ((props: any) => ReactElement | null)
+  | (new (...args: any[]) => any);
+
+declare const noListItemSymbol: unique symbol;
+type NoListItem = { readonly [noListItemSymbol]: true };
+
+type ScrollableComponentProps<TScrollableComponent> =
+  TScrollableComponent extends new (props: infer TProps, ...args: any[]) => any
+    ? TProps
+    : TScrollableComponent extends (props: infer TProps, ...args: any[]) => any
+    ? TProps
+    : never;
+
+type IsUnknown<TValue> = unknown extends TValue
+  ? [keyof TValue] extends [never]
+    ? true
+    : false
+  : false;
+
+type ReplaceUnknownDeep<TValue, TReplacement> = IsUnknown<TValue> extends true
+  ? TReplacement
+  : TValue extends (...args: infer TArgs) => infer TResult
+  ? (
+      ...args: {
+        [TIndex in keyof TArgs]: ReplaceUnknownDeep<
+          TArgs[TIndex],
+          TReplacement
+        >;
+      }
+    ) => TResult
+  : TValue extends readonly (infer TItem)[]
+  ? readonly ReplaceUnknownDeep<TItem, TReplacement>[]
+  : TValue extends object
+  ? {
+      [TKey in keyof TValue]: ReplaceUnknownDeep<TValue[TKey], TReplacement>;
+    }
+  : TValue;
+
+type MaybeAnimatedProps<
+  TProps extends object,
+  TIsComponentAnimated
+> = TIsComponentAnimated extends true ? TProps : AnimatedProps<TProps>;
+
+type ResolveListItemProps<TProps extends object, TListItem> = [
+  TListItem
+] extends [NoListItem]
+  ? TProps
+  : ReplaceUnknownDeep<TProps, TListItem>;
+
+type ExtractDataProp<TProps> = TProps extends { data?: infer TData }
+  ? TData
+  : TProps extends { data: infer TData }
+  ? TData
+  : never;
+
+type ExtractListItemFromData<TData> = TData extends
+  | ReadonlyArray<infer TItem>
+  | null
+  | undefined
+  ? TItem
+  : TData extends ArrayLike<infer TItem> | null | undefined
+  ? TItem
+  : never;
+
+type HasGenericDataProp<TProps> = IsUnknown<
+  ExtractListItemFromData<ExtractDataProp<TProps>>
+>;
+
+type ExtractRefTargetFromRef<TRef> = TRef extends Ref<infer TInstance>
+  ? TInstance
+  : TRef extends AnimatedRef<infer TInstance>
+  ? TInstance
+  : never;
+
+type ExtractRefTargetFromProps<TProps> = TProps extends { ref?: infer TRef }
+  ? ExtractRefTargetFromRef<TRef>
+  : TProps extends { ref: infer TRef }
+  ? ExtractRefTargetFromRef<TRef>
+  : never;
+
+type ResolveScrollableRefTarget<TScrollableComponent, TProps> = [
+  ExtractRefTargetFromProps<TProps>
+] extends [never]
+  ? TScrollableComponent extends new (...args: any[]) => infer TInstance
+    ? TInstance extends InstanceOrElement
+      ? TInstance
+      : any
+    : any
+  : ExtractRefTargetFromProps<TProps> extends InstanceOrElement
+  ? ExtractRefTargetFromProps<TProps>
+  : any;
+
+type HeaderMotionScrollableBaseProps<
+  TScrollableComponent extends ScrollableComponent,
+  TIsComponentAnimated extends boolean,
+  TListItem = NoListItem
+> = ResolveListItemProps<
+  MaybeAnimatedProps<
+    ScrollableComponentProps<TScrollableComponent>,
+    TIsComponentAnimated
+  >,
+  TListItem
+>;
+
+type HeaderMotionScrollablePublicProps<
+  TScrollableComponent extends ScrollableComponent,
+  TIsComponentAnimated extends boolean,
+  TListItem = NoListItem
+> = HeaderMotionScrollableBaseProps<
+  TScrollableComponent,
+  TIsComponentAnimated,
+  TListItem
+> &
+  HeaderMotionScrollableOwnProps<
+    ResolveScrollableRefTarget<
+      TScrollableComponent,
+      HeaderMotionScrollableBaseProps<
+        TScrollableComponent,
+        TIsComponentAnimated,
+        TListItem
+      >
+    >
+  >;
+
+type HeaderMotionGenericScrollableComponent<
+  TScrollableComponent extends ScrollableComponent,
+  TIsComponentAnimated extends boolean
+> = {
+  <TListItem = any>(
+    props: HeaderMotionScrollablePublicProps<
+      TScrollableComponent,
+      TIsComponentAnimated,
+      TListItem
+    >
+  ): ReactElement | null;
+  displayName?: string;
+};
+
+type HeaderMotionStaticScrollableComponent<
+  TScrollableComponent extends ScrollableComponent,
+  TIsComponentAnimated extends boolean
+> = {
+  (
+    props: HeaderMotionScrollablePublicProps<
+      TScrollableComponent,
+      TIsComponentAnimated
+    >
+  ): ReactElement | null;
+  displayName?: string;
+};
+
+type HeaderMotionScrollableComponent<
+  TScrollableComponent extends ScrollableComponent,
+  TIsComponentAnimated extends boolean
+> = HasGenericDataProp<
+  ScrollableComponentProps<TScrollableComponent>
+> extends true
+  ? HeaderMotionGenericScrollableComponent<
+      TScrollableComponent,
+      TIsComponentAnimated
+    >
+  : HeaderMotionStaticScrollableComponent<
+      TScrollableComponent,
+      TIsComponentAnimated
+    >;
+
+type ScrollableRuntimeProps = HeaderMotionScrollableOwnProps & {
+  children?: ReactNode;
+  contentContainerStyle?: ScrollViewProps['contentContainerStyle'];
+  onScroll?: ScrollViewProps['onScroll'];
+  onScrollBeginDrag?: ScrollViewProps['onScrollBeginDrag'];
+  onScrollEndDrag?: ScrollViewProps['onScrollEndDrag'];
+  onMomentumScrollBegin?: ScrollViewProps['onMomentumScrollBegin'];
+  onMomentumScrollEnd?: ScrollViewProps['onMomentumScrollEnd'];
+  refreshControl?: ReactElement | null;
+  refreshing?: UseScrollManagerOptions['refreshing'] | null;
+  onRefresh?: UseScrollManagerOptions['onRefresh'] | null;
+  progressViewOffset?: UseScrollManagerOptions['progressViewOffset'];
+  [key: string]: unknown;
+};
+
+type ScrollableImplementationComponent = (
+  props: ScrollableRuntimeProps
+) => ReactElement | null;
