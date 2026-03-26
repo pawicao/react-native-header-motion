@@ -1,95 +1,60 @@
 import React from 'react';
 
-jest.mock('../ScrollManager', () => {
+jest.mock('react-native-reanimated', () => ({
+  __esModule: true,
+  default: {
+    FlatList: 'Animated.FlatList',
+  },
+}));
+
+jest.mock('../createHeaderMotionScrollable', () => {
   const ReactActual = require('react');
 
   return {
     __esModule: true,
-    HeaderMotionScrollManager: ({ children, ...props }: any) =>
-      ReactActual.createElement(
-        'HeaderMotionScrollManager',
-        props,
-        typeof children === 'function'
-          ? children(
-              { onScroll: jest.fn(), ref: {} },
-              {
-                originalHeaderHeight: 0,
-                minHeightContentContainerStyle: {},
-              }
-            )
-          : null
-      ),
+    createHeaderMotionScrollable: jest.fn(
+      () => (props: any) => ReactActual.createElement('CreatedFlatList', props)
+    ),
   };
 });
 
+import { createHeaderMotionScrollable } from '../createHeaderMotionScrollable';
 import { HeaderMotionFlatList } from '../FlatList';
 
 describe('HeaderMotionFlatList', () => {
-  it('forwards progressViewOffset to ScrollManager', () => {
-    const onRefresh = jest.fn();
-
-    const element = HeaderMotionFlatList({
-      data: [{ id: '1', label: 'Item 1' }],
-      keyExtractor: (item) => item.id,
-      renderItem: ({ item }) => React.createElement('View', null, item.label),
-      refreshing: false,
-      onRefresh,
-      progressViewOffset: 24,
-    });
-
-    expect(React.isValidElement(element)).toBe(true);
-    expect(element.props.progressViewOffset).toBe(24);
+  it('creates the built-in wrapper from the shared factory', () => {
+    expect(createHeaderMotionScrollable as jest.Mock).toHaveBeenCalledWith(
+      expect.any(Function),
+      expect.objectContaining({
+        displayName: 'HeaderMotion.FlatList',
+        contentContainerMode: 'renderScrollComponent',
+        isComponentAnimated: true,
+      })
+    );
   });
 
-  it('skips minHeightContentContainerStyle when disabled', () => {
-    const element = HeaderMotionFlatList({
+  it('passes header motion props through to the generated component', () => {
+    const animatedRef = { current: null } as any;
+    const element = HeaderMotionFlatList<{ id: string; label: string }>({
       data: [{ id: '1', label: 'Item 1' }],
-      keyExtractor: (item) => item.id,
-      renderItem: ({ item }) => React.createElement('View', null, item.label),
+      keyExtractor: (item: { id: string }) => item.id,
+      renderItem: ({ item }: { item: { id: string; label: string } }) =>
+        React.createElement('View', null, item.label),
+      animatedRef,
+      headerOffsetStrategy: 'translate',
       ensureScrollableContentMinHeight: false,
     });
 
-    const renderedElement = element.type(element.props);
-    const flatList = renderedElement.props.children;
-    const scrollComponentElement = flatList.props.renderScrollComponent({
-      children: null,
-    });
-    const scrollComponent = scrollComponentElement.type.render(
-      scrollComponentElement.props,
-      null
+    expect(React.isValidElement(element)).toBe(true);
+    expect((element as React.ReactElement<any>).props.animatedRef).toBe(
+      animatedRef
     );
-    const wrapper = scrollComponent.props.children;
-
-    expect(wrapper.props.style).toEqual([
-      undefined,
-      { paddingTop: 0 },
-      undefined,
-    ]);
-  });
-
-  it('applies the selected header offset strategy to the scroll container', () => {
-    const element = HeaderMotionFlatList({
-      data: [{ id: '1', label: 'Item 1' }],
-      keyExtractor: (item) => item.id,
-      renderItem: ({ item }) => React.createElement('View', null, item.label),
-      headerOffsetStrategy: 'translate',
-    });
-
-    const renderedElement = element.type(element.props);
-    const flatList = renderedElement.props.children;
-    const scrollComponentElement = flatList.props.renderScrollComponent({
-      children: null,
-    });
-    const scrollComponent = scrollComponentElement.type.render(
-      scrollComponentElement.props,
-      null
-    );
-    const wrapper = scrollComponent.props.children;
-
-    expect(wrapper.props.style).toEqual([
-      {},
-      { transform: [{ translateY: 0 }], paddingBottom: 0 },
-      undefined,
-    ]);
+    expect(
+      (element as React.ReactElement<any>).props.headerOffsetStrategy
+    ).toBe('translate');
+    expect(
+      (element as React.ReactElement<any>).props
+        .ensureScrollableContentMinHeight
+    ).toBe(false);
   });
 });

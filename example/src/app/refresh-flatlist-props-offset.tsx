@@ -15,6 +15,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const CUSTOM_PROGRESS_VIEW_OFFSET = 100;
 
+type ListRow = {
+  index: number;
+  label: string;
+};
+
 export default function Screen() {
   const [refreshing, setRefreshing] = React.useState(false);
 
@@ -159,7 +164,7 @@ const styles = StyleSheet.create({
   },
 });
 
-const content = Array.from({ length: 500 }, (_, k) => ({
+const content: ListRow[] = Array.from({ length: 500 }, (_, k) => ({
   index: k + 1,
   label: 'FlatList Item',
 }));

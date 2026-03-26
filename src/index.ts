@@ -1,15 +1,18 @@
 import {
   AnimatedHeaderBase,
   HeaderBase,
+  createHeaderMotionScrollable,
   HeaderMotionContextProvider,
   HeaderMotionFlatList,
   HeaderMotionHeader,
   HeaderMotionScrollManager,
   HeaderMotionScrollView,
+  type CreateHeaderMotionScrollableOptions,
   type HeaderMotionFlatListProps,
   type HeaderMotionHeaderProps,
   type HeaderMotionProps,
   type HeaderMotionScrollManagerProps,
+  type HeaderMotionScrollableOwnProps,
   type HeaderMotionScrollViewProps,
 } from './components';
 import type { ReactElement } from 'react';
@@ -67,10 +70,13 @@ export default HeaderMotion;
 export * from './hooks';
 export type * from './types';
 export { AnimatedHeaderBase, HeaderBase };
+export { createHeaderMotionScrollable };
 export type {
+  CreateHeaderMotionScrollableOptions,
   HeaderMotionFlatListProps,
   HeaderMotionHeaderProps,
   HeaderMotionProps,
   HeaderMotionScrollManagerProps,
+  HeaderMotionScrollableOwnProps,
   HeaderMotionScrollViewProps,
 };

@@ -25,6 +25,8 @@ const SECTIONS: ShowcaseSection[] = [
       { title: 'Color Interpolation', href: '/colors', icon: '🎨' },
       { title: 'Overscroll', href: '/overscroll', icon: '🔄' },
       { title: 'FlatList', href: '/flatlist', icon: '📋' },
+      { title: 'FlashList', href: '/flashlist', icon: '⚡️' },
+      { title: 'LegendList', href: '/legendlist', icon: '🧾' },
     ],
   },
   {
@@ -136,12 +138,7 @@ export default function Screen() {
         <Link href={item.href} asChild>
           <Pressable>
             {({ pressed }) => (
-              <View
-                style={[
-                  styles.itemRow,
-                  pressed && { backgroundColor: '#E5E7EB' },
-                ]}
-              >
+              <View style={[styles.itemRow, pressed && styles.itemRowPressed]}>
                 <Text style={styles.itemIcon}>{item.icon}</Text>
                 <Text style={styles.itemTitle}>{item.title}</Text>
                 <Text style={styles.chevron}>›</Text>
@@ -186,6 +183,9 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 20,
     backgroundColor: '#FFF',
+  },
+  itemRowPressed: {
+    backgroundColor: '#E5E7EB',
   },
   itemIcon: {
     fontSize: 20,

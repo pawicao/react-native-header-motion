@@ -118,7 +118,8 @@ You can use either style; pick based on your integration needs:
 - Prefer **components** when you want a “batteries included” wiring:
 
   - `HeaderMotion.ScrollView` / `HeaderMotion.FlatList` for common scrollables
-  - `HeaderMotion.ScrollManager` for custom scrollables via render-props
+  - `createHeaderMotionScrollable()` for reusable wrappers around custom scrollables
+  - `HeaderMotion.ScrollManager` for one-off custom scrollables via render-props
 
 - Prefer **hooks** when you want to build your own wrappers:
   - `useScrollManager()` (same engine as `HeaderMotion.ScrollManager`, but hook-based)
@@ -393,6 +394,7 @@ The package exports a default compound component plus hooks, types, and a couple
 - `HeaderMotion.Header` (bridge for navigation headers)
 - `HeaderMotion.ScrollView` (pre-wired Animated.ScrollView)
 - `HeaderMotion.FlatList` (pre-wired Animated.FlatList)
+- `createHeaderMotionScrollable` (factory for reusable custom scrollables)
 - `HeaderMotion.ScrollManager` (render-prop API for custom scrollables)
 
 #### Props
@@ -448,6 +450,41 @@ Supports:
 - `scrollId?: string` for multi-scroll scenarios
 - `headerOffsetStrategy?: 'padding' | 'margin' | 'top' | 'translate' | 'none'`
 - `ensureScrollableContentMinHeight?: boolean`
+
+#### `createHeaderMotionScrollable(Component, options?)`
+
+Named export for building reusable scrollable wrappers on top of `useScrollManager()`.
+This is the same abstraction used internally by `HeaderMotion.ScrollView` and `HeaderMotion.FlatList`.
+
+Returned components support:
+
+- `scrollId?: string`
+- `headerOffsetStrategy?: 'padding' | 'margin' | 'top' | 'translate' | 'none'`
+- `ensureScrollableContentMinHeight?: boolean`
+
+Use:
+
+- `contentContainerMode: 'children'` for ScrollView-like components
+- `contentContainerMode: 'renderScrollComponent'` for FlatList-like components
+- `isComponentAnimated: true` when you pass an already animated component
+
+The returned component keeps the wrapped component's prop shape, and list-like
+generic components preserve item inference at usage time. Users do not need to
+pass generics to `createHeaderMotionScrollable()` itself.
+
+By default, the factory wraps the provided component with
+`Animated.createAnimatedComponent()`.
+
+Example:
+
+```tsx
+import { FlashList } from '@shopify/flash-list';
+import { createHeaderMotionScrollable } from 'react-native-header-motion';
+
+const HeaderMotionFlashList = createHeaderMotionScrollable(FlashList, {
+  displayName: 'HeaderMotionFlashList',
+});
+```
 
 #### `HeaderMotion.ScrollManager`
 

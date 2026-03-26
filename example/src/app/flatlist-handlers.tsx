@@ -6,7 +6,7 @@ import HeaderMotion, {
 import { Stack } from 'expo-router';
 import type { ComponentProps } from 'react';
 import { useCallback, useRef } from 'react';
-import { FlatList, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import Animated, {
   Extrapolation,
   interpolate,
@@ -16,7 +16,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type ListRow = { key: string; index: number };
 
-type FL = ComponentProps<typeof FlatList<ListRow>>;
+type FL = ComponentProps<typeof HeaderMotion.FlatList<ListRow>>;
+type FLFn<TKey extends keyof FL> = Extract<
+  Exclude<FL[TKey], undefined>,
+  (...args: any[]) => any
+>;
 
 const LIST_DATA: ListRow[] = Array.from({ length: 120 }, (_, k) => ({
   key: `row-${k}`,
@@ -37,7 +41,7 @@ export default function Screen() {
           />
         )}
       </HeaderMotion.Header>
-      <HeaderMotion.FlatList<ListRow>
+      <HeaderMotion.FlatList
         data={LIST_DATA}
         keyExtractor={(item) => item.key}
         renderItem={({ item }) => (
@@ -61,71 +65,62 @@ function useFlatListHandlerLoggers() {
     itemVisiblePercentThreshold: 35,
   }).current;
 
-  const onViewableItemsChanged = useCallback<
-    NonNullable<FL['onViewableItemsChanged']>
-  >((info) => {
-    console.log(prefix, 'onViewableItemsChanged', {
-      viewableCount: info.viewableItems.length,
-      changedCount: info.changed.length,
-      firstVisibleIndex: info.viewableItems[0]?.index,
-    });
-  }, []);
+  const onViewableItemsChanged = useCallback<FLFn<'onViewableItemsChanged'>>(
+    (info) => {
+      console.log(prefix, 'onViewableItemsChanged', {
+        viewableCount: info.viewableItems.length,
+        changedCount: info.changed.length,
+        firstVisibleIndex: info.viewableItems[0]?.index,
+      });
+    },
+    []
+  );
 
   return {
-    onScrollBeginDrag: useCallback<NonNullable<FL['onScrollBeginDrag']>>(
-      (e) => {
-        console.log(prefix, 'onScrollBeginDrag', {
-          y: e.nativeEvent.contentOffset.y,
-        });
-      },
-      []
-    ),
-    onScrollEndDrag: useCallback<NonNullable<FL['onScrollEndDrag']>>((e) => {
+    onScrollBeginDrag: useCallback<FLFn<'onScrollBeginDrag'>>((e) => {
+      console.log(prefix, 'onScrollBeginDrag', {
+        y: e.nativeEvent.contentOffset.y,
+      });
+    }, []),
+    onScrollEndDrag: useCallback<FLFn<'onScrollEndDrag'>>((e) => {
       console.log(prefix, 'onScrollEndDrag', {
         y: e.nativeEvent.contentOffset.y,
       });
     }, []),
-    onMomentumScrollBegin: useCallback<
-      NonNullable<FL['onMomentumScrollBegin']>
-    >((e) => {
+    onMomentumScrollBegin: useCallback<FLFn<'onMomentumScrollBegin'>>((e) => {
       console.log(prefix, 'onMomentumScrollBegin', {
         y: e.nativeEvent.contentOffset.y,
       });
     }, []),
-    onMomentumScrollEnd: useCallback<NonNullable<FL['onMomentumScrollEnd']>>(
-      (e) => {
-        console.log(prefix, 'onMomentumScrollEnd', {
-          y: e.nativeEvent.contentOffset.y,
-        });
-      },
-      []
-    ),
-    onContentSizeChange: useCallback<NonNullable<FL['onContentSizeChange']>>(
-      (w, h) => {
-        console.log(prefix, 'onContentSizeChange', { width: w, height: h });
-      },
-      []
-    ),
-    onScroll: useCallback<NonNullable<FL['onScroll']>>((e) => {
+    onMomentumScrollEnd: useCallback<FLFn<'onMomentumScrollEnd'>>((e) => {
+      console.log(prefix, 'onMomentumScrollEnd', {
+        y: e.nativeEvent.contentOffset.y,
+      });
+    }, []),
+    onContentSizeChange: useCallback<FLFn<'onContentSizeChange'>>((w, h) => {
+      console.log(prefix, 'onContentSizeChange', { width: w, height: h });
+    }, []),
+    onScroll: useCallback<FLFn<'onScroll'>>((e) => {
       console.log(prefix, 'onScroll', {
         y: e.nativeEvent.contentOffset.y,
       });
     }, []),
     viewabilityConfig,
     onViewableItemsChanged,
-    onEndReached: useCallback<NonNullable<FL['onEndReached']>>((info) => {
+    onEndReached: useCallback<FLFn<'onEndReached'>>((info) => {
       console.log(prefix, 'onEndReached', info);
     }, []),
     onEndReachedThreshold: 0.25,
-    onStartReached: useCallback<NonNullable<FL['onStartReached']>>((info) => {
+    onStartReached: useCallback<FLFn<'onStartReached'>>((info) => {
       console.log(prefix, 'onStartReached', info);
     }, []),
     onStartReachedThreshold: 0.25,
-    onScrollToIndexFailed: useCallback<
-      NonNullable<FL['onScrollToIndexFailed']>
-    >((info) => {
-      console.log(prefix, 'onScrollToIndexFailed', info);
-    }, []),
+    onScrollToIndexFailed: useCallback<FLFn<'onScrollToIndexFailed'>>(
+      (info) => {
+        console.log(prefix, 'onScrollToIndexFailed', info);
+      },
+      []
+    ),
   };
 }
 

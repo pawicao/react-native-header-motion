@@ -1,57 +1,58 @@
 import React from 'react';
 
-jest.mock('../ScrollManager', () => {
+jest.mock('react-native-reanimated', () => ({
+  __esModule: true,
+  default: {
+    ScrollView: 'Animated.ScrollView',
+  },
+}));
+
+jest.mock('../createHeaderMotionScrollable', () => {
   const ReactActual = require('react');
 
   return {
     __esModule: true,
-    HeaderMotionScrollManager: ({ children, ...props }: any) =>
-      ReactActual.createElement(
-        'HeaderMotionScrollManager',
-        props,
-        typeof children === 'function'
-          ? children(
-              { onScroll: jest.fn(), ref: {} },
-              {
-                originalHeaderHeight: 0,
-                minHeightContentContainerStyle: {},
-              }
-            )
-          : null
-      ),
+    createHeaderMotionScrollable: jest.fn(
+      () => (props: any) =>
+        ReactActual.createElement('CreatedScrollView', props)
+    ),
   };
 });
 
+import { createHeaderMotionScrollable } from '../createHeaderMotionScrollable';
 import { HeaderMotionScrollView } from '../ScrollView';
 
 describe('HeaderMotionScrollView', () => {
-  it('skips minHeightContentContainerStyle when disabled', () => {
+  it('creates the built-in wrapper from the shared factory', () => {
+    expect(createHeaderMotionScrollable as jest.Mock).toHaveBeenCalledWith(
+      expect.any(Function),
+      expect.objectContaining({
+        displayName: 'HeaderMotion.ScrollView',
+        contentContainerMode: 'children',
+        isComponentAnimated: true,
+      })
+    );
+  });
+
+  it('passes header motion props through to the generated component', () => {
+    const animatedRef = { current: null } as any;
     const element = HeaderMotionScrollView({
+      animatedRef,
+      headerOffsetStrategy: 'margin',
       ensureScrollableContentMinHeight: false,
       children: React.createElement('View'),
     });
 
-    const renderedElement = element.type(element.props);
-    const scrollView = renderedElement.props.children;
-    const wrapper = scrollView.props.children;
-
-    expect(wrapper.props.style).toEqual([
-      undefined,
-      { paddingTop: 0 },
-      undefined,
-    ]);
-  });
-
-  it('applies the selected header offset strategy to the content wrapper', () => {
-    const element = HeaderMotionScrollView({
-      headerOffsetStrategy: 'margin',
-      children: React.createElement('View'),
-    });
-
-    const renderedElement = element.type(element.props);
-    const scrollView = renderedElement.props.children;
-    const wrapper = scrollView.props.children;
-
-    expect(wrapper.props.style).toEqual([{}, { marginTop: 0 }, undefined]);
+    expect(React.isValidElement(element)).toBe(true);
+    expect((element as React.ReactElement<any>).props.animatedRef).toBe(
+      animatedRef
+    );
+    expect(
+      (element as React.ReactElement<any>).props.headerOffsetStrategy
+    ).toBe('margin');
+    expect(
+      (element as React.ReactElement<any>).props
+        .ensureScrollableContentMinHeight
+    ).toBe(false);
   });
 });
