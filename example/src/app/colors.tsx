@@ -5,9 +5,8 @@ import {
   generateContent,
 } from '@/components';
 import HeaderMotion, {
-  AnimatedHeaderBase,
   useActiveScrollId,
-  type WithCollapsiblePagedHeaderProps,
+  useMotionProgress,
 } from 'react-native-header-motion';
 import { Stack } from 'expo-router';
 import { useRef } from 'react';
@@ -15,10 +14,7 @@ import { StyleSheet, View } from 'react-native';
 import PagerView, {
   type PagerViewOnPageSelectedEvent,
 } from 'react-native-pager-view';
-import Animated, {
-  interpolateColor,
-  useAnimatedStyle,
-} from 'react-native-reanimated';
+import { interpolateColor, useAnimatedStyle } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const indexToKey = new Map([
@@ -47,21 +43,22 @@ export default function Screen() {
       activeScrollId={activeScrollId.sv}
       progressThreshold={(measured) => measured * 10}
     >
-      <HeaderMotion.Header>
-        {(headerProps) => (
+      <HeaderMotion.Bridge>
+        {(value) => (
           <Stack.Screen
             options={{
               header: () => (
-                <CollapsibleHeader
-                  {...headerProps}
-                  activeTab={activeScrollId.state}
-                  onTabChange={handleTabPress}
-                />
+                <HeaderMotion.NavigationBridge value={value}>
+                  <CollapsibleHeader
+                    activeTab={activeScrollId.state}
+                    onTabChange={handleTabPress}
+                  />
+                </HeaderMotion.NavigationBridge>
               ),
             }}
           />
         )}
-      </HeaderMotion.Header>
+      </HeaderMotion.Bridge>
       <PagerView
         ref={pagerRef}
         style={styles.pagerView}
@@ -84,13 +81,13 @@ export default function Screen() {
 }
 
 function CollapsibleHeader({
-  progress,
-  measureTotalHeight,
-  measureDynamic,
-  animatedHeaderBaseProps,
   activeTab,
   onTabChange,
-}: WithCollapsiblePagedHeaderProps) {
+}: {
+  activeTab: string;
+  onTabChange: (newTab: string) => void;
+}) {
+  const { progress } = useMotionProgress();
   const insets = useSafeAreaInsets();
 
   const animatedStyle = useAnimatedStyle(() => {
@@ -104,9 +101,7 @@ function CollapsibleHeader({
   });
 
   return (
-    <AnimatedHeaderBase
-      animatedHeaderBaseProps={animatedHeaderBaseProps}
-      onLayout={measureTotalHeight}
+    <HeaderMotion.Header
       style={[styles.headerWrapper, { paddingTop: insets.top }, animatedStyle]}
     >
       <TitleWithSubtitle
@@ -116,10 +111,10 @@ function CollapsibleHeader({
         subtitleColor="#304077"
       />
 
-      <Animated.View style={styles.boxContainer} onLayout={measureDynamic}>
+      <HeaderMotion.Header.Dynamic style={styles.boxContainer}>
         <DynamicBox backgroundColor="#304077" textColor="#FFF" />
         <DynamicBox backgroundColor="#304077" textColor="#FFF" />
-      </Animated.View>
+      </HeaderMotion.Header.Dynamic>
 
       <View style={styles.tabBar}>
         <TabButton
@@ -133,7 +128,7 @@ function CollapsibleHeader({
           onPress={() => onTabChange('B')}
         />
       </View>
-    </AnimatedHeaderBase>
+    </HeaderMotion.Header>
   );
 }
 

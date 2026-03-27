@@ -18,7 +18,7 @@ This library is **100% a wrapper around Reanimated**. All the credit for the und
 ## What changed since `v0.3.0`
 
 - **Performance-focused internals:** motion threshold + header height now flow through `SharedValue`s to reduce JS-side churn.
-- **Pannable header support:** new `enableHeaderPan` on `HeaderMotion` and required `animatedHeaderBaseProps` on `AnimatedHeaderBase`.
+- **Pannable header support:** `enableHeaderPan` now works directly through `HeaderMotion.Header`.
 - **Ecosystem update:** example app moved to Expo 55 + Reanimated 4.2; `react-native-gesture-handler` is now a peer dependency.
 
 ## What this is (and isn’t)
@@ -82,7 +82,7 @@ As a `HeaderMotion` prop, you can provide:
 
 If you provide a function, it uses the value measured by `measureDynamic`.
 
-When you read `progressThreshold` from `useMotionProgress()` / `HeaderMotion.Header`, it is a `SharedValue<number>`.
+When you read `progressThreshold` from `useMotionProgress()`, it is a `SharedValue<number>`.
 Read it inside worklets via `progressThreshold.get()` (or `progressThreshold.value`).
 
 ### 3) Measurement functions
@@ -92,15 +92,20 @@ The library gives you two measurement callbacks that you pass to your header lay
 - `measureTotalHeight` – attach to the _outer_ header container to measure the total header height. Scrollables use this to offset content so it starts below the header.
 - `measureDynamic` – attach to the part of the header that determines the threshold (often the animated/dynamic portion).
 
-## Why `HeaderMotion.Header` exists
+## Why `HeaderMotion.Bridge` / `HeaderMotion.NavigationBridge` exist
 
 When you pass a `header` component to React Navigation / Expo Router, that header is rendered by the navigator in a different part of the React tree.
 
-Because of that, the navigation header **cannot read the `HeaderMotion` context**, so calling `useMotionProgress()` inside that header would throw.
+Because of that, the navigation header **cannot read the `HeaderMotion` context** directly.
 
-`HeaderMotion.Header` solves this by acting as a **bridge**: it runs inside the provider, reads context, and passes the values to your navigation header via a render function.
+Use:
 
-## Why `HeaderBase` / `AnimatedHeaderBase` uses absolute positioning
+- `HeaderMotion.Bridge` to read the full context inside the provider tree
+- `HeaderMotion.NavigationBridge` to re-provide that same context inside the navigation-rendered header subtree
+
+Once bridged, your header component can call `useMotionProgress()` normally.
+
+## Why `HeaderMotion.Header` uses absolute positioning
 
 Navigation headers are special:
 
@@ -109,7 +114,7 @@ Navigation headers are special:
   - content below becoming unclickable (an invisible parent header still sits on top), or
   - content hidden under the header container.
 
-`HeaderBase` and `AnimatedHeaderBase` are **absolutely positioned** to avoid those layout traps, which is especially important when you use transforms/translations.
+`HeaderMotion.Header` is **absolutely positioned by default** (`overlay={true}`) to avoid those layout traps, which is especially important when you use transforms/translations.
 
 ## When to use components vs hooks
 
@@ -127,8 +132,9 @@ You can use either style; pick based on your integration needs:
 
 Also:
 
-- Use `HeaderMotion.Header` when your header is rendered by navigation.
-- Use `useMotionProgress` when your header is rendered inside the same tree as `HeaderMotion`.
+- Use `HeaderMotion.Bridge` + `HeaderMotion.NavigationBridge` when your header is rendered by navigation.
+- Use `HeaderMotion.Header` + `HeaderMotion.Header.Dynamic` to wire header measurement automatically.
+- Use `useMotionProgress` when you only need `progress` and `progressThreshold`.
 
 ## Examples
 
@@ -138,15 +144,12 @@ Examples live in the example app: `example/`. They demonstrate a few cases, from
 
 Those examples use Expo Router as the navigation library, but it should be fairly simple to do the same with plain React Navigation.
 
-### Expo Router
+### Expo Router / React Navigation
 
-This is the core pattern used in the example app (`example/src/app/simple.tsx`).
+This is the core pattern used in the example app (`example/src/app/new-api.tsx`).
 
 ```tsx
-import HeaderMotion, {
-  AnimatedHeaderBase,
-  type WithCollapsibleHeaderProps,
-} from 'react-native-header-motion';
+import HeaderMotion, { useMotionProgress } from 'react-native-header-motion';
 import { Stack } from 'expo-router';
 import Animated, {
   Extrapolation,
@@ -159,15 +162,19 @@ import { View } from 'react-native';
 export default function Screen() {
   return (
     <HeaderMotion>
-      <HeaderMotion.Header>
-        {(headerProps) => (
+      <HeaderMotion.Bridge>
+        {(value) => (
           <Stack.Screen
             options={{
-              header: () => <MyHeader {...headerProps} />,
+              header: () => (
+                <HeaderMotion.NavigationBridge value={value}>
+                  <MyHeader />
+                </HeaderMotion.NavigationBridge>
+              ),
             }}
           />
         )}
-      </HeaderMotion.Header>
+      </HeaderMotion.Bridge>
 
       <HeaderMotion.ScrollView>
         {/* your scrollable content */}
@@ -176,13 +183,8 @@ export default function Screen() {
   );
 }
 
-function MyHeader({
-  progress,
-  measureTotalHeight,
-  measureDynamic,
-  progressThreshold,
-  animatedHeaderBaseProps,
-}: WithCollapsibleHeaderProps) {
+function MyHeader() {
+  const { progress, progressThreshold } = useMotionProgress();
   const insets = useSafeAreaInsets();
 
   const containerStyle = useAnimatedStyle(() => {
@@ -197,103 +199,13 @@ function MyHeader({
   });
 
   return (
-    <AnimatedHeaderBase
-      animatedHeaderBaseProps={animatedHeaderBaseProps}
-      onLayout={measureTotalHeight}
-      style={[{ paddingTop: insets.top }, containerStyle]}
-    >
-      <Animated.View onLayout={measureDynamic}>
+    <HeaderMotion.Header style={[{ paddingTop: insets.top }, containerStyle]}>
+      <HeaderMotion.Header.Dynamic>
         {/* “dynamic” part of the header */}
-      </Animated.View>
+      </HeaderMotion.Header.Dynamic>
 
       <View>{/* "regular" part of the header */}</View>
-    </AnimatedHeaderBase>
-  );
-}
-```
-
-### React Navigation
-
-In React Navigation you typically configure headers via `navigation.setOptions()`.
-
-Important: the header itself can’t call `useMotionProgress()`, so we still use `HeaderMotion.Header` as a bridge.
-
-```tsx
-import React from 'react';
-import HeaderMotion, {
-  AnimatedHeaderBase,
-  type WithCollapsibleHeaderProps,
-} from 'react-native-header-motion';
-import { useNavigation } from '@react-navigation/native';
-import Animated, {
-  Extrapolation,
-  interpolate,
-  useAnimatedStyle,
-} from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { View } from 'react-native';
-
-export function MyScreen() {
-  return (
-    <HeaderMotion>
-      <HeaderMotion.Header>
-        {(headerProps) => (
-          <NavigationHeaderInstaller headerProps={headerProps} />
-        )}
-      </HeaderMotion.Header>
-      <HeaderMotion.ScrollView>{/* content */}</HeaderMotion.ScrollView>
-    </HeaderMotion>
-  );
-}
-
-function NavigationHeaderInstaller({
-  headerProps,
-}: {
-  headerProps: WithCollapsibleHeaderProps;
-}) {
-  const navigation = useNavigation();
-
-  React.useLayoutEffect(() => {
-    navigation.setOptions({
-      header: () => <MyHeader {...headerProps} />,
-    });
-  }, [navigation, headerProps]);
-
-  return null;
-}
-
-function MyHeader({
-  progress,
-  measureTotalHeight,
-  measureDynamic,
-  progressThreshold,
-  animatedHeaderBaseProps,
-}: WithCollapsibleHeaderProps) {
-  const insets = useSafeAreaInsets();
-
-  const containerStyle = useAnimatedStyle(() => {
-    const threshold = progressThreshold.get();
-    const translateY = interpolate(
-      progress.get(),
-      [0, 1],
-      [0, -threshold],
-      Extrapolation.CLAMP
-    );
-    return { transform: [{ translateY }] };
-  });
-
-  return (
-    <AnimatedHeaderBase
-      animatedHeaderBaseProps={animatedHeaderBaseProps}
-      onLayout={measureTotalHeight}
-      style={[{ paddingTop: insets.top }, containerStyle]}
-    >
-      <Animated.View onLayout={measureDynamic}>
-        {/* “dynamic” part of the header */}
-      </Animated.View>
-
-      <View>{/* "regular" part of the header */}</View>
-    </AnimatedHeaderBase>
+    </HeaderMotion.Header>
   );
 }
 ```
@@ -308,23 +220,12 @@ If you have multiple scrollables (e.g. pages in `react-native-pager-view`), you 
 
 The example app shows this pattern in `example/src/app/collapsible-pager.tsx` using `HeaderMotion.ScrollManager`.
 
-### Keeping the native header (back button/title) + custom animated header below
+### Keeping the native header + custom animated content below
 
-Sometimes you want to keep the native navigation header for back buttons + title, but still animate a custom header section below it.
-
-In that case:
-
-- set `headerTransparent: true`
-- do **not** provide a custom `header` component
-- render your animated header content _inside the screen_ under the native header
-
-Sketch:
+If you want to keep the native header for back buttons/title, render your animated content _inside the screen_ under the native header:
 
 ```tsx
-import HeaderMotion, {
-  AnimatedHeaderBase,
-  useMotionProgress,
-} from 'react-native-header-motion';
+import HeaderMotion, { useMotionProgress } from 'react-native-header-motion';
 import { Stack } from 'expo-router';
 import Animated, {
   Extrapolation,
@@ -348,13 +249,7 @@ export default function Screen() {
 }
 
 function InlineAnimatedHeader() {
-  const {
-    progress,
-    measureTotalHeight,
-    measureDynamic,
-    progressThreshold,
-    animatedHeaderBaseProps,
-  } = useMotionProgress();
+  const { progress, progressThreshold } = useMotionProgress();
 
   const containerStyle = useAnimatedStyle(() => {
     const threshold = progressThreshold.get();
@@ -368,30 +263,28 @@ function InlineAnimatedHeader() {
   });
 
   return (
-    <AnimatedHeaderBase
-      animatedHeaderBaseProps={animatedHeaderBaseProps}
-      onLayout={measureTotalHeight}
-      style={containerStyle}
-    >
-      <Animated.View onLayout={measureDynamic}>
-        {/* custom animated header content below the native header */}
-      </Animated.View>
+    <HeaderMotion.Header style={containerStyle}>
+      <HeaderMotion.Header.Dynamic>
+        {/* custom animated content below the native header */}
+      </HeaderMotion.Header.Dynamic>
       <View>{/* sticky part */}</View>
-    </AnimatedHeaderBase>
+    </HeaderMotion.Header>
   );
 }
 ```
 
 ## API
 
-The package exports a default compound component plus hooks, types, and a couple base components.
+The package exports a default compound component plus hooks, types, and named aliases.
 
 ### `HeaderMotion` (default export)
 
 `HeaderMotion` is a compound component:
 
 - `HeaderMotion` (provider)
-- `HeaderMotion.Header` (bridge for navigation headers)
+- `HeaderMotion.Header` (header container)
+- `HeaderMotion.Bridge` (bridge render-prop for navigation headers)
+- `HeaderMotion.NavigationBridge` (re-provides context into navigation headers)
 - `HeaderMotion.ScrollView` (pre-wired Animated.ScrollView)
 - `HeaderMotion.FlatList` (pre-wired Animated.FlatList)
 - `createHeaderMotionScrollable` (factory for reusable custom scrollables)
@@ -411,19 +304,55 @@ The package exports a default compound component plus hooks, types, and a couple
 - `progressExtrapolation?: ExtrapolationType`
   - Controls how progress behaves outside the threshold range (useful for overscroll).
 - `enableHeaderPan?: boolean`
-  - Enables direct pan gestures on `AnimatedHeaderBase` (`false` by default).
+  - Enables direct pan gestures on `HeaderMotion.Header` (`false` by default).
 
 #### `HeaderMotion.Header`
 
-Render-prop component that passes motion progress props to a header you render via navigation.
+Header container component that:
+
+- measures total header height automatically
+- supports direct header pan gestures
+- renders an `Animated.View` by default
+- applies absolute overlay positioning by default
 
 ```tsx
-<HeaderMotion.Header>
-	{(headerProps) => /* pass headerProps into navigation header */}
+<HeaderMotion.Header overlay style={animatedStyle}>
+  <HeaderMotion.Header.Dynamic>
+    {/* dynamic measured section */}
+  </HeaderMotion.Header.Dynamic>
 </HeaderMotion.Header>
 ```
 
-Use this instead of `useMotionProgress()` when your header is rendered by React Navigation / Expo Router.
+Props:
+
+- `overlay?: boolean`
+  - Defaults to `true`
+- `withGestureHandlerRootView?: boolean`
+- `asChild?: boolean`
+
+When `asChild` is `true`, pass a single child that accepts `onLayout`.
+
+#### `HeaderMotion.Header.Dynamic`
+
+Dynamic measured section of the header.
+
+- renders an `Animated.View` by default
+- wires `measureDynamic` automatically
+- supports `asChild`
+
+#### `HeaderMotion.Bridge`
+
+Render-prop bridge for navigation-rendered headers.
+
+```tsx
+<HeaderMotion.Bridge>
+  {(value) => /* pass value into HeaderMotion.NavigationBridge */}
+</HeaderMotion.Bridge>
+```
+
+#### `HeaderMotion.NavigationBridge`
+
+Re-provides header motion context in a separate subtree, typically inside a navigation header.
 
 #### `HeaderMotion.ScrollView`
 
@@ -560,12 +489,14 @@ Returns:
 
 - `progress` (`SharedValue<number>`)
 - `progressThreshold` (`SharedValue<number>`)
-- `measureTotalHeight` (`onLayout` callback)
-- `measureDynamic` (`onLayout` callback)
-- `animatedHeaderBaseProps` (required by `AnimatedHeaderBase`)
-- `activeScrollId` (`SharedValue<string> | undefined`)
 
-Only use inside the `HeaderMotion` provider tree.
+Only use inside the `HeaderMotion` / `HeaderMotion.NavigationBridge` context tree.
+
+#### `useHeaderMotionBridge()`
+
+Returns the full bridge value used by `HeaderMotion.Bridge`.
+
+Use this only for advanced integrations that need to move HeaderMotion context into another subtree manually.
 
 #### `useScrollManager(scrollId?)`
 
@@ -584,24 +515,11 @@ Helper for multi-scroll scenarios (tabs/pager). Returns:
 - `active.state` (React state)
 - `active.sv` (SharedValue)
 
-### Base components
-
-#### `HeaderBase`
-
-Non-animated absolutely positioned header base.
-
-#### `AnimatedHeaderBase`
-
-Reanimated-powered, absolutely positioned header base.
-
-- Requires `animatedHeaderBaseProps` from `useMotionProgress()` / `HeaderMotion.Header`.
-- It is required for header panning functionality.
-- Optional `withGestureHandlerRootView` can wrap this header in `GestureHandlerRootView` when needed.
-
 ### Types
 
-- `WithCollapsibleHeaderProps` – convenience type for headers using motion progress props.
-- `WithCollapsiblePagedHeaderProps` – like above, plus `activeTab` and `onTabChange`.
+- `HeaderMotionBridgeValue` – full bridge value passed through `HeaderMotion.Bridge`
+- `HeaderProps` – props for `HeaderMotion.Header`
+- `HeaderDynamicProps` – props for `HeaderMotion.Header.Dynamic`
 
 ## Additional notes
 

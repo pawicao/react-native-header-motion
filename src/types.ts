@@ -52,31 +52,20 @@ export type ScrollValues = Record<string, ScrollValue> & {
   [key in typeof DEFAULT_SCROLL_ID]?: ScrollValue;
 };
 
-export type WithCollapsibleHeaderProps<
-  T extends Record<string, unknown> = Record<string, unknown>
-> = T & MotionProgress;
-
-export type WithCollapsiblePagedHeaderProps<
-  Tab extends string = string,
-  T extends Record<string, unknown> = Record<string, unknown>
-> = WithCollapsibleHeaderProps<T> & {
-  onTabChange: (newTab: Tab) => void;
-  activeTab: Tab;
-};
-
 export interface MotionProgress {
   progress: Progress;
   progressThreshold: SharedValue<number>;
-  measureTotalHeight: MeasureAnimatedHeaderAndSet;
-  measureDynamic: MeasureAnimatedHeaderAndSet;
-  animatedHeaderBaseProps: AnimatedHeaderBaseMotionProps;
-  activeScrollId: SharedValue<string> | undefined;
 }
 
-export interface AnimatedHeaderBaseMotionProps {
+export interface HeaderMotionBridgeValue extends MotionProgress {
+  measureTotalHeight: MeasureAnimatedHeaderAndSet;
+  measureDynamic: MeasureAnimatedHeaderAndSet;
   enableHeaderPan: boolean;
-  scrollToRef: React.RefObject<ScrollTo | null>;
   headerPanMomentumOffset: SharedValue<number | null>;
+  scrollValues: SharedValue<ScrollValues>;
+  activeScrollId: SharedValue<string> | undefined;
+  scrollToRef: React.RefObject<ScrollTo | null>;
+  originalHeaderHeight: number;
 }
 
 export interface ScrollManagerHeaderMotionContext {

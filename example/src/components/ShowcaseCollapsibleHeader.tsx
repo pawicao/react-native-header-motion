@@ -1,7 +1,4 @@
-import {
-  AnimatedHeaderBase,
-  type WithCollapsibleHeaderProps,
-} from 'react-native-header-motion';
+import HeaderMotion, { useMotionProgress } from 'react-native-header-motion';
 import { StyleSheet, View } from 'react-native';
 import Animated, {
   Extrapolation,
@@ -12,22 +9,18 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DynamicBox } from './DynamicBox';
 import { TitleWithSubtitle } from './TitleWithSubtitle';
 
-interface ShowcaseCollapsibleHeaderProps extends WithCollapsibleHeaderProps {
+interface ShowcaseCollapsibleHeaderProps {
   title: string;
   subtitle: string;
   backgroundColor: string;
 }
 
 export function ShowcaseCollapsibleHeader({
-  progress,
-  measureTotalHeight,
-  measureDynamic,
-  progressThreshold,
-  animatedHeaderBaseProps,
   title,
   subtitle,
   backgroundColor,
 }: ShowcaseCollapsibleHeaderProps) {
+  const { progress, progressThreshold } = useMotionProgress();
   const insets = useSafeAreaInsets();
 
   const containerStyle = useAnimatedStyle(() => {
@@ -79,9 +72,7 @@ export function ShowcaseCollapsibleHeader({
   });
 
   return (
-    <AnimatedHeaderBase
-      animatedHeaderBaseProps={animatedHeaderBaseProps}
-      onLayout={measureTotalHeight}
+    <HeaderMotion.Header
       style={[
         styles.headerWrapper,
         { backgroundColor, paddingTop: insets.top },
@@ -93,15 +84,14 @@ export function ShowcaseCollapsibleHeader({
       </Animated.View>
 
       <View style={styles.dynamicContent}>
-        <Animated.View
+        <HeaderMotion.Header.Dynamic
           style={[styles.boxContainer, boxSectionStyle]}
-          onLayout={measureDynamic}
         >
           <DynamicBox />
           <DynamicBox />
-        </Animated.View>
+        </HeaderMotion.Header.Dynamic>
       </View>
-    </AnimatedHeaderBase>
+    </HeaderMotion.Header>
   );
 }
 

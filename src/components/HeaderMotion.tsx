@@ -63,7 +63,9 @@ export interface HeaderMotionProps<T extends string> {
    *
    * Receives the layout change event from React Native.
    *
-   * This function can be further accessed when rendering headers from `HeaderMotion.Header` or `useMotionProgress`  - should be passed to the `onLayout` prop of such. If used, can be used for dynamic calculation of the {@link progressThreshold}.
+   * This function is used internally by `HeaderMotion.Header.Dynamic`.
+   * It is also available through `HeaderMotion.Bridge`, `HeaderMotion.NavigationBridge`,
+   * and `useHeaderMotionBridge()` for advanced integrations.
    *
    * Defaults to measuring the height from the event.
    */
@@ -208,15 +210,6 @@ function HeaderMotionContextProvider<T extends string>({
   // were not propagating reliably, while it works for refs. Revisit later.
   // We need to be updating the scrollTo on active scroll ID changes and doing it via state would cause re-renders.
   // It's a bit of an anti-pattern to use refs for this as well, but I am yet to figure out a better way to pass those if SV won't work.
-  const animatedHeaderBaseProps = useMemo(
-    () => ({
-      enableHeaderPan,
-      scrollToRef,
-      headerPanMomentumOffset,
-    }),
-    [enableHeaderPan, headerPanMomentumOffset]
-  );
-
   const ctxValue = useMemo(
     () => ({
       progress,
@@ -225,7 +218,6 @@ function HeaderMotionContextProvider<T extends string>({
       measureTotalHeight,
       enableHeaderPan,
       headerPanMomentumOffset,
-      animatedHeaderBaseProps,
       progressThreshold: progressThresholdValue,
       scrollValues,
       scrollToRef,
@@ -237,7 +229,6 @@ function HeaderMotionContextProvider<T extends string>({
       measureTotalHeight,
       enableHeaderPan,
       headerPanMomentumOffset,
-      animatedHeaderBaseProps,
       setOrUpdateDynamicMeasurement,
       scrollValues,
       activeScrollId,

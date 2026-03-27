@@ -22,22 +22,23 @@ const HeaderMotionLegendList = createHeaderMotionScrollable(
 export default function Screen() {
   return (
     <HeaderMotion>
-      <HeaderMotion.Header>
-        {(headerProps) => (
+      <HeaderMotion.Bridge>
+        {(value) => (
           <Stack.Screen
             options={{
               header: () => (
-                <ShowcaseCollapsibleHeader
-                  {...headerProps}
-                  title="LegendList"
-                  subtitle="Shared factory wrapper"
-                  backgroundColor="#1e3a8a"
-                />
+                <HeaderMotion.NavigationBridge value={value}>
+                  <ShowcaseCollapsibleHeader
+                    title="LegendList"
+                    subtitle="Shared factory wrapper"
+                    backgroundColor="#1e3a8a"
+                  />
+                </HeaderMotion.NavigationBridge>
               ),
             }}
           />
         )}
-      </HeaderMotion.Header>
+      </HeaderMotion.Bridge>
       <HeaderMotionLegendList
         data={content}
         estimatedItemSize={120}

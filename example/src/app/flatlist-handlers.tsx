@@ -1,8 +1,5 @@
 import { ContentCard, DynamicBox, TitleWithSubtitle } from '@/components';
-import HeaderMotion, {
-  AnimatedHeaderBase,
-  type WithCollapsibleHeaderProps,
-} from 'react-native-header-motion';
+import HeaderMotion, { useMotionProgress } from 'react-native-header-motion';
 import { Stack } from 'expo-router';
 import type { ComponentProps } from 'react';
 import { useCallback, useRef } from 'react';
@@ -32,15 +29,19 @@ export default function Screen() {
 
   return (
     <HeaderMotion>
-      <HeaderMotion.Header>
-        {(headerProps) => (
+      <HeaderMotion.Bridge>
+        {(value) => (
           <Stack.Screen
             options={{
-              header: () => <CollapsibleHeader {...headerProps} />,
+              header: () => (
+                <HeaderMotion.NavigationBridge value={value}>
+                  <CollapsibleHeader />
+                </HeaderMotion.NavigationBridge>
+              ),
             }}
           />
         )}
-      </HeaderMotion.Header>
+      </HeaderMotion.Bridge>
       <HeaderMotion.FlatList
         data={LIST_DATA}
         keyExtractor={(item) => item.key}
@@ -124,13 +125,8 @@ function useFlatListHandlerLoggers() {
   };
 }
 
-function CollapsibleHeader({
-  progress,
-  measureTotalHeight,
-  measureDynamic,
-  progressThreshold,
-  animatedHeaderBaseProps,
-}: WithCollapsibleHeaderProps) {
+function CollapsibleHeader() {
+  const { progress, progressThreshold } = useMotionProgress();
   const insets = useSafeAreaInsets();
 
   const containerStyle = useAnimatedStyle(() => {
@@ -182,9 +178,7 @@ function CollapsibleHeader({
   });
 
   return (
-    <AnimatedHeaderBase
-      animatedHeaderBaseProps={animatedHeaderBaseProps}
-      onLayout={measureTotalHeight}
+    <HeaderMotion.Header
       style={[styles.headerWrapper, { paddingTop: insets.top }, containerStyle]}
     >
       <Animated.View style={[titleStyle]}>
@@ -192,15 +186,14 @@ function CollapsibleHeader({
       </Animated.View>
 
       <View style={styles.dynamicContent}>
-        <Animated.View
+        <HeaderMotion.Header.Dynamic
           style={[styles.boxContainer, boxSectionStyle]}
-          onLayout={measureDynamic}
         >
           <DynamicBox />
           <DynamicBox />
-        </Animated.View>
+        </HeaderMotion.Header.Dynamic>
       </View>
-    </AnimatedHeaderBase>
+    </HeaderMotion.Header>
   );
 }
 

@@ -1,19 +1,22 @@
 import {
-  AnimatedHeaderBase,
-  HeaderBase,
   createHeaderMotionScrollable,
+  HeaderMotionBridge,
   HeaderMotionContextProvider,
   HeaderMotionFlatList,
   HeaderMotionHeader,
+  HeaderMotionNavigationBridge,
   HeaderMotionScrollManager,
   HeaderMotionScrollView,
   type CreateHeaderMotionScrollableOptions,
+  type HeaderDynamicProps,
   type HeaderMotionFlatListProps,
-  type HeaderMotionHeaderProps,
+  type HeaderMotionBridgeProps,
+  type HeaderMotionNavigationBridgeProps,
   type HeaderMotionProps,
   type HeaderMotionScrollManagerProps,
   type HeaderMotionScrollableOwnProps,
   type HeaderMotionScrollViewProps,
+  type HeaderProps,
 } from './components';
 import type { ReactElement } from 'react';
 
@@ -24,10 +27,12 @@ import type { ReactElement } from 'react';
 type HeaderMotionComponent = {
   /** Main context provider component */
   <T extends string>(props: HeaderMotionProps<T>): ReactElement;
-  /** Component for providing motion progress properties to animated headers.
-   * Use to pass props to the header components in React Navigation / Expo Router, which cannot access HeaderMotion's context and `useMotionProgress` otherwise.
-   */
+  /** Header container component with built-in measurement wiring. */
   Header: typeof HeaderMotionHeader;
+  /** Render-prop bridge for navigation-installed headers. */
+  Bridge: typeof HeaderMotionBridge;
+  /** Context provider for navigation-installed headers. */
+  NavigationBridge: typeof HeaderMotionNavigationBridge;
   /** Component for custom scroll implementations.
    * Use when you want render-prop composition instead of calling {@link useScrollManager} directly.
    */
@@ -45,17 +50,19 @@ type HeaderMotionComponent = {
  * @example
  * ```tsx
  * <HeaderMotion>
- *   <HeaderMotion.Header>
- *     {(headerProps) => (
+ *   <HeaderMotion.Bridge>
+ *     {(value) => (
  *       <Stack.Screen
  *         options={{
  *           header: () => (
- *             <MyAnimatedHeader {...headerProps} />
+ *             <HeaderMotion.NavigationBridge value={value}>
+ *               <MyAnimatedHeader />
+ *             </HeaderMotion.NavigationBridge>
  *           ),
  *         }}
  *       />
  *     )}
- *   </HeaderMotion.Header>
+ *   </HeaderMotion.Bridge>
  *   <HeaderMotion.ScrollView>
  *     <MyScrollableContent />
  *   </HeaderMotion.ScrollView>
@@ -64,6 +71,8 @@ type HeaderMotionComponent = {
  */
 const HeaderMotion = HeaderMotionContextProvider as HeaderMotionComponent;
 HeaderMotion.Header = HeaderMotionHeader;
+HeaderMotion.Bridge = HeaderMotionBridge;
+HeaderMotion.NavigationBridge = HeaderMotionNavigationBridge;
 HeaderMotion.ScrollManager = HeaderMotionScrollManager;
 HeaderMotion.ScrollView = HeaderMotionScrollView;
 HeaderMotion.FlatList = HeaderMotionFlatList;
@@ -71,14 +80,21 @@ HeaderMotion.FlatList = HeaderMotionFlatList;
 export default HeaderMotion;
 export * from './hooks';
 export type * from './types';
-export { AnimatedHeaderBase, HeaderBase };
 export { createHeaderMotionScrollable };
+export {
+  HeaderMotionBridge as Bridge,
+  HeaderMotionHeader as Header,
+  HeaderMotionNavigationBridge as NavigationBridge,
+};
 export type {
   CreateHeaderMotionScrollableOptions,
+  HeaderDynamicProps,
   HeaderMotionFlatListProps,
-  HeaderMotionHeaderProps,
+  HeaderMotionBridgeProps,
+  HeaderMotionNavigationBridgeProps,
   HeaderMotionProps,
   HeaderMotionScrollManagerProps,
   HeaderMotionScrollableOwnProps,
   HeaderMotionScrollViewProps,
+  HeaderProps,
 };
