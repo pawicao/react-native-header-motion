@@ -1,10 +1,11 @@
-import { useContext, useCallback, useEffect, useRef, useState } from 'react';
+import { useContext, useCallback, useEffect, useState } from 'react';
 import {
   cancelAnimation,
   scrollTo,
   useAnimatedReaction,
   useAnimatedRef,
   useAnimatedScrollHandler,
+  useSharedValue,
   type AnimatedRef,
   type ScrollHandler,
 } from 'react-native-reanimated';
@@ -109,7 +110,7 @@ export function useScrollManager<TRef extends InstanceOrElement = any>(
 
   const localRef = useAnimatedRef<TRef>();
   const animatedRef = options?.animatedRef ?? localRef;
-  const scrollContainerHeightRef = useRef(0);
+  const preservedScrollContainerHeight = useSharedValue(0);
   const [contentContainerMinHeight, setContentContainerMinHeight] = useState<
     number | undefined
   >(undefined);
@@ -136,14 +137,18 @@ export function useScrollManager<TRef extends InstanceOrElement = any>(
       }
 
       const nextHeight = e.nativeEvent.layout.height;
-      scrollContainerHeightRef.current = nextHeight;
       scheduleOnUI((height: number) => {
         'worklet';
+        preservedScrollContainerHeight.set(height);
         const nextMinHeight = height + progressThreshold.get();
         scheduleOnRN(setContentContainerMinHeight, nextMinHeight);
       }, nextHeight);
     },
-    [ensureScrollableContentMinHeight, progressThreshold]
+    [
+      ensureScrollableContentMinHeight,
+      progressThreshold,
+      preservedScrollContainerHeight,
+    ]
   );
 
   useAnimatedReaction(
@@ -187,15 +192,13 @@ export function useScrollManager<TRef extends InstanceOrElement = any>(
         return;
       }
 
-      scheduleOnRN((nextThreshold: number) => {
-        const currentHeight = scrollContainerHeightRef.current;
-        if (currentHeight <= 0) {
-          return;
-        }
+      const currentHeight = preservedScrollContainerHeight.get();
+      if (currentHeight <= 0) {
+        return;
+      }
 
-        const nextMinHeight = currentHeight + nextThreshold;
-        setContentContainerMinHeight(nextMinHeight);
-      }, threshold);
+      const nextMinHeight = currentHeight + threshold;
+      scheduleOnRN(setContentContainerMinHeight, nextMinHeight);
     }
   );
 

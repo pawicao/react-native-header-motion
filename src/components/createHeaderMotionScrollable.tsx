@@ -76,11 +76,11 @@ export function createHeaderMotionScrollable<
     )})`,
   } = options || {};
 
-  const AnimatedScrollable = (isComponentAnimated
-    ? ScrollableComponent
-    : Animated.createAnimatedComponent(
-        ScrollableComponent as never
-      )) as unknown as ScrollableImplementationComponent;
+  const AnimatedScrollable = (
+    isComponentAnimated
+      ? ScrollableComponent
+      : Animated.createAnimatedComponent(ScrollableComponent)
+  ) as ScrollableImplementationComponent;
 
   function HeaderMotionScrollable(props: ScrollableRuntimeProps) {
     const {
