@@ -1,4 +1,10 @@
-import { useContext, useCallback, useEffect, useState } from 'react';
+import {
+  useContext,
+  useCallback,
+  useEffect,
+  useState,
+  type ContextType,
+} from 'react';
 import {
   cancelAnimation,
   scrollTo,
@@ -29,67 +35,25 @@ import {
 
 const SCROLL_TOLERANCE = 0.5;
 
-/**
- * Hook that manages scroll tracking and synchronization for header animations.
- * Returns props to apply to scrollable components and additional values that help with adjusting styling of the scrollables to header's dimensions.
- *
- * This hook handles:
- * - Scroll position tracking
- * - Synchronization between multiple scroll views (when using multiple scroll IDs)
- * - Content container minimum height calculations for cases where one of the tracked scrollables does not take enough space to reach the progress threshold/
- *
- * Must be used within a HeaderMotion component.
- *
- * @param scrollId - Optional unique identifier for the related scrollable.
- *                   Use when you have multiple scrollables (e.g., in tabs).
- * @param options - Optional configuration object.
- * @param options.animatedRef - Optional animated ref to use instead of creating one internally.
- *                              Useful when you need access to the scroll view ref from outside.
- * @returns Configuration object containing:
- * - `scrollableProps`: Props to apply to scrollable component (onScroll, ref)
- * - `headerMotionContext`: Header context values (originalHeaderHeight, minHeightContentContainerStyle)
- *
- * @throws Error if used outside of a HeaderMotion component
- *
- * @example
- * ```tsx
- * function CustomScrollComponent() {
- *   const { scrollableProps, headerMotionContext } = useScrollManager('myScroll');
- *
- *   return (
- *     <CustomScrollView {...scrollableProps}>
- *       <View style={{ paddingTop: headerMotionContext.originalHeaderHeight }}>
- *         Content
- *       </View>
- *     </CustomScrollView>
- *   );
- * }
- * ```
- */
-export interface UseScrollManagerOptions<TRef extends InstanceOrElement = any>
-  extends Omit<ResolveRefreshControlOptions, 'progressViewOffset'>,
-    ConsumerScrollEventHandlers {
-  /**
-   * Optional animated ref to use instead of creating one internally.
-   * Useful when you need access to the scroll view ref from outside.
-   */
-  animatedRef?: AnimatedRef<TRef>;
-  /**
-   * Optional refresh progress offset override.
-   * When provided, it takes precedence over the automatic offset based on header height.
-   */
-  progressViewOffset?: ResolveRefreshControlOptions['progressViewOffset'];
-  /**
-   * Experimental: opt-in fallback for short content that cannot scroll far enough
-   * to fully collapse the header.
-   */
-  ensureScrollableContentMinHeight?: boolean;
+type ScrollManagerContextValue = NonNullable<
+  ContextType<typeof HeaderMotionContext>
+>;
+
+interface MinHeightOptions {
+  enabled: boolean;
 }
 
-export function useScrollManager<TRef extends InstanceOrElement = any>(
-  scrollId?: string,
-  options?: UseScrollManagerOptions<TRef>
-): ScrollManagerConfig<TRef> {
+interface SynchronizationOptions<TRef extends InstanceOrElement> {
+  animatedRef: AnimatedRef<TRef>;
+  id: string;
+}
+
+interface ScrollHandlersOptions {
+  consumerHandlers: ConsumerScrollEventHandlers;
+  id: string;
+}
+
+function useScrollManagerContext(): ScrollManagerContextValue {
   const ctxValue = useContext(HeaderMotionContext);
   if (!ctxValue) {
     throw new Error(
@@ -97,42 +61,19 @@ export function useScrollManager<TRef extends InstanceOrElement = any>(
     );
   }
 
-  const {
-    scrollValues,
-    progress,
-    activeScrollId,
-    progressThreshold,
-    originalHeaderHeight,
-    scrollToRef,
-    headerPanMomentumOffset,
-  } = ctxValue;
-  const id = scrollId ?? DEFAULT_SCROLL_ID;
+  return ctxValue;
+}
 
-  const localRef = useAnimatedRef<TRef>();
-  const animatedRef = options?.animatedRef ?? localRef;
+function useScrollManagerContentMinHeight({ enabled }: MinHeightOptions) {
+  const { progressThreshold } = useScrollManagerContext();
   const preservedScrollContainerHeight = useSharedValue(0);
   const [contentContainerMinHeight, setContentContainerMinHeight] = useState<
     number | undefined
   >(undefined);
-  const ensureScrollableContentMinHeight =
-    options?.ensureScrollableContentMinHeight ?? false;
-  const refreshControl = options?.refreshControl;
-  const refreshing = options?.refreshing;
-  const onRefresh = options?.onRefresh;
-  const { onScroll, onBeginDrag, onEndDrag, onMomentumBegin, onMomentumEnd } =
-    useConsumerScrollHandlers({
-      onScroll: options?.onScroll,
-      onScrollBeginDrag: options?.onScrollBeginDrag,
-      onScrollEndDrag: options?.onScrollEndDrag,
-      onMomentumScrollBegin: options?.onMomentumScrollBegin,
-      onMomentumScrollEnd: options?.onMomentumScrollEnd,
-    });
-  const progressViewOffset =
-    options?.progressViewOffset ?? originalHeaderHeight;
 
   const handleLayout = useCallback(
     (e: LayoutChangeEvent) => {
-      if (!ensureScrollableContentMinHeight) {
+      if (!enabled) {
         return;
       }
 
@@ -144,12 +85,47 @@ export function useScrollManager<TRef extends InstanceOrElement = any>(
         scheduleOnRN(setContentContainerMinHeight, nextMinHeight);
       }, nextHeight);
     },
-    [
-      ensureScrollableContentMinHeight,
-      progressThreshold,
-      preservedScrollContainerHeight,
-    ]
+    [enabled, preservedScrollContainerHeight, progressThreshold]
   );
+
+  useAnimatedReaction(
+    () => progressThreshold.get(),
+    (threshold, previousThreshold) => {
+      if (
+        !enabled ||
+        previousThreshold === null ||
+        previousThreshold === threshold
+      ) {
+        return;
+      }
+
+      const currentHeight = preservedScrollContainerHeight.get();
+      if (currentHeight <= 0) {
+        return;
+      }
+
+      const nextMinHeight = currentHeight + threshold;
+      scheduleOnRN(setContentContainerMinHeight, nextMinHeight);
+    }
+  );
+
+  return {
+    contentContainerMinHeight,
+    handleLayout: enabled ? handleLayout : undefined,
+  };
+}
+
+function useScrollManagerSynchronization<TRef extends InstanceOrElement>({
+  animatedRef,
+  id,
+}: SynchronizationOptions<TRef>) {
+  const {
+    activeScrollId,
+    progress,
+    progressThreshold,
+    scrollToRef,
+    scrollValues,
+  } = useScrollManagerContext();
 
   useAnimatedReaction(
     () => activeScrollId?.get(),
@@ -179,33 +155,11 @@ export function useScrollManager<TRef extends InstanceOrElement = any>(
         });
       }, id);
     };
-  }, [scrollValues, id]);
-
-  useAnimatedReaction(
-    () => progressThreshold.get(),
-    (threshold, prevThreshold) => {
-      if (
-        !ensureScrollableContentMinHeight ||
-        prevThreshold === null ||
-        prevThreshold === threshold
-      ) {
-        return;
-      }
-
-      const currentHeight = preservedScrollContainerHeight.get();
-      if (currentHeight <= 0) {
-        return;
-      }
-
-      const nextMinHeight = currentHeight + threshold;
-      scheduleOnRN(setContentContainerMinHeight, nextMinHeight);
-    }
-  );
+  }, [id, scrollValues]);
 
   useAnimatedReaction(
     () => progress.value,
     (newProgress, oldProgress) => {
-      // Only sync inactive scroll views when we have multiple tabs being tracked
       const currentActiveScrollId = activeScrollId?.get();
       if (
         !currentActiveScrollId ||
@@ -240,6 +194,20 @@ export function useScrollManager<TRef extends InstanceOrElement = any>(
       }
     }
   );
+}
+
+function useScrollManagerHandlers({
+  consumerHandlers,
+  id,
+}: ScrollHandlersOptions) {
+  const {
+    activeScrollId,
+    headerPanMomentumOffset,
+    progressThreshold,
+    scrollValues,
+  } = useScrollManagerContext();
+  const { onScroll, onBeginDrag, onEndDrag, onMomentumBegin, onMomentumEnd } =
+    useConsumerScrollHandlers(consumerHandlers);
 
   const handleScroll = useCallback<ScrollHandler<ScrollHandlerContext>>(
     (e, ctx) => {
@@ -273,13 +241,6 @@ export function useScrollManager<TRef extends InstanceOrElement = any>(
       const oldMin = scrollValue.min;
       const isCollapsed = oldCurrent >= oldMin + threshold - 0.001;
 
-      // When the header is fully collapsed and the user is scrolled past the
-      // threshold, progress is mathematically guaranteed to stay at 1:
-      //   min = newCurrent - threshold  →  (newCurrent - min) / threshold = 1
-      // In this case we update the values directly via .get() instead of
-      // .modify(), which avoids triggering the reactive cascade (progress
-      // re-derivation, animated reactions, animated styles). The values are
-      // still updated in-place for tab synchronization correctness.
       if (isCollapsed && newCurrent >= threshold) {
         scrollValue.current = newCurrent;
         scrollValue.min = newCurrent - threshold;
@@ -300,7 +261,7 @@ export function useScrollManager<TRef extends InstanceOrElement = any>(
         return value;
       });
     },
-    [scrollValues, id, activeScrollId, progressThreshold, onScroll]
+    [activeScrollId, id, onScroll, progressThreshold, scrollValues]
   );
 
   const handleBeginDrag = useCallback<ScrollHandler<ScrollHandlerContext>>(
@@ -318,12 +279,119 @@ export function useScrollManager<TRef extends InstanceOrElement = any>(
     [headerPanMomentumOffset, onBeginDrag]
   );
 
-  const animatedOnScroll = useAnimatedScrollHandler({
+  return useAnimatedScrollHandler({
     onBeginDrag: handleBeginDrag,
     onScroll: handleScroll,
     onEndDrag,
     onMomentumBegin,
     onMomentumEnd,
+  });
+}
+export interface UseScrollManagerOptions<TRef extends InstanceOrElement = any>
+  extends Omit<ResolveRefreshControlOptions, 'progressViewOffset'>,
+    ConsumerScrollEventHandlers {
+  /**
+   * Optional animated ref to use instead of creating one internally.
+   * Useful when you need access to the scroll view ref from outside.
+   */
+  animatedRef?: AnimatedRef<TRef>;
+  /**
+   * Optional refresh progress offset override.
+   * When provided, it takes precedence over the automatic offset based on header height.
+   */
+  progressViewOffset?: ResolveRefreshControlOptions['progressViewOffset'];
+  /**
+   * Experimental: opt-in fallback for short content that cannot scroll far enough
+   * to fully collapse the header.
+   */
+  ensureScrollableContentMinHeight?: boolean;
+}
+
+/**
+ * Manages scroll tracking, synchronization, and scrollable wiring for a
+ * collapsible header.
+ *
+ * Use this hook inside `HeaderMotion` when integrating a custom scrollable
+ * component instead of one of the built-in `HeaderMotion.*` wrappers.
+ * If you prefer the same functionality from a render function instead of
+ * calling a hook directly, use {@link HeaderMotionScrollManager}.
+ *
+ * Responsibilities:
+ * - tracks the active scroll position used to drive header progress
+ * - synchronizes inactive scrollables in multi-scroll setups
+ * - wires refresh-related props through the library's refresh-control helper
+ * - optionally computes a plain `contentContainerMinHeight` fallback for short
+ *   content when `ensureScrollableContentMinHeight` is enabled
+ *
+ * @param scrollId Optional unique identifier for the related scrollable.
+ * Use this when tracking multiple scrollables, for example inside tabs.
+ * @param options Optional configuration for refs, refresh handling, consumer
+ * scroll callbacks, and the experimental short-content min-height fallback.
+ * @returns Object containing:
+ * - `scrollableProps`: props to spread onto the scrollable (`ref`, managed
+ *   `onScroll`, optional `onLayout`, and resolved `refreshControl`)
+ * - `headerMotionContext`: layout values for offsetting the content container
+ *   (`originalHeaderHeight` and optional `contentContainerMinHeight`)
+ *
+ * @throws Error when used outside of a `HeaderMotion` provider.
+ *
+ * @example
+ * ```tsx
+ * function CustomScrollComponent() {
+ *   const { scrollableProps, headerMotionContext } = useScrollManager('myScroll');
+ *
+ *   return (
+ *     <CustomScrollView {...scrollableProps}>
+ *       <View
+ *         style={{
+ *           paddingTop: headerMotionContext.originalHeaderHeight,
+ *           minHeight: headerMotionContext.contentContainerMinHeight,
+ *         }}
+ *       >
+ *         Content
+ *       </View>
+ *     </CustomScrollView>
+ *   );
+ * }
+ * ```
+ */
+export function useScrollManager<TRef extends InstanceOrElement = any>(
+  scrollId?: string,
+  options?: UseScrollManagerOptions<TRef>
+): ScrollManagerConfig<TRef> {
+  const { originalHeaderHeight } = useScrollManagerContext();
+  const id = scrollId ?? DEFAULT_SCROLL_ID;
+
+  const ensureScrollableContentMinHeight =
+    options?.ensureScrollableContentMinHeight ?? false;
+  const refreshControl = options?.refreshControl;
+  const refreshing = options?.refreshing;
+  const onRefresh = options?.onRefresh;
+  const progressViewOffset =
+    options?.progressViewOffset ?? originalHeaderHeight;
+
+  const localRef = useAnimatedRef<TRef>();
+  const animatedRef = options?.animatedRef ?? localRef;
+
+  const { contentContainerMinHeight, handleLayout } =
+    useScrollManagerContentMinHeight({
+      enabled: ensureScrollableContentMinHeight,
+    });
+
+  useScrollManagerSynchronization({
+    id,
+    animatedRef,
+  });
+
+  const animatedOnScroll = useScrollManagerHandlers({
+    id,
+    consumerHandlers: {
+      onScroll: options?.onScroll,
+      onScrollBeginDrag: options?.onScrollBeginDrag,
+      onScrollEndDrag: options?.onScrollEndDrag,
+      onMomentumScrollBegin: options?.onMomentumScrollBegin,
+      onMomentumScrollEnd: options?.onMomentumScrollEnd,
+    },
   });
 
   const resolvedRefreshControl = resolveRefreshControl({
@@ -335,7 +403,7 @@ export function useScrollManager<TRef extends InstanceOrElement = any>(
 
   const scrollableProps = {
     onScroll: useScrollHandlerComposition(animatedOnScroll, options?.onScroll),
-    onLayout: ensureScrollableContentMinHeight ? handleLayout : undefined,
+    onLayout: handleLayout,
     ref: animatedRef,
     refreshControl: resolvedRefreshControl,
   };

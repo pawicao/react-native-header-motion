@@ -24,11 +24,14 @@ export interface HeaderMotionScrollManagerProps<
 }
 
 /**
- * ScrollManager component that provides scroll tracking functionality for custom scroll implementations. Uses {@link useScrollManager} under the hood.
+ * ScrollManager component that provides scroll tracking functionality for
+ * custom scroll implementations. Uses {@link useScrollManager} under the hood.
  * Must be used within a HeaderMotion component.
  *
  * This is useful when you need to use a scroll component that isn't directly supported
  * (like a custom scroll view or third-party list components).
+ * If you would rather compose the same functionality in a hook-based API,
+ * use {@link useScrollManager} directly.
  *
  * @example
  * ```tsx
