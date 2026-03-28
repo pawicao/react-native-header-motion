@@ -1,5 +1,6 @@
 const mockUseHeaderMotionContextOrThrow = jest.fn();
 const mockUseHeaderMotionBridge = jest.fn();
+let capturedPanOnEnd: ((event: any) => void) | undefined;
 
 jest.mock('react', () => {
   const ReactActual = jest.requireActual('react');
@@ -31,7 +32,10 @@ jest.mock('react-native-gesture-handler', () => {
   const pan = {
     enabled: () => pan,
     onChange: () => pan,
-    onEnd: () => pan,
+    onEnd: (cb: (event: any) => void) => {
+      capturedPanOnEnd = cb;
+      return pan;
+    },
     shouldCancelWhenOutside: () => pan,
   };
 
@@ -73,12 +77,11 @@ const bridgeValue = {
   progressThreshold: createSharedValue(120),
   measureTotalHeight: jest.fn(),
   measureDynamic: jest.fn(),
-  enableHeaderPan: true,
   headerPanMomentumOffset: createSharedValue<number | null>(null),
   scrollValues: createSharedValue({}),
   activeScrollId: undefined,
   scrollToRef: { current: jest.fn() },
-  originalHeaderHeight: createSharedValue(0),
+  originalHeaderHeight: 0,
 };
 
 const layoutEvent = {
@@ -93,8 +96,10 @@ describe('Header components', () => {
   beforeEach(() => {
     mockUseHeaderMotionContextOrThrow.mockReset();
     mockUseHeaderMotionBridge.mockReset();
+    capturedPanOnEnd = undefined;
     bridgeValue.measureTotalHeight.mockClear();
     bridgeValue.measureDynamic.mockClear();
+    bridgeValue.headerPanMomentumOffset.set.mockClear();
   });
 
   it('HeaderMotion.Bridge requires a render function child', () => {
@@ -139,6 +144,8 @@ describe('Header components', () => {
     const viewElement = element.props.children;
 
     expect(element.type).toBe(HeaderPanBoundary);
+    expect(element.props.enableHeaderPan).toBeUndefined();
+    expect(element.props.headerPanDecayConfig).toBeUndefined();
     expect(viewElement.props.style).toEqual([
       headerOverlayStyle,
       { opacity: 0.5 },
@@ -177,6 +184,20 @@ describe('Header components', () => {
     child.props.onLayout(layoutEvent);
     expect(bridgeValue.measureTotalHeight).toHaveBeenCalledWith(layoutEvent);
     expect(childOnLayout).toHaveBeenCalledWith(layoutEvent);
+  });
+
+  it('HeaderMotion.Header forwards pan props to HeaderPanBoundary', () => {
+    const headerPanDecayConfig = { deceleration: 0.99 };
+    mockUseHeaderMotionContextOrThrow.mockReturnValue(bridgeValue);
+
+    const element = HeaderMotionHeader({
+      enableHeaderPan: true,
+      headerPanDecayConfig,
+      children: React.createElement('Child'),
+    } as any) as React.ReactElement<any>;
+
+    expect(element.props.enableHeaderPan).toBe(true);
+    expect(element.props.headerPanDecayConfig).toBe(headerPanDecayConfig);
   });
 
   it('HeaderMotion.Header rejects invalid asChild children', () => {
@@ -233,5 +254,49 @@ describe('Header components', () => {
 
     expect((element.type as any).name).toBe('GestureHandlerRootView');
     expect((element.props.children.type as any).name).toBe('GestureDetector');
+  });
+
+  it('HeaderPanBoundary uses object decay config for momentum', () => {
+    const element = HeaderPanBoundary({
+      children: React.createElement('Child'),
+      enableHeaderPan: true,
+      headerPanDecayConfig: { deceleration: 0.991 },
+      headerPanMomentumOffset: bridgeValue.headerPanMomentumOffset,
+      scrollToRef: bridgeValue.scrollToRef,
+    }) as React.ReactElement<any>;
+
+    expect(
+      element.props.gesture ?? element.props.children?.props?.gesture ?? null
+    ).not.toBeNull();
+    expect(capturedPanOnEnd).toEqual(expect.any(Function));
+
+    capturedPanOnEnd?.({ velocityY: 320 });
+
+    expect(bridgeValue.headerPanMomentumOffset.set).toHaveBeenCalledTimes(2);
+  });
+
+  it('HeaderPanBoundary uses function decay config for momentum', () => {
+    const headerPanDecayConfig = jest.fn((event) => ({
+      velocity: event.velocityY * 0.5,
+      deceleration: 0.994,
+    }));
+
+    const element = HeaderPanBoundary({
+      children: React.createElement('Child'),
+      enableHeaderPan: true,
+      headerPanDecayConfig,
+      headerPanMomentumOffset: bridgeValue.headerPanMomentumOffset,
+      scrollToRef: bridgeValue.scrollToRef,
+    }) as React.ReactElement<any>;
+
+    expect(
+      element.props.gesture ?? element.props.children?.props?.gesture ?? null
+    ).not.toBeNull();
+    expect(capturedPanOnEnd).toEqual(expect.any(Function));
+
+    capturedPanOnEnd?.({ velocityY: 240 });
+
+    expect(headerPanDecayConfig).toHaveBeenCalledWith({ velocityY: 240 });
+    expect(bridgeValue.headerPanMomentumOffset.set).toHaveBeenCalledTimes(2);
   });
 });

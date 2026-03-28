@@ -22,12 +22,11 @@ const bridgeValue = {
   progressThreshold: createSharedValue(120),
   measureTotalHeight: jest.fn(),
   measureDynamic: jest.fn(),
-  enableHeaderPan: false,
   headerPanMomentumOffset: createSharedValue<number | null>(null),
   scrollValues: createSharedValue({}),
   activeScrollId: undefined,
   scrollToRef: { current: null },
-  originalHeaderHeight: createSharedValue(0),
+  originalHeaderHeight: 0,
 };
 
 describe('motion hooks', () => {

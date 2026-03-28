@@ -18,7 +18,7 @@ This library is **100% a wrapper around Reanimated**. All the credit for the und
 ## What changed since `v0.3.0`
 
 - **Performance-focused internals:** motion threshold + header height now flow through `SharedValue`s to reduce JS-side churn.
-- **Pannable header support:** `enableHeaderPan` now works directly through `HeaderMotion.Header`.
+- **Pannable header support:** `enableHeaderPan` and header-pan momentum config now live directly on `HeaderMotion.Header`.
 - **Ecosystem update:** example app moved to Expo 55 + Reanimated 4.2; `react-native-gesture-handler` is now a peer dependency.
 
 ## What this is (and isn’t)
@@ -303,9 +303,6 @@ The package exports a default compound component plus hooks, types, and named al
   - Enables multi-scroll orchestration (tabs/pager).
 - `progressExtrapolation?: ExtrapolationType`
   - Controls how progress behaves outside the threshold range (useful for overscroll).
-- `enableHeaderPan?: boolean`
-  - Enables direct pan gestures on `HeaderMotion.Header` (`false` by default).
-
 #### `HeaderMotion.Header`
 
 Header container component that:
@@ -327,6 +324,11 @@ Props:
 
 - `overlay?: boolean`
   - Defaults to `true`
+- `enableHeaderPan?: boolean`
+  - Enables direct pan gestures on that specific header instance.
+- `headerPanDecayConfig?: WithDecayConfig | ((event: GestureStateChangeEvent<PanGestureHandlerEventPayload>) => WithDecayConfig)`
+  - Optional momentum config used after the header pan ends.
+  - If you pass a function, it runs inside the gesture end worklet and must be worklet-safe.
 - `withGestureHandlerRootView?: boolean`
 - `asChild?: boolean`
 

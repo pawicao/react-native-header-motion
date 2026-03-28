@@ -11,7 +11,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function Screen() {
   return (
-    <HeaderMotion enableHeaderPan>
+    <HeaderMotion>
       <HeaderMotion.Bridge>
         {(value) => (
           <Stack.Screen
@@ -84,6 +84,7 @@ function CollapsibleHeader() {
 
   return (
     <HeaderMotion.Header
+      enableHeaderPan
       style={[styles.headerWrapper, { paddingTop: insets.top }, containerStyle]}
     >
       <Animated.View style={[titleStyle]}>

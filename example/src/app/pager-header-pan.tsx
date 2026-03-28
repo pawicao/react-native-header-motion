@@ -43,7 +43,7 @@ export default function Screen() {
   };
 
   return (
-    <HeaderMotion activeScrollId={activeScrollId.sv} enableHeaderPan>
+    <HeaderMotion activeScrollId={activeScrollId.sv}>
       <HeaderMotion.Bridge>
         {(value) => (
           <Stack.Screen
@@ -141,6 +141,15 @@ function CollapsibleHeader({
 
   return (
     <HeaderMotion.Header
+      enableHeaderPan
+      headerPanDecayConfig={(e) => {
+        'worklet';
+
+        return {
+          velocity: e.velocityY * 1.4,
+          deceleration: 0.997,
+        };
+      }}
       style={[styles.headerWrapper, { paddingTop: insets.top }, containerStyle]}
     >
       <Animated.View style={titleStyle}>

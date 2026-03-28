@@ -3,6 +3,11 @@ import type { LayoutChangeEvent, ScrollViewProps } from 'react-native';
 import type { AnimatedRef, SharedValue } from 'react-native-reanimated';
 import { DEFAULT_SCROLL_ID } from './utils/defaults';
 import type { InstanceOrElement } from 'react-native-reanimated/lib/typescript/commonTypes';
+import type {
+  GestureStateChangeEvent,
+  PanGestureHandlerEventPayload,
+} from 'react-native-gesture-handler';
+import type { WithDecayConfig } from 'react-native-reanimated';
 
 export type Progress = SharedValue<number>;
 export type HeaderMotionOffsetStrategy =
@@ -57,10 +62,16 @@ export interface MotionProgress {
   progressThreshold: SharedValue<number>;
 }
 
+export type HeaderPanDecayEvent =
+  GestureStateChangeEvent<PanGestureHandlerEventPayload>;
+
+export type HeaderPanDecayConfig =
+  | WithDecayConfig
+  | ((event: HeaderPanDecayEvent) => WithDecayConfig);
+
 export interface HeaderMotionBridgeValue extends MotionProgress {
   measureTotalHeight: MeasureAnimatedHeaderAndSet;
   measureDynamic: MeasureAnimatedHeaderAndSet;
-  enableHeaderPan: boolean;
   headerPanMomentumOffset: SharedValue<number | null>;
   scrollValues: SharedValue<ScrollValues>;
   activeScrollId: SharedValue<string> | undefined;

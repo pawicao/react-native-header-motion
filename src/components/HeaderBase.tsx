@@ -6,7 +6,11 @@ import {
   GestureHandlerRootView,
 } from 'react-native-gesture-handler';
 import { useAnimatedReaction, withDecay } from 'react-native-reanimated';
-import type { HeaderMotionBridgeValue } from '../types';
+import type {
+  HeaderPanDecayConfig,
+  HeaderPanDecayEvent,
+  HeaderMotionBridgeValue,
+} from '../types';
 
 const PLATFORM_PANNING_ENABLED = Platform.select({
   default: true,
@@ -15,9 +19,11 @@ const PLATFORM_PANNING_ENABLED = Platform.select({
 
 type HeaderPanBoundaryProps = Pick<
   HeaderMotionBridgeValue,
-  'enableHeaderPan' | 'scrollToRef' | 'headerPanMomentumOffset'
+  'scrollToRef' | 'headerPanMomentumOffset'
 > & {
   children: ReactElement;
+  enableHeaderPan?: boolean;
+  headerPanDecayConfig?: HeaderPanDecayConfig;
   withGestureHandlerRootView?: boolean;
 };
 
@@ -32,7 +38,8 @@ export const headerOverlayStyle = StyleSheet.create({
 
 export function HeaderPanBoundary({
   children,
-  enableHeaderPan,
+  enableHeaderPan = false,
+  headerPanDecayConfig,
   scrollToRef,
   headerPanMomentumOffset,
   withGestureHandlerRootView = false,
@@ -58,17 +65,16 @@ export function HeaderPanBoundary({
           scrollToRef.current?.(dy);
         })
         .onEnd((e) => {
+          const resolvedConfig = resolveHeaderPanDecayConfig(
+            headerPanDecayConfig,
+            e
+          );
           headerPanMomentumOffset.set(
-            withDecay(
-              {
-                velocity: e.velocityY,
-              },
-              () => headerPanMomentumOffset.set(null)
-            )
+            withDecay(resolvedConfig, () => headerPanMomentumOffset.set(null))
           );
         })
         .shouldCancelWhenOutside(false),
-    [isPanEnabled, scrollToRef, headerPanMomentumOffset]
+    [headerPanDecayConfig, headerPanMomentumOffset, isPanEnabled, scrollToRef]
   );
 
   const content = <GestureDetector gesture={pan}>{children}</GestureDetector>;
@@ -78,4 +84,21 @@ export function HeaderPanBoundary({
   }
 
   return <GestureHandlerRootView>{content}</GestureHandlerRootView>;
+}
+
+function resolveHeaderPanDecayConfig(
+  headerPanDecayConfig: HeaderPanDecayConfig | undefined,
+  event: HeaderPanDecayEvent
+) {
+  'worklet';
+
+  const resolvedConfig =
+    typeof headerPanDecayConfig === 'function'
+      ? headerPanDecayConfig(event)
+      : headerPanDecayConfig;
+
+  return {
+    ...resolvedConfig,
+    velocity: resolvedConfig?.velocity ?? event.velocityY,
+  };
 }

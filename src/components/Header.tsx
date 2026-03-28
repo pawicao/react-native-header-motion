@@ -9,10 +9,33 @@ import type { ViewProps } from 'react-native';
 import Animated, { type AnimatedProps } from 'react-native-reanimated';
 import { HeaderMotionContext, useHeaderMotionContextOrThrow } from '../context';
 import { useHeaderMotionBridge } from '../hooks/useHeaderMotionBridge';
-import type { HeaderMotionBridgeValue, MotionProgress } from '../types';
+import type {
+  HeaderMotionBridgeValue,
+  HeaderPanDecayConfig,
+  MotionProgress,
+} from '../types';
 import { HeaderPanBoundary, headerOverlayStyle } from './HeaderBase';
 
 type HeaderRenderChildren = (value: HeaderMotionBridgeValue) => ReactNode;
+
+type HeaderPanProps =
+  | {
+      /** Enables panning directly on the header surface.
+       * @default false
+       */
+      enableHeaderPan: true;
+      /**
+       * Custom momentum config used after a header pan ends.
+       *
+       * If you provide a function, it runs inside the gesture end worklet and
+       * **must itself be a worklet-safe function**.
+       */
+      headerPanDecayConfig?: HeaderPanDecayConfig;
+    }
+  | {
+      enableHeaderPan?: false | undefined;
+      headerPanDecayConfig?: never;
+    };
 
 type HeaderAsChildProps = {
   asChild: true;
@@ -24,13 +47,15 @@ type HeaderDefaultProps = AnimatedProps<ViewProps> & {
 };
 
 export type HeaderProps =
-  | (HeaderDefaultProps & {
-      overlay?: boolean;
-      withGestureHandlerRootView?: boolean;
-    })
-  | (HeaderAsChildProps & {
-      withGestureHandlerRootView?: boolean;
-    });
+  | (HeaderDefaultProps &
+      HeaderPanProps & {
+        overlay?: boolean;
+        withGestureHandlerRootView?: boolean;
+      })
+  | (HeaderAsChildProps &
+      HeaderPanProps & {
+        withGestureHandlerRootView?: boolean;
+      });
 
 export type HeaderDynamicProps = HeaderDefaultProps | HeaderAsChildProps;
 
@@ -78,7 +103,8 @@ function HeaderMotionHeaderRoot(props: HeaderProps) {
 
     return (
       <HeaderPanBoundary
-        enableHeaderPan={ctxValue.enableHeaderPan}
+        enableHeaderPan={props.enableHeaderPan}
+        headerPanDecayConfig={props.headerPanDecayConfig}
         headerPanMomentumOffset={ctxValue.headerPanMomentumOffset}
         scrollToRef={ctxValue.scrollToRef}
         withGestureHandlerRootView={props.withGestureHandlerRootView}
@@ -96,6 +122,8 @@ function HeaderMotionHeaderRoot(props: HeaderProps) {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     asChild: _asChild,
     overlay = true,
+    enableHeaderPan,
+    headerPanDecayConfig,
     onLayout,
     style,
     withGestureHandlerRootView,
@@ -105,7 +133,8 @@ function HeaderMotionHeaderRoot(props: HeaderProps) {
 
   return (
     <HeaderPanBoundary
-      enableHeaderPan={ctxValue.enableHeaderPan}
+      enableHeaderPan={enableHeaderPan}
+      headerPanDecayConfig={headerPanDecayConfig}
       headerPanMomentumOffset={ctxValue.headerPanMomentumOffset}
       scrollToRef={ctxValue.scrollToRef}
       withGestureHandlerRootView={withGestureHandlerRootView}
