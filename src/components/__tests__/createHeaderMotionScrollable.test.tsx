@@ -8,6 +8,8 @@ jest.mock('react', () => {
     ...ReactActual,
     useMemo: (factory: () => unknown) => factory(),
     useCallback: <T extends (...args: any[]) => any>(callback: T) => callback,
+    useRef: <T,>(value: T) => ({ current: value }),
+    useLayoutEffect: (effect: () => void) => effect(),
     forwardRef: (render: any) => {
       const Forwarded = (props: any) => render(props, null);
       Forwarded.render = render;
@@ -103,7 +105,7 @@ function createScrollManagerResult() {
     },
     headerMotionContext: {
       originalHeaderHeight: 48,
-      minHeightContentContainerStyle: { minHeight: 320 },
+      contentContainerMinHeight: 320,
     },
   };
 }
