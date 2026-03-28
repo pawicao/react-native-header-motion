@@ -1,18 +1,17 @@
-import { useContext, useCallback, useEffect } from 'react';
+import { useContext, useCallback, useEffect, useRef, useState } from 'react';
 import {
   cancelAnimation,
-  measure,
   scrollTo,
   useAnimatedReaction,
   useAnimatedRef,
   useAnimatedScrollHandler,
-  useAnimatedStyle,
   type AnimatedRef,
   type ScrollHandler,
 } from 'react-native-reanimated';
-import { RuntimeKind, scheduleOnUI } from 'react-native-worklets';
+import { scheduleOnRN, scheduleOnUI } from 'react-native-worklets';
 import { HeaderMotionContext } from '../context';
 import type { ScrollManagerConfig, ScrollHandlerContext } from '../types';
+import type { LayoutChangeEvent } from 'react-native';
 import {
   resolveRefreshControl,
   DEFAULT_SCROLL_ID,
@@ -79,6 +78,11 @@ export interface UseScrollManagerOptions<TRef extends InstanceOrElement = any>
    * When provided, it takes precedence over the automatic offset based on header height.
    */
   progressViewOffset?: ResolveRefreshControlOptions['progressViewOffset'];
+  /**
+   * Experimental: opt-in fallback for short content that cannot scroll far enough
+   * to fully collapse the header.
+   */
+  ensureScrollableContentMinHeight?: boolean;
 }
 
 export function useScrollManager<TRef extends InstanceOrElement = any>(
@@ -105,6 +109,12 @@ export function useScrollManager<TRef extends InstanceOrElement = any>(
 
   const localRef = useAnimatedRef<TRef>();
   const animatedRef = options?.animatedRef ?? localRef;
+  const scrollContainerHeightRef = useRef(0);
+  const [contentContainerMinHeight, setContentContainerMinHeight] = useState<
+    number | undefined
+  >(undefined);
+  const ensureScrollableContentMinHeight =
+    options?.ensureScrollableContentMinHeight ?? false;
   const refreshControl = options?.refreshControl;
   const refreshing = options?.refreshing;
   const onRefresh = options?.onRefresh;
@@ -118,6 +128,23 @@ export function useScrollManager<TRef extends InstanceOrElement = any>(
     });
   const progressViewOffset =
     options?.progressViewOffset ?? originalHeaderHeight;
+
+  const handleLayout = useCallback(
+    (e: LayoutChangeEvent) => {
+      if (!ensureScrollableContentMinHeight) {
+        return;
+      }
+
+      const nextHeight = e.nativeEvent.layout.height;
+      scrollContainerHeightRef.current = nextHeight;
+      scheduleOnUI((height: number) => {
+        'worklet';
+        const nextMinHeight = height + progressThreshold.get();
+        scheduleOnRN(setContentContainerMinHeight, nextMinHeight);
+      }, nextHeight);
+    },
+    [ensureScrollableContentMinHeight, progressThreshold]
+  );
 
   useAnimatedReaction(
     () => activeScrollId?.get(),
@@ -150,9 +177,31 @@ export function useScrollManager<TRef extends InstanceOrElement = any>(
   }, [scrollValues, id]);
 
   useAnimatedReaction(
+    () => progressThreshold.get(),
+    (threshold, prevThreshold) => {
+      if (
+        !ensureScrollableContentMinHeight ||
+        prevThreshold === null ||
+        prevThreshold === threshold
+      ) {
+        return;
+      }
+
+      scheduleOnRN((nextThreshold: number) => {
+        const currentHeight = scrollContainerHeightRef.current;
+        if (currentHeight <= 0) {
+          return;
+        }
+
+        const nextMinHeight = currentHeight + nextThreshold;
+        setContentContainerMinHeight(nextMinHeight);
+      }, threshold);
+    }
+  );
+
+  useAnimatedReaction(
     () => progress.value,
     (newProgress, oldProgress) => {
-      // FUTURE: If really needed for, can use other scroll handlers to only do this either on scroll end or between scroll end and momentum end in onScroll (keep context in shared value)
       // Only sync inactive scroll views when we have multiple tabs being tracked
       const currentActiveScrollId = activeScrollId?.get();
       if (
@@ -274,24 +323,6 @@ export function useScrollManager<TRef extends InstanceOrElement = any>(
     onMomentumEnd,
   });
 
-  const minHeightContentContainerStyle = useAnimatedStyle(() => {
-    const threshold = progressThreshold.get();
-
-    if (globalThis.__RUNTIME_KIND === RuntimeKind.ReactNative) {
-      return {};
-    }
-
-    const measurement = measure(animatedRef);
-
-    if (!measurement) {
-      return {};
-    }
-
-    return {
-      minHeight: measurement.height + threshold,
-    };
-  });
-
   const resolvedRefreshControl = resolveRefreshControl({
     refreshControl,
     refreshing,
@@ -301,12 +332,13 @@ export function useScrollManager<TRef extends InstanceOrElement = any>(
 
   const scrollableProps = {
     onScroll: useScrollHandlerComposition(animatedOnScroll, options?.onScroll),
+    onLayout: ensureScrollableContentMinHeight ? handleLayout : undefined,
     ref: animatedRef,
     refreshControl: resolvedRefreshControl,
   };
   const headerMotionContext = {
     originalHeaderHeight,
-    minHeightContentContainerStyle,
+    contentContainerMinHeight,
   };
 
   return { scrollableProps, headerMotionContext };

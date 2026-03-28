@@ -18,7 +18,7 @@ interface HeaderMotionContextType {
   scrollValues: SharedValue<ScrollValues>;
   activeScrollId: SharedValue<string> | undefined;
   progressThreshold: SharedValue<number>;
-  originalHeaderHeight: SharedValue<number>;
+  originalHeaderHeight: number;
 
   scrollToRef: React.RefObject<ScrollTo | null>;
 }

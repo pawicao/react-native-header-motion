@@ -1,13 +1,15 @@
 import {
   forwardRef,
   useCallback,
+  useLayoutEffect,
   useMemo,
+  useRef,
   type ComponentRef,
   type ReactElement,
   type ReactNode,
   type Ref,
 } from 'react';
-import type { ScrollViewProps } from 'react-native';
+import type { LayoutChangeEvent, ScrollViewProps } from 'react-native';
 import Animated, {
   type AnimatedProps,
   type AnimatedRef,
@@ -85,7 +87,7 @@ export function createHeaderMotionScrollable<
       scrollId,
       animatedRef,
       headerOffsetStrategy,
-      ensureScrollableContentMinHeight = true,
+      ensureScrollableContentMinHeight = false,
       contentContainerStyle,
       refreshControl,
       refreshing,
@@ -114,31 +116,39 @@ export function createHeaderMotionScrollable<
         onMomentumScrollBegin,
         onMomentumScrollEnd,
         animatedRef,
+        ensureScrollableContentMinHeight,
       }
     );
 
     const {
       onScroll: managedOnScroll,
+      onLayout: managedOnLayout,
       refreshControl: managedRefreshControl,
       ref,
       ...scrollViewProps
     } = scrollableProps;
-    const { originalHeaderHeight, minHeightContentContainerStyle } =
+    const { originalHeaderHeight, contentContainerMinHeight } =
       headerMotionContext;
+
+    const userOnLayoutRef = useRef<UserOnLayout>(rest.onLayout as UserOnLayout);
+    useLayoutEffect(() => {
+      userOnLayoutRef.current = rest.onLayout as UserOnLayout;
+    });
 
     const managedContentContainerStyle = useMemo(
       () => [
-        ensureScrollableContentMinHeight
-          ? minHeightContentContainerStyle
+        ensureScrollableContentMinHeight &&
+        contentContainerMinHeight !== undefined
+          ? { minHeight: contentContainerMinHeight }
           : undefined,
         resolveHeaderOffsetStyle(originalHeaderHeight, headerOffsetStrategy),
         contentContainerStyle,
       ],
       [
         contentContainerStyle,
+        contentContainerMinHeight,
         ensureScrollableContentMinHeight,
         headerOffsetStrategy,
-        minHeightContentContainerStyle,
         originalHeaderHeight,
       ]
     );
@@ -146,6 +156,14 @@ export function createHeaderMotionScrollable<
     const refreshControlProps = managedRefreshControl && {
       refreshControl: managedRefreshControl,
     };
+
+    const handleLayout = useCallback(
+      (e: LayoutChangeEvent) => {
+        managedOnLayout?.(e);
+        userOnLayoutRef.current?.(e);
+      },
+      [managedOnLayout]
+    );
 
     const contentContainerProps = useContentContainerProps({
       children: rest.children,
@@ -160,6 +178,7 @@ export function createHeaderMotionScrollable<
         {...refreshControlProps}
         {...contentContainerProps}
         ref={ref}
+        onLayout={handleLayout}
         onScroll={managedOnScroll}
       />
     );
@@ -221,6 +240,8 @@ function getDisplayName(ScrollableComponent: {
     ScrollableComponent.displayName ?? ScrollableComponent.name ?? 'Scrollable'
   );
 }
+
+type UserOnLayout = ScrollViewProps['onLayout'] | undefined;
 
 // TODO: From here below Codex did some absolute TypeScript magic but it seems to work
 // Having limited time, I can't spend more on adjusting this to make it less convoluted

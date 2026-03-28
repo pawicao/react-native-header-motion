@@ -24,7 +24,7 @@ import type { MotionProgress } from '../types';
  *     const translateY = interpolate(
  *       progress.value,
  *       [0, 1],
- *       [0, -progressThreshold],
+ *       [0, -progressThreshold.get()],
  *       Extrapolation.CLAMP,
  *     )
  *     return { transform: [{ translateY }] }
