@@ -144,8 +144,8 @@ describe('Header components', () => {
     const viewElement = element.props.children;
 
     expect(element.type).toBe(HeaderPanBoundary);
-    expect(element.props.enableHeaderPan).toBeUndefined();
-    expect(element.props.headerPanDecayConfig).toBeUndefined();
+    expect(element.props.pannable).toBeUndefined();
+    expect(element.props.panDecayConfig).toBeUndefined();
     expect(viewElement.props.style).toEqual([
       headerOverlayStyle,
       { opacity: 0.5 },
@@ -187,17 +187,17 @@ describe('Header components', () => {
   });
 
   it('HeaderMotion.Header forwards pan props to HeaderPanBoundary', () => {
-    const headerPanDecayConfig = { deceleration: 0.99 };
+    const panDecayConfig = { deceleration: 0.99 };
     mockUseHeaderMotionContextOrThrow.mockReturnValue(bridgeValue);
 
     const element = HeaderMotionHeader({
-      enableHeaderPan: true,
-      headerPanDecayConfig,
+      pannable: true,
+      panDecayConfig,
       children: React.createElement('Child'),
     } as any) as React.ReactElement<any>;
 
-    expect(element.props.enableHeaderPan).toBe(true);
-    expect(element.props.headerPanDecayConfig).toBe(headerPanDecayConfig);
+    expect(element.props.pannable).toBe(true);
+    expect(element.props.panDecayConfig).toBe(panDecayConfig);
   });
 
   it('HeaderMotion.Header rejects invalid asChild children', () => {
@@ -246,7 +246,7 @@ describe('Header components', () => {
 
     const element = HeaderPanBoundary({
       children: child,
-      enableHeaderPan: true,
+      pannable: true,
       headerPanMomentumOffset: bridgeValue.headerPanMomentumOffset,
       scrollToRef: bridgeValue.scrollToRef,
       withGestureHandlerRootView: true,
@@ -259,8 +259,8 @@ describe('Header components', () => {
   it('HeaderPanBoundary uses object decay config for momentum', () => {
     const element = HeaderPanBoundary({
       children: React.createElement('Child'),
-      enableHeaderPan: true,
-      headerPanDecayConfig: { deceleration: 0.991 },
+      pannable: true,
+      panDecayConfig: { deceleration: 0.991 },
       headerPanMomentumOffset: bridgeValue.headerPanMomentumOffset,
       scrollToRef: bridgeValue.scrollToRef,
     }) as React.ReactElement<any>;
@@ -276,15 +276,15 @@ describe('Header components', () => {
   });
 
   it('HeaderPanBoundary uses function decay config for momentum', () => {
-    const headerPanDecayConfig = jest.fn((event) => ({
+    const panDecayConfig = jest.fn((event) => ({
       velocity: event.velocityY * 0.5,
       deceleration: 0.994,
     }));
 
     const element = HeaderPanBoundary({
       children: React.createElement('Child'),
-      enableHeaderPan: true,
-      headerPanDecayConfig,
+      pannable: true,
+      panDecayConfig,
       headerPanMomentumOffset: bridgeValue.headerPanMomentumOffset,
       scrollToRef: bridgeValue.scrollToRef,
     }) as React.ReactElement<any>;
@@ -296,7 +296,7 @@ describe('Header components', () => {
 
     capturedPanOnEnd?.({ velocityY: 240 });
 
-    expect(headerPanDecayConfig).toHaveBeenCalledWith({ velocityY: 240 });
+    expect(panDecayConfig).toHaveBeenCalledWith({ velocityY: 240 });
     expect(bridgeValue.headerPanMomentumOffset.set).toHaveBeenCalledTimes(2);
   });
 });

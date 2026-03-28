@@ -141,8 +141,8 @@ function CollapsibleHeader({
 
   return (
     <HeaderMotion.Header
-      enableHeaderPan
-      headerPanDecayConfig={(e) => {
+      pannable
+      panDecayConfig={(e) => {
         'worklet';
 
         return {

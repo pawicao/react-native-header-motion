@@ -22,8 +22,8 @@ type HeaderPanBoundaryProps = Pick<
   'scrollToRef' | 'headerPanMomentumOffset'
 > & {
   children: ReactElement;
-  enableHeaderPan?: boolean;
-  headerPanDecayConfig?: HeaderPanDecayConfig;
+  pannable?: boolean;
+  panDecayConfig?: HeaderPanDecayConfig;
   withGestureHandlerRootView?: boolean;
 };
 
@@ -38,8 +38,8 @@ export const headerOverlayStyle = StyleSheet.create({
 
 export function HeaderPanBoundary({
   children,
-  enableHeaderPan = false,
-  headerPanDecayConfig,
+  pannable = false,
+  panDecayConfig,
   scrollToRef,
   headerPanMomentumOffset,
   withGestureHandlerRootView = false,
@@ -54,7 +54,7 @@ export function HeaderPanBoundary({
     }
   );
 
-  const isPanEnabled = PLATFORM_PANNING_ENABLED && enableHeaderPan;
+  const isPanEnabled = PLATFORM_PANNING_ENABLED && pannable;
 
   const pan = useMemo(
     () =>
@@ -65,16 +65,13 @@ export function HeaderPanBoundary({
           scrollToRef.current?.(dy);
         })
         .onEnd((e) => {
-          const resolvedConfig = resolveHeaderPanDecayConfig(
-            headerPanDecayConfig,
-            e
-          );
+          const resolvedConfig = resolveHeaderPanDecayConfig(panDecayConfig, e);
           headerPanMomentumOffset.set(
             withDecay(resolvedConfig, () => headerPanMomentumOffset.set(null))
           );
         })
         .shouldCancelWhenOutside(false),
-    [headerPanDecayConfig, headerPanMomentumOffset, isPanEnabled, scrollToRef]
+    [headerPanMomentumOffset, isPanEnabled, panDecayConfig, scrollToRef]
   );
 
   const content = <GestureDetector gesture={pan}>{children}</GestureDetector>;
@@ -87,15 +84,15 @@ export function HeaderPanBoundary({
 }
 
 function resolveHeaderPanDecayConfig(
-  headerPanDecayConfig: HeaderPanDecayConfig | undefined,
+  panDecayConfig: HeaderPanDecayConfig | undefined,
   event: HeaderPanDecayEvent
 ) {
   'worklet';
 
   const resolvedConfig =
-    typeof headerPanDecayConfig === 'function'
-      ? headerPanDecayConfig(event)
-      : headerPanDecayConfig;
+    typeof panDecayConfig === 'function'
+      ? panDecayConfig(event)
+      : panDecayConfig;
 
   return {
     ...resolvedConfig,

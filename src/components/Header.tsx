@@ -23,18 +23,18 @@ type HeaderPanProps =
       /** Enables panning directly on the header surface.
        * @default false
        */
-      enableHeaderPan: true;
+      pannable: true;
       /**
        * Custom momentum config used after a header pan ends.
        *
        * If you provide a function, it runs inside the gesture end worklet and
        * **must itself be a worklet-safe function**.
        */
-      headerPanDecayConfig?: HeaderPanDecayConfig;
+      panDecayConfig?: HeaderPanDecayConfig;
     }
   | {
-      enableHeaderPan?: false | undefined;
-      headerPanDecayConfig?: never;
+      pannable?: false | undefined;
+      panDecayConfig?: never;
     };
 
 type HeaderAsChildProps = {
@@ -103,8 +103,8 @@ function HeaderMotionHeaderRoot(props: HeaderProps) {
 
     return (
       <HeaderPanBoundary
-        enableHeaderPan={props.enableHeaderPan}
-        headerPanDecayConfig={props.headerPanDecayConfig}
+        pannable={props.pannable}
+        panDecayConfig={props.panDecayConfig}
         headerPanMomentumOffset={ctxValue.headerPanMomentumOffset}
         scrollToRef={ctxValue.scrollToRef}
         withGestureHandlerRootView={props.withGestureHandlerRootView}
@@ -122,8 +122,8 @@ function HeaderMotionHeaderRoot(props: HeaderProps) {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     asChild: _asChild,
     overlay = true,
-    enableHeaderPan,
-    headerPanDecayConfig,
+    pannable,
+    panDecayConfig,
     onLayout,
     style,
     withGestureHandlerRootView,
@@ -133,8 +133,8 @@ function HeaderMotionHeaderRoot(props: HeaderProps) {
 
   return (
     <HeaderPanBoundary
-      enableHeaderPan={enableHeaderPan}
-      headerPanDecayConfig={headerPanDecayConfig}
+      pannable={pannable}
+      panDecayConfig={panDecayConfig}
       headerPanMomentumOffset={ctxValue.headerPanMomentumOffset}
       scrollToRef={ctxValue.scrollToRef}
       withGestureHandlerRootView={withGestureHandlerRootView}

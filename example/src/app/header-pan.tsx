@@ -84,7 +84,7 @@ function CollapsibleHeader() {
 
   return (
     <HeaderMotion.Header
-      enableHeaderPan
+      pannable
       style={[styles.headerWrapper, { paddingTop: insets.top }, containerStyle]}
     >
       <Animated.View style={[titleStyle]}>
