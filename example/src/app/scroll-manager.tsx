@@ -28,14 +28,14 @@ export default function Screen() {
       <HeaderMotion.ScrollManager>
         {(
           scrollViewProps,
-          { originalHeaderHeight, minHeightContentContainerStyle }
+          { originalHeaderHeight, contentContainerMinHeight }
         ) => (
           <Animated.ScrollView {...scrollViewProps}>
             <Animated.View
-              style={[
-                minHeightContentContainerStyle,
-                { paddingTop: originalHeaderHeight },
-              ]}
+              style={{
+                paddingTop: originalHeaderHeight,
+                minHeight: contentContainerMinHeight,
+              }}
             >
               {content}
             </Animated.View>

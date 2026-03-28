@@ -28,7 +28,9 @@ type HeaderMotionComponent = {
    * Use to pass props to the header components in React Navigation / Expo Router, which cannot access HeaderMotion's context and `useMotionProgress` otherwise.
    */
   Header: typeof HeaderMotionHeader;
-  /** Component for custom scroll implementations */
+  /** Component for custom scroll implementations.
+   * Use when you want render-prop composition instead of calling {@link useScrollManager} directly.
+   */
   ScrollManager: typeof HeaderMotionScrollManager;
   /** Animated ScrollView component with header motion integration */
   ScrollView: typeof HeaderMotionScrollView;

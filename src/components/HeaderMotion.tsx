@@ -1,4 +1,4 @@
-import { useCallback, useRef, useEffect, useMemo } from 'react';
+import { useCallback, useRef, useEffect, useMemo, useState } from 'react';
 import {
   Extrapolation,
   interpolate,
@@ -111,7 +111,7 @@ function HeaderMotionContextProvider<T extends string>({
   children,
 }: HeaderMotionProps<T>) {
   const dynamicMeasurement = useSharedValue<number | undefined>(undefined);
-  const originalHeaderHeight = useSharedValue(0);
+  const [originalHeaderHeight, setOriginalHeaderHeight] = useState(0);
   const progressThresholdValue = useSharedValue(
     typeof progressThreshold === 'number' ? progressThreshold : Infinity
   );
@@ -131,11 +131,11 @@ function HeaderMotionContextProvider<T extends string>({
         }
 
         dynamicMeasurement.set(measured);
-        progressThresholdValue.set(
+        const nextThreshold =
           typeof progressThreshold === 'number'
             ? progressThreshold
-            : progressThreshold(measured)
-        );
+            : progressThreshold(measured);
+        progressThresholdValue.set(nextThreshold);
       },
       [
         measureDynamicMode,
@@ -153,21 +153,17 @@ function HeaderMotionContextProvider<T extends string>({
     }
 
     const measured = dynamicMeasurement.get();
-    progressThresholdValue.set(
-      measured === undefined ? Infinity : progressThreshold(measured)
-    );
+    const nextThreshold =
+      measured === undefined ? Infinity : progressThreshold(measured);
+    progressThresholdValue.set(nextThreshold);
   }, [progressThreshold, dynamicMeasurement, progressThresholdValue]);
 
   const measureTotalHeight = useCallback<MeasureAnimatedHeaderAndSet>(
     (e) => {
       const measuredValue = e.nativeEvent.layout.height;
-      if (originalHeaderHeight.get() === measuredValue) {
-        return;
-      }
-
-      originalHeaderHeight.set(measuredValue);
+      setOriginalHeaderHeight(measuredValue);
     },
-    [originalHeaderHeight]
+    [setOriginalHeaderHeight]
   );
 
   const scrollValues = useSharedValue<ScrollValues>({

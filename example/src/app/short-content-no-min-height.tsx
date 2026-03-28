@@ -24,9 +24,7 @@ export default function Screen() {
           />
         )}
       </HeaderMotion.Header>
-      <HeaderMotion.ScrollView ensureScrollableContentMinHeight={false}>
-        {content}
-      </HeaderMotion.ScrollView>
+      <HeaderMotion.ScrollView>{content}</HeaderMotion.ScrollView>
     </HeaderMotion>
   );
 }

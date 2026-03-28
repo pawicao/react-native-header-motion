@@ -25,7 +25,9 @@ export interface HeaderMotionOffsetProps {
    * Ensures the content container gets a minimum height large enough for short
    * content to still scroll far enough to drive the header to its collapsed state.
    *
-   * @default true
+   * Experimental: this relies on extra layout measurement and may be refined in a future release.
+   *
+   * @default false
    */
   ensureScrollableContentMinHeight?: boolean;
 }
@@ -78,16 +80,12 @@ export interface AnimatedHeaderBaseMotionProps {
 }
 
 export interface ScrollManagerHeaderMotionContext {
-  originalHeaderHeight: SharedValue<number>;
-  minHeightContentContainerStyle:
-    | {}
-    | {
-        minHeight: number;
-      };
+  originalHeaderHeight: number;
+  contentContainerMinHeight?: number;
 }
 
 export interface ScrollManagerConfig<TRef extends InstanceOrElement = any> {
-  scrollableProps: Pick<ScrollViewProps, 'onScroll'> & {
+  scrollableProps: Pick<ScrollViewProps, 'onScroll' | 'onLayout'> & {
     refreshControl?: ReactElement;
     ref: AnimatedRef<TRef>;
   };

@@ -99,7 +99,7 @@ const SECTIONS: ShowcaseSection[] = [
     ],
   },
   {
-    title: 'Content & Refs',
+    title: 'Layout edge cases',
     data: [
       {
         title: 'Short Content (min height)',
