@@ -6,6 +6,12 @@ import {
 } from 'react';
 import type { ViewProps } from 'react-native';
 
+export type SlottableElementProps = {
+  onLayout?: ViewProps['onLayout'];
+};
+
+export type SlottableElement = ReactElement<SlottableElementProps>;
+
 export function composeOnLayoutHandlers(
   userHandler: ViewProps['onLayout'],
   internalHandler: ViewProps['onLayout']
@@ -26,15 +32,11 @@ export function resolveSlottableChild(
     );
   }
 
-  return child as ReactElement<{
-    onLayout?: ViewProps['onLayout'];
-  }>;
+  return child as SlottableElement;
 }
 
 export function cloneWithOnLayout(
-  child: ReactElement<{
-    onLayout?: ViewProps['onLayout'];
-  }>,
+  child: SlottableElement,
   onLayout: ViewProps['onLayout'],
   componentName: string
 ) {

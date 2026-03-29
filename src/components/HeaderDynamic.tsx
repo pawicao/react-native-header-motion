@@ -1,7 +1,7 @@
 import type { ViewProps } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { useHeaderMotionContextOrThrow } from '../context';
-import type { HeaderDynamicProps } from './Header';
+import type { HeaderDynamicProps } from '../types';
 import {
   cloneWithOnLayout,
   composeOnLayoutHandlers,

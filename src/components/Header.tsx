@@ -1,8 +1,11 @@
-import type { ReactElement } from 'react';
 import { StyleSheet, type ViewProps } from 'react-native';
-import Animated, { type AnimatedProps } from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 import { useHeaderMotionContextOrThrow } from '../context';
-import type { HeaderPanDecayConfig } from '../types';
+import type {
+  HeaderAsChildProps,
+  HeaderDefaultProps,
+  HeaderPanDecayConfig,
+} from '../types';
 import {
   cloneWithOnLayout,
   composeOnLayoutHandlers,
@@ -29,7 +32,7 @@ type HeaderPanProps =
        * certain velocities.
        *
        * If you provide a function, it runs inside the gesture end worklet and
-       * **must itself be marked with the 'worklet' directive.**.
+       * **must itself be marked with the 'worklet' directive.**
        */
       panDecayConfig?: HeaderPanDecayConfig;
     }
@@ -37,15 +40,6 @@ type HeaderPanProps =
       pannable?: false | undefined;
       panDecayConfig?: never;
     };
-
-type HeaderAsChildProps = {
-  asChild: true;
-  children: ReactElement;
-};
-
-type HeaderDefaultProps = AnimatedProps<ViewProps> & {
-  asChild?: false;
-};
 
 export type HeaderProps =
   | (HeaderDefaultProps &
@@ -66,8 +60,7 @@ export type HeaderProps =
          * Only use this when the rendered header subtree is not already under a
          * gesture-handler root.
          *
-         * @default
-         * false
+         * @default false
          */
         withGestureHandlerRootView?: boolean;
       })
@@ -79,13 +72,10 @@ export type HeaderProps =
          * Only use this when the rendered header subtree is not already under a
          * gesture-handler root.
          *
-         * @default
-         * false
+         * @default false
          */
         withGestureHandlerRootView?: boolean;
       });
-
-export type HeaderDynamicProps = HeaderDefaultProps | HeaderAsChildProps;
 
 const headerOverlayStyle = StyleSheet.create({
   overlay: {
@@ -95,18 +85,6 @@ const headerOverlayStyle = StyleSheet.create({
     right: 0,
   },
 }).overlay;
-
-type HeaderComponent = ((props: HeaderProps) => ReactElement | null) & {
-  /**
-   * Marks the part of the header whose measured layout should define the
-   * collapsible distance.
-   *
-   * In most designs, this is the section that visually disappears while the
-   * header collapses. Its measured value feeds `measureDynamic`, which can in
-   * turn drive `progressThreshold`.
-   */
-  Dynamic: typeof HeaderDynamic;
-};
 
 function HeaderRoot(props: HeaderProps) {
   const ctxValue = useHeaderMotionContextOrThrow(
@@ -176,5 +154,13 @@ function HeaderRoot(props: HeaderProps) {
  * drive the collapse threshold.
  */
 export const Header = Object.assign(HeaderRoot, {
+  /**
+   * Marks the part of the header whose measured layout should define the
+   * collapsible distance.
+   *
+   * In most designs, this is the section that visually disappears while the
+   * header collapses. Its measured value feeds `measureDynamic`, which can in
+   * turn drive `progressThreshold`.
+   */
   Dynamic: HeaderDynamic,
-}) as HeaderComponent;
+});

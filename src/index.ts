@@ -8,7 +8,7 @@ import {
   ScrollManager,
   ScrollView,
   type CreateHeaderMotionScrollableOptions,
-  type HeaderDynamicProps,
+  type HeaderProps,
   type HeaderMotionBridgeProps,
   type HeaderMotionFlatListProps,
   type HeaderMotionNavigationBridgeProps,
@@ -16,8 +16,8 @@ import {
   type HeaderMotionScrollManagerProps,
   type HeaderMotionScrollableOwnProps,
   type HeaderMotionScrollViewProps,
-  type HeaderProps,
 } from './components';
+import type { HeaderDynamicProps } from './types';
 
 type HeaderMotionCompound = typeof HeaderMotionContextProvider & {
   /**

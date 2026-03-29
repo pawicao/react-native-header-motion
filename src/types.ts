@@ -1,6 +1,14 @@
 import type { ReactElement } from 'react';
-import type { LayoutChangeEvent, ScrollViewProps } from 'react-native';
-import type { AnimatedRef, SharedValue } from 'react-native-reanimated';
+import type {
+  LayoutChangeEvent,
+  ScrollViewProps,
+  ViewProps,
+} from 'react-native';
+import type {
+  AnimatedProps,
+  AnimatedRef,
+  SharedValue,
+} from 'react-native-reanimated';
 import { DEFAULT_SCROLL_ID } from './utils/defaults';
 import type { InstanceOrElement } from 'react-native-reanimated/lib/typescript/commonTypes';
 import type {
@@ -77,6 +85,17 @@ export type HeaderPanDecayEvent =
 export type HeaderPanDecayConfig =
   | WithDecayConfig
   | ((event: HeaderPanDecayEvent) => WithDecayConfig);
+
+export type HeaderAsChildProps = {
+  asChild: true;
+  children: ReactElement;
+};
+
+export type HeaderDefaultProps = AnimatedProps<ViewProps> & {
+  asChild?: false;
+};
+
+export type HeaderDynamicProps = HeaderDefaultProps | HeaderAsChildProps;
 
 export interface HeaderMotionBridgeValue extends MotionProgress {
   measureTotalHeight: MeasureAnimatedHeaderAndSet;
