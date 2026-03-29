@@ -52,13 +52,11 @@ jest.mock('react-native-gesture-handler', () => {
 });
 
 import React from 'react';
-import {
-  HeaderMotionBridge,
-  HeaderMotionHeader,
-  HeaderMotionHeaderDynamic,
-  HeaderMotionNavigationBridge,
-} from '../Header';
-import { HeaderPanBoundary, headerOverlayStyle } from '../HeaderBase';
+import { Bridge } from '../Bridge';
+import { Header } from '../Header';
+import { HeaderDynamic } from '../HeaderDynamic';
+import { NavigationBridge } from '../NavigationBridge';
+import { HeaderPanBoundary } from '../HeaderPanBoundary';
 import { HeaderMotionContext } from '../../context';
 
 function createSharedValue<T>(value: T) {
@@ -92,6 +90,13 @@ const layoutEvent = {
   },
 } as any;
 
+const headerOverlayStyle = {
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  right: 0,
+};
+
 describe('Header components', () => {
   beforeEach(() => {
     mockUseHeaderMotionContextOrThrow.mockReset();
@@ -104,7 +109,7 @@ describe('Header components', () => {
 
   it('HeaderMotion.Bridge requires a render function child', () => {
     expect(() =>
-      HeaderMotionBridge({
+      Bridge({
         children: 'invalid' as any,
       })
     ).toThrow(
@@ -116,13 +121,13 @@ describe('Header components', () => {
     const children = jest.fn(() => 'ok');
     mockUseHeaderMotionBridge.mockReturnValue(bridgeValue);
 
-    expect(HeaderMotionBridge({ children })).toBe('ok');
+    expect(Bridge({ children })).toBe('ok');
     expect(children).toHaveBeenCalledWith(bridgeValue);
   });
 
   it('HeaderMotion.NavigationBridge returns the main context provider', () => {
     const child = React.createElement('Child');
-    const element = HeaderMotionNavigationBridge({
+    const element = NavigationBridge({
       value: bridgeValue,
       children: child,
     }) as React.ReactElement<any>;
@@ -136,7 +141,7 @@ describe('Header components', () => {
     const userOnLayout = jest.fn();
     mockUseHeaderMotionContextOrThrow.mockReturnValue(bridgeValue);
 
-    const element = HeaderMotionHeader({
+    const element = Header({
       onLayout: userOnLayout,
       style: { opacity: 0.5 },
       children: React.createElement('Child'),
@@ -159,7 +164,7 @@ describe('Header components', () => {
   it('HeaderMotion.Header omits overlay styles when overlay is false', () => {
     mockUseHeaderMotionContextOrThrow.mockReturnValue(bridgeValue);
 
-    const element = HeaderMotionHeader({
+    const element = Header({
       overlay: false,
       style: { opacity: 1 },
       children: React.createElement('Child'),
@@ -175,7 +180,7 @@ describe('Header components', () => {
     const childOnLayout = jest.fn();
     mockUseHeaderMotionContextOrThrow.mockReturnValue(bridgeValue);
 
-    const element = HeaderMotionHeader({
+    const element = Header({
       asChild: true,
       children: React.createElement('Child', { onLayout: childOnLayout }),
     }) as React.ReactElement<any>;
@@ -190,7 +195,7 @@ describe('Header components', () => {
     const panDecayConfig = { deceleration: 0.99 };
     mockUseHeaderMotionContextOrThrow.mockReturnValue(bridgeValue);
 
-    const element = HeaderMotionHeader({
+    const element = Header({
       pannable: true,
       panDecayConfig,
       children: React.createElement('Child'),
@@ -204,7 +209,7 @@ describe('Header components', () => {
     mockUseHeaderMotionContextOrThrow.mockReturnValue(bridgeValue);
 
     expect(() =>
-      HeaderMotionHeader({
+      Header({
         asChild: true,
         children: React.createElement(React.Fragment, null),
       })
@@ -217,7 +222,7 @@ describe('Header components', () => {
     const userOnLayout = jest.fn();
     mockUseHeaderMotionContextOrThrow.mockReturnValue(bridgeValue);
 
-    const element = HeaderMotionHeaderDynamic({
+    const element = HeaderDynamic({
       onLayout: userOnLayout,
       children: React.createElement('Child'),
     } as any) as React.ReactElement<any>;
@@ -231,7 +236,7 @@ describe('Header components', () => {
     const childOnLayout = jest.fn();
     mockUseHeaderMotionContextOrThrow.mockReturnValue(bridgeValue);
 
-    const element = HeaderMotionHeaderDynamic({
+    const element = HeaderDynamic({
       asChild: true,
       children: React.createElement('Child', { onLayout: childOnLayout }),
     }) as React.ReactElement<any>;

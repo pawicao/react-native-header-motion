@@ -19,9 +19,9 @@ jest.mock('../createHeaderMotionScrollable', () => {
 });
 
 import { createHeaderMotionScrollable } from '../createHeaderMotionScrollable';
-import { HeaderMotionFlatList } from '../FlatList';
+import { FlatList } from '../FlatList';
 
-describe('HeaderMotionFlatList', () => {
+describe('FlatList', () => {
   it('creates the built-in wrapper from the shared factory', () => {
     expect(createHeaderMotionScrollable as jest.Mock).toHaveBeenCalledWith(
       expect.any(Function),
@@ -35,7 +35,7 @@ describe('HeaderMotionFlatList', () => {
 
   it('passes header motion props through to the generated component', () => {
     const animatedRef = { current: null } as any;
-    const element = HeaderMotionFlatList<{ id: string; label: string }>({
+    const element = FlatList<{ id: string; label: string }>({
       data: [{ id: '1', label: 'Item 1' }],
       keyExtractor: (item: { id: string }) => item.id,
       renderItem: ({ item }: { item: { id: string; label: string } }) =>

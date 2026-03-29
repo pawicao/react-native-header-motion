@@ -20,9 +20,9 @@ jest.mock('../createHeaderMotionScrollable', () => {
 });
 
 import { createHeaderMotionScrollable } from '../createHeaderMotionScrollable';
-import { HeaderMotionScrollView } from '../ScrollView';
+import { ScrollView } from '../ScrollView';
 
-describe('HeaderMotionScrollView', () => {
+describe('ScrollView', () => {
   it('creates the built-in wrapper from the shared factory', () => {
     expect(createHeaderMotionScrollable as jest.Mock).toHaveBeenCalledWith(
       expect.any(Function),
@@ -36,7 +36,7 @@ describe('HeaderMotionScrollView', () => {
 
   it('passes header motion props through to the generated component', () => {
     const animatedRef = { current: null } as any;
-    const element = HeaderMotionScrollView({
+    const element = ScrollView({
       animatedRef,
       headerOffsetStrategy: 'margin',
       ensureScrollableContentMinHeight: false,

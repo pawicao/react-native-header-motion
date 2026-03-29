@@ -10,7 +10,7 @@ import {
 export type HeaderMotionFlatListProps<T = any> = FlatListPropsWithLayout<T> &
   HeaderMotionScrollableOwnProps<Animated.FlatList<T>>;
 
-type HeaderMotionFlatListComponent = <T = any>(
+type FlatListComponent = <T = any>(
   props: HeaderMotionFlatListProps<T>
 ) => ReactElement | null;
 
@@ -31,11 +31,8 @@ type HeaderMotionFlatListComponent = <T = any>(
  * </HeaderMotion>
  * ```
  */
-export const HeaderMotionFlatList = createHeaderMotionScrollable(
-  Animated.FlatList,
-  {
-    displayName: 'HeaderMotion.FlatList',
-    contentContainerMode: 'renderScrollComponent',
-    isComponentAnimated: true,
-  }
-) as HeaderMotionFlatListComponent;
+export const FlatList = createHeaderMotionScrollable(Animated.FlatList, {
+  displayName: 'HeaderMotion.FlatList',
+  contentContainerMode: 'renderScrollComponent',
+  isComponentAnimated: true,
+}) as FlatListComponent;

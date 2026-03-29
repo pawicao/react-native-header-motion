@@ -48,9 +48,7 @@ export interface HeaderMotionScrollManagerProps<
  * </HeaderMotion>
  * ```
  */
-export function HeaderMotionScrollManager<
-  TRef extends InstanceOrElement = any
->({
+export function ScrollManager<TRef extends InstanceOrElement = any>({
   children,
   scrollId,
   animatedRef,

@@ -1,16 +1,16 @@
 import {
   createHeaderMotionScrollable,
-  HeaderMotionBridge,
+  Bridge,
   HeaderMotionContextProvider,
-  HeaderMotionFlatList,
-  HeaderMotionHeader,
-  HeaderMotionNavigationBridge,
-  HeaderMotionScrollManager,
-  HeaderMotionScrollView,
+  FlatList,
+  Header,
+  NavigationBridge,
+  ScrollManager,
+  ScrollView,
   type CreateHeaderMotionScrollableOptions,
   type HeaderDynamicProps,
-  type HeaderMotionFlatListProps,
   type HeaderMotionBridgeProps,
+  type HeaderMotionFlatListProps,
   type HeaderMotionNavigationBridgeProps,
   type HeaderMotionProps,
   type HeaderMotionScrollManagerProps,
@@ -18,30 +18,6 @@ import {
   type HeaderMotionScrollViewProps,
   type HeaderProps,
 } from './components';
-import type { ReactElement } from 'react';
-
-/**
- * Compound component type for HeaderMotion.
- * Provides the main context provider and sub-components for building collapsible headers.
- */
-type HeaderMotionComponent = {
-  /** Main context provider component */
-  <T extends string>(props: HeaderMotionProps<T>): ReactElement;
-  /** Header container component with built-in measurement wiring. */
-  Header: typeof HeaderMotionHeader;
-  /** Render-prop bridge for navigation-installed headers. */
-  Bridge: typeof HeaderMotionBridge;
-  /** Context provider for navigation-installed headers. */
-  NavigationBridge: typeof HeaderMotionNavigationBridge;
-  /** Component for custom scroll implementations.
-   * Use when you want render-prop composition instead of calling {@link useScrollManager} directly.
-   */
-  ScrollManager: typeof HeaderMotionScrollManager;
-  /** Animated ScrollView component with header motion integration */
-  ScrollView: typeof HeaderMotionScrollView;
-  /** Animated FlatList component with header motion integration */
-  FlatList: typeof HeaderMotionFlatList;
-};
 
 /**
  * Main HeaderMotion component.
@@ -69,23 +45,20 @@ type HeaderMotionComponent = {
  * </HeaderMotion>
  * ```
  */
-const HeaderMotion = HeaderMotionContextProvider as HeaderMotionComponent;
-HeaderMotion.Header = HeaderMotionHeader;
-HeaderMotion.Bridge = HeaderMotionBridge;
-HeaderMotion.NavigationBridge = HeaderMotionNavigationBridge;
-HeaderMotion.ScrollManager = HeaderMotionScrollManager;
-HeaderMotion.ScrollView = HeaderMotionScrollView;
-HeaderMotion.FlatList = HeaderMotionFlatList;
+const HeaderMotion = Object.assign(HeaderMotionContextProvider, {
+  Header,
+  Bridge,
+  NavigationBridge,
+  ScrollManager,
+  ScrollView,
+  FlatList,
+});
 
 export default HeaderMotion;
 export * from './hooks';
 export type * from './types';
 export { createHeaderMotionScrollable };
-export {
-  HeaderMotionBridge as Bridge,
-  HeaderMotionHeader as Header,
-  HeaderMotionNavigationBridge as NavigationBridge,
-};
+export { Bridge, Header, NavigationBridge };
 export type {
   CreateHeaderMotionScrollableOptions,
   HeaderDynamicProps,

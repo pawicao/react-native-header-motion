@@ -1,5 +1,5 @@
 import { useMemo, type ReactElement } from 'react';
-import { Platform, StyleSheet } from 'react-native';
+import { Platform } from 'react-native';
 import {
   Gesture,
   GestureDetector,
@@ -26,15 +26,6 @@ type HeaderPanBoundaryProps = Pick<
   panDecayConfig?: HeaderPanDecayConfig;
   withGestureHandlerRootView?: boolean;
 };
-
-export const headerOverlayStyle = StyleSheet.create({
-  overlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-  },
-}).overlay;
 
 export function HeaderPanBoundary({
   children,
@@ -65,7 +56,7 @@ export function HeaderPanBoundary({
           scrollToRef.current?.(dy);
         })
         .onEnd((e) => {
-          const resolvedConfig = resolveHeaderPanDecayConfig(panDecayConfig, e);
+          const resolvedConfig = resolvePanDecayConfig(panDecayConfig, e);
           headerPanMomentumOffset.set(
             withDecay(resolvedConfig, () => headerPanMomentumOffset.set(null))
           );
@@ -83,7 +74,7 @@ export function HeaderPanBoundary({
   return <GestureHandlerRootView>{content}</GestureHandlerRootView>;
 }
 
-function resolveHeaderPanDecayConfig(
+function resolvePanDecayConfig(
   panDecayConfig: HeaderPanDecayConfig | undefined,
   event: HeaderPanDecayEvent
 ) {

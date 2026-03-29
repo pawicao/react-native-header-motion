@@ -1,22 +1,15 @@
-import {
-  Fragment,
-  cloneElement,
-  isValidElement,
-  type ReactElement,
-  type ReactNode,
-} from 'react';
-import type { ViewProps } from 'react-native';
+import type { ReactElement } from 'react';
+import { StyleSheet, type ViewProps } from 'react-native';
 import Animated, { type AnimatedProps } from 'react-native-reanimated';
-import { HeaderMotionContext, useHeaderMotionContextOrThrow } from '../context';
-import { useHeaderMotionBridge } from '../hooks/useHeaderMotionBridge';
-import type {
-  HeaderMotionBridgeValue,
-  HeaderPanDecayConfig,
-  MotionProgress,
-} from '../types';
-import { HeaderPanBoundary, headerOverlayStyle } from './HeaderBase';
-
-type HeaderRenderChildren = (value: HeaderMotionBridgeValue) => ReactNode;
+import { useHeaderMotionContextOrThrow } from '../context';
+import type { HeaderPanDecayConfig } from '../types';
+import {
+  cloneWithOnLayout,
+  composeOnLayoutHandlers,
+  resolveSlottableChild,
+} from '../utils';
+import { HeaderDynamic } from './HeaderDynamic';
+import { HeaderPanBoundary } from './HeaderPanBoundary';
 
 type HeaderPanProps =
   | {
@@ -59,41 +52,20 @@ export type HeaderProps =
 
 export type HeaderDynamicProps = HeaderDefaultProps | HeaderAsChildProps;
 
-export interface HeaderMotionBridgeProps {
-  children: HeaderRenderChildren;
-}
-
-export interface HeaderMotionNavigationBridgeProps {
-  value: HeaderMotionBridgeValue;
-  children: ReactNode;
-}
+const headerOverlayStyle = StyleSheet.create({
+  overlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+  },
+}).overlay;
 
 type HeaderComponent = ((props: HeaderProps) => ReactElement | null) & {
-  Dynamic: typeof HeaderMotionHeaderDynamic;
+  Dynamic: typeof HeaderDynamic;
 };
 
-export function HeaderMotionBridge({ children }: HeaderMotionBridgeProps) {
-  if (typeof children !== 'function') {
-    throw new Error(
-      'HeaderMotion.Bridge only accepts a render function as its child.'
-    );
-  }
-
-  return children(useHeaderMotionBridge());
-}
-
-export function HeaderMotionNavigationBridge({
-  value,
-  children,
-}: HeaderMotionNavigationBridgeProps) {
-  return (
-    <HeaderMotionContext.Provider value={value}>
-      {children}
-    </HeaderMotionContext.Provider>
-  );
-}
-
-function HeaderMotionHeaderRoot(props: HeaderProps) {
+function HeaderRoot(props: HeaderProps) {
   const ctxValue = useHeaderMotionContextOrThrow(
     'HeaderMotion.Header must be used within <HeaderMotion /> or <HeaderMotion.NavigationBridge />. If you are rendering inside a navigation header, bridge the context with <HeaderMotion.Bridge /> and <HeaderMotion.NavigationBridge />.'
   );
@@ -151,75 +123,6 @@ function HeaderMotionHeaderRoot(props: HeaderProps) {
   );
 }
 
-export function HeaderMotionHeaderDynamic(props: HeaderDynamicProps) {
-  const ctxValue = useHeaderMotionContextOrThrow(
-    'HeaderMotion.Header.Dynamic must be used within <HeaderMotion /> or <HeaderMotion.NavigationBridge />. If you are rendering inside a navigation header, bridge the context with <HeaderMotion.Bridge /> and <HeaderMotion.NavigationBridge />.'
-  );
-
-  if (props.asChild) {
-    return cloneWithOnLayout(
-      resolveSlottableChild('HeaderMotion.Header.Dynamic', props.children),
-      ctxValue.measureDynamic,
-      'HeaderMotion.Header.Dynamic'
-    );
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { asChild: _asChild, onLayout, ...rest } = props;
-  const resolvedOnLayout = onLayout as ViewProps['onLayout'] | undefined;
-  return (
-    <Animated.View
-      {...rest}
-      onLayout={composeOnLayoutHandlers(
-        resolvedOnLayout,
-        ctxValue.measureDynamic
-      )}
-    />
-  );
-}
-
-export const HeaderMotionHeader = Object.assign(HeaderMotionHeaderRoot, {
-  Dynamic: HeaderMotionHeaderDynamic,
+export const Header = Object.assign(HeaderRoot, {
+  Dynamic: HeaderDynamic,
 }) as HeaderComponent;
-
-function composeOnLayoutHandlers(
-  userHandler: ViewProps['onLayout'],
-  internalHandler: ViewProps['onLayout']
-) {
-  return (e: Parameters<NonNullable<ViewProps['onLayout']>>[0]) => {
-    internalHandler?.(e);
-    userHandler?.(e);
-  };
-}
-
-function resolveSlottableChild(componentName: string, child: ReactElement) {
-  if (!isValidElement(child) || child.type === Fragment) {
-    throw new Error(
-      `${componentName} with \`asChild\` expects a single valid React element child that accepts \`onLayout\`.`
-    );
-  }
-
-  return child as ReactElement<{
-    onLayout?: ViewProps['onLayout'];
-  }>;
-}
-
-function cloneWithOnLayout(
-  child: ReactElement<{
-    onLayout?: ViewProps['onLayout'];
-  }>,
-  onLayout: ViewProps['onLayout'],
-  componentName: string
-) {
-  if (!isValidElement(child)) {
-    throw new Error(
-      `${componentName} with \`asChild\` expects a valid React element child.`
-    );
-  }
-
-  return cloneElement(child, {
-    onLayout: composeOnLayoutHandlers(child.props.onLayout, onLayout),
-  });
-}
-
-export type { HeaderMotionBridgeValue, MotionProgress };
