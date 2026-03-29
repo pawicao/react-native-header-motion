@@ -1,27 +1,14 @@
-import { createContext } from 'react';
-import { type SharedValue } from 'react-native-reanimated';
-import type {
-  AnimatedHeaderBaseMotionProps,
-  MeasureAnimatedHeaderAndSet,
-  Progress,
-  ScrollTo,
-  ScrollValues,
-} from './types';
-
-interface HeaderMotionContextType {
-  progress: Progress;
-  measureTotalHeight: MeasureAnimatedHeaderAndSet;
-  measureDynamic: MeasureAnimatedHeaderAndSet;
-  enableHeaderPan: boolean;
-  headerPanMomentumOffset: SharedValue<number | null>;
-  animatedHeaderBaseProps: AnimatedHeaderBaseMotionProps;
-  scrollValues: SharedValue<ScrollValues>;
-  activeScrollId: SharedValue<string> | undefined;
-  progressThreshold: SharedValue<number>;
-  originalHeaderHeight: number;
-
-  scrollToRef: React.RefObject<ScrollTo | null>;
-}
+import { createContext, useContext } from 'react';
+import type { HeaderMotionBridgeValue } from './types';
 
 export const HeaderMotionContext =
-  createContext<HeaderMotionContextType | null>(null);
+  createContext<HeaderMotionBridgeValue | null>(null);
+
+export function useHeaderMotionContextOrThrow(errorMessage: string) {
+  const ctxValue = useContext(HeaderMotionContext);
+  if (!ctxValue) {
+    throw new Error(errorMessage);
+  }
+
+  return ctxValue;
+}

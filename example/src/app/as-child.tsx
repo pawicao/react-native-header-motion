@@ -18,25 +18,22 @@ export default function Screen() {
             options={{
               header: () => (
                 <HeaderMotion.NavigationBridge value={value}>
-                  <CollapsibleHeader />
+                  <AsChildHeader />
                 </HeaderMotion.NavigationBridge>
               ),
             }}
           />
         )}
       </HeaderMotion.Bridge>
-      <HeaderMotion.ScrollView headerOffsetStrategy="margin">
-        {content}
-      </HeaderMotion.ScrollView>
+      <HeaderMotion.ScrollView>{content}</HeaderMotion.ScrollView>
     </HeaderMotion>
   );
 }
 
-function CollapsibleHeader() {
+function AsChildHeader() {
   const { progress, progressThreshold } = useMotionProgress();
   const insets = useSafeAreaInsets();
 
-  // 1. Container Animation (Moves UP)
   const containerStyle = useAnimatedStyle(() => {
     const threshold = progressThreshold.get();
     const translateY = interpolate(
@@ -45,10 +42,10 @@ function CollapsibleHeader() {
       [0, -threshold],
       Extrapolation.CLAMP
     );
+
     return { transform: [{ translateY }] };
   });
 
-  // 2. Title Animation (Counter-Moves DOWN to stay sticky)
   const titleStyle = useAnimatedStyle(() => {
     const threshold = progressThreshold.get();
     const translateY = interpolate(
@@ -57,79 +54,90 @@ function CollapsibleHeader() {
       [0, threshold],
       Extrapolation.CLAMP
     );
+
     return { transform: [{ translateY }] };
   });
 
-  // 3. Content Animation (Parallax + Opacity + Scale)
-  const boxSectionStyle = useAnimatedStyle(() => {
+  const dynamicStyle = useAnimatedStyle(() => {
     const threshold = progressThreshold.get();
-    const parallaxTranslateY = interpolate(
-      progress.get(),
-      [0, 1],
-      [0, threshold * 0.5],
-      Extrapolation.CLAMP
-    );
     const opacity = interpolate(
       progress.get(),
-      [0, 1 * 0.6],
-      [1, 0],
+      [0, 0.65, 1],
+      [1, 0.25, 0],
       Extrapolation.CLAMP
     );
-    const scale = interpolate(
-      progress.get(),
-      [0, 1],
-      [1, 0.8],
-      Extrapolation.CLAMP
-    );
+
     return {
       opacity,
-      transform: [{ translateY: parallaxTranslateY }, { scale }],
+      transform: [
+        {
+          translateY: interpolate(
+            progress.get(),
+            [0, 1],
+            [0, threshold * 0.45],
+            Extrapolation.CLAMP
+          ),
+        },
+      ],
     };
   });
 
   return (
-    <HeaderMotion.Header
-      style={[styles.headerWrapper, { paddingTop: insets.top }, containerStyle]}
-    >
-      <Animated.View style={[titleStyle]}>
-        <TitleWithSubtitle
-          title="Margin Offset"
-          subtitle="Content starts below the header with marginTop"
-        />
-      </Animated.View>
+    <HeaderMotion.Header asChild>
+      <Animated.View
+        style={[
+          styles.headerWrapper,
+          styles.absoluteHeaderWrapper,
+          { paddingTop: insets.top },
+          containerStyle,
+        ]}
+      >
+        <Animated.View style={titleStyle}>
+          <TitleWithSubtitle
+            title="asChild Header"
+            subtitle="Measurement injected into your own elements"
+          />
+        </Animated.View>
 
-      <View style={styles.dynamicContent}>
-        <HeaderMotion.Header.Dynamic
-          style={[styles.boxContainer, boxSectionStyle]}
-        >
-          <DynamicBox />
-          <DynamicBox />
-        </HeaderMotion.Header.Dynamic>
-      </View>
+        <View style={styles.dynamicContent}>
+          <HeaderMotion.Header.Dynamic asChild>
+            <Animated.View style={[styles.boxContainer, dynamicStyle]}>
+              <DynamicBox />
+              <DynamicBox />
+            </Animated.View>
+          </HeaderMotion.Header.Dynamic>
+        </View>
+      </Animated.View>
     </HeaderMotion.Header>
   );
 }
 
 const styles = StyleSheet.create({
   headerWrapper: {
-    backgroundColor: '#304077',
+    backgroundColor: '#1D4ED8',
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0,0,0,0.1)',
+    borderBottomColor: 'rgba(15, 23, 42, 0.14)',
+  },
+  absoluteHeaderWrapper: {
+    top: 0,
+    left: 0,
+    right: 0,
+    position: 'absolute',
   },
   dynamicContent: {
     overflow: 'hidden',
   },
   boxContainer: {
     flexDirection: 'row',
-    gap: 6,
-    padding: 12,
+    gap: 10,
+    paddingHorizontal: 12,
+    paddingBottom: 12,
     alignItems: 'stretch',
-    overflow: 'hidden',
   },
 });
 
 const content = generateContent({
-  count: 50,
-  backgroundColor: '#E3CBFC',
-  textColor: '#304077',
+  count: 120,
+  backgroundColor: '#DBEAFE',
+  textColor: '#1E3A8A',
 });

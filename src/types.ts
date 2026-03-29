@@ -1,8 +1,21 @@
 import type { ReactElement } from 'react';
-import type { LayoutChangeEvent, ScrollViewProps } from 'react-native';
-import type { AnimatedRef, SharedValue } from 'react-native-reanimated';
+import type {
+  LayoutChangeEvent,
+  ScrollViewProps,
+  ViewProps,
+} from 'react-native';
+import type {
+  AnimatedProps,
+  AnimatedRef,
+  SharedValue,
+} from 'react-native-reanimated';
 import { DEFAULT_SCROLL_ID } from './utils/defaults';
 import type { InstanceOrElement } from 'react-native-reanimated/lib/typescript/commonTypes';
+import type {
+  GestureStateChangeEvent,
+  PanGestureHandlerEventPayload,
+} from 'react-native-gesture-handler';
+import type { WithDecayConfig } from 'react-native-reanimated';
 
 export type Progress = SharedValue<number>;
 export type HeaderMotionOffsetStrategy =
@@ -14,18 +27,27 @@ export type HeaderMotionOffsetStrategy =
 
 export interface HeaderMotionOffsetProps {
   /**
-   * Strategy used to offset the scrollable content by the measured original header height.
+   * How the scrollable content should be pushed below the measured header.
    *
-   * `top` and `translate` keep the bottom of the content reachable by compensating with extra bottom space.
+   * `padding` is the safest default for most screens. `margin`, `top`, and
+   * `translate` can be useful when the scrollable or its children need a
+   * different layout behavior.
+   *
+   * `top` and `translate` add bottom compensation so the end of the content
+   * remains reachable.
    *
    * @default 'padding'
    */
   headerOffsetStrategy?: HeaderMotionOffsetStrategy;
   /**
-   * Ensures the content container gets a minimum height large enough for short
-   * content to still scroll far enough to drive the header to its collapsed state.
+   * Adds a minimum content height so scrollables with short content can still collapse the
+   * header completely.
    *
-   * Experimental: this relies on extra layout measurement and may be refined in a future release.
+   * **Experimental: this relies on extra layout measurement and may still be
+   * refined.**
+   *
+   * Enable this when some screens do not have enough content to naturally
+   * scroll through the full collapse distance.
    *
    * @default false
    */
@@ -52,31 +74,37 @@ export type ScrollValues = Record<string, ScrollValue> & {
   [key in typeof DEFAULT_SCROLL_ID]?: ScrollValue;
 };
 
-export type WithCollapsibleHeaderProps<
-  T extends Record<string, unknown> = Record<string, unknown>
-> = T & MotionProgress;
-
-export type WithCollapsiblePagedHeaderProps<
-  Tab extends string = string,
-  T extends Record<string, unknown> = Record<string, unknown>
-> = WithCollapsibleHeaderProps<T> & {
-  onTabChange: (newTab: Tab) => void;
-  activeTab: Tab;
-};
-
 export interface MotionProgress {
   progress: Progress;
   progressThreshold: SharedValue<number>;
-  measureTotalHeight: MeasureAnimatedHeaderAndSet;
-  measureDynamic: MeasureAnimatedHeaderAndSet;
-  animatedHeaderBaseProps: AnimatedHeaderBaseMotionProps;
-  activeScrollId: SharedValue<string> | undefined;
 }
 
-export interface AnimatedHeaderBaseMotionProps {
-  enableHeaderPan: boolean;
-  scrollToRef: React.RefObject<ScrollTo | null>;
+export type HeaderPanDecayEvent =
+  GestureStateChangeEvent<PanGestureHandlerEventPayload>;
+
+export type HeaderPanDecayConfig =
+  | WithDecayConfig
+  | ((event: HeaderPanDecayEvent) => WithDecayConfig);
+
+export type HeaderAsChildProps = {
+  asChild: true;
+  children: ReactElement;
+};
+
+export type HeaderDefaultProps = AnimatedProps<ViewProps> & {
+  asChild?: false;
+};
+
+export type HeaderDynamicProps = HeaderDefaultProps | HeaderAsChildProps;
+
+export interface HeaderMotionBridgeValue extends MotionProgress {
+  measureTotalHeight: MeasureAnimatedHeaderAndSet;
+  measureDynamic: MeasureAnimatedHeaderAndSet;
   headerPanMomentumOffset: SharedValue<number | null>;
+  scrollValues: SharedValue<ScrollValues>;
+  activeScrollId: SharedValue<string> | undefined;
+  scrollToRef: React.RefObject<ScrollTo | null>;
+  originalHeaderHeight: number;
 }
 
 export interface ScrollManagerHeaderMotionContext {

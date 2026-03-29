@@ -52,53 +52,68 @@ const resolveScrollIdForProgress = (
 
 export interface HeaderMotionProps<T extends string> {
   /**
-   * The threshold at which the header animation completes (reaches progress = 1).
-   * Can be a fixed number or a function that calculates based on the result of {@link measureDynamic}.
+   * Distance that maps the active scrollable from `progress = 0`
+   * to `progress = 1`.
    *
-   * Defaults to a function that returns the return value of `measureDynamic` unchanged.
+   * Use a number when the collapse distance is fixed. Use a function when the
+   * distance should depend on what `measureDynamic` reads from
+   * `HeaderMotion.Header.Dynamic`.
+   *
+   * A common pattern is to measure the height of the part of the header that
+   * should disappear and use that as the threshold.
    */
   progressThreshold?: ProgressThreshold;
   /**
-   * Function to measure a dimension of choice of the animated element of the header.
+   * Reads the value that should define the "collapsible" part of the header.
    *
-   * Receives the layout change event from React Native.
+   * This is called from `HeaderMotion.Header.Dynamic` on layout. The returned
+   * number feeds `progressThreshold` when you provide that prop as a function.
    *
-   * This function can be further accessed when rendering headers from `HeaderMotion.Header` or `useMotionProgress`  - should be passed to the `onLayout` prop of such. If used, can be used for dynamic calculation of the {@link progressThreshold}.
-   *
-   * Defaults to measuring the height from the event.
+   * By default, the library measures the dynamic section's height. Override
+   * this when the collapse distance should be based on something else, for
+   * example width or a derived value from the layout event.
    */
   measureDynamic?: MeasureAnimatedHeader;
   /**
-   * Mode for measuring dynamic header height.
+   * Controls when `measureDynamic` is allowed to update.
+   *
    * - 'mount': Only measure once on mount
-   * - 'update': Update measurement on every layout recalculation of the component that {@link measureDynamic} was provided to as the `onLayout` property
+   * - 'update': Re-measure whenever `HeaderMotion.Header.Dynamic` lays out again
+   *
+   * Use `'mount'` for stable headers. Use `'update'` when the dynamic section
+   * can change size after mount, for example after async data loads or content
+   * expansion.
+   *
    * @default 'mount'
    */
   measureDynamicMode?: 'update' | 'mount';
   /**
-   * Shared value for tracking the active scroll ID in multi-scroll scenarios (e.g. tabs).
-   * When provided, the header animation will sync across multiple scroll views.
+   * Shared value that tells HeaderMotion which scrollable currently owns the
+   * header progress in multi-scroll setups.
+   *
+   * Pass this when one header is shared across multiple scrollables, such as
+   * tabs or pager pages. Each scrollable should also get its own `scrollId`.
    */
   activeScrollId?: SharedValue<T>;
   /**
-   * Extrapolation type for the progress animation.
-   * Controls how the progress value behaves outside the threshold range.
+   * Controls how `progress` behaves outside the `[0, threshold]` range.
    *
-   * You may want to modify it to achieve some animations for the overscroll scenarios.
+   * The default clamps the value between `0` and `1`. Relax this if you want
+   * to animate overscroll or other out-of-range states.
+   *
    * @default Extrapolation.CLAMP
    */
   progressExtrapolation?: ExtrapolationType;
-  /** Enables panning directly on the header surface.
-   * @default false
-   */
-  enableHeaderPan?: boolean;
-  /** Child components that will have access to the header motion context */
+  /** Descendants that should participate in the shared header-motion state. */
   children: ReactNode;
 }
 
 /**
- * Context provider component for HeaderMotion.
- * Manages header animation state and provides it to child components via context.
+ * Root provider for a header-motion setup.
+ *
+ * It tracks the measured header layout, the active scroll position, and the
+ * derived `progress` shared value consumed by your animated header UI.
+ *
  * @template T - The type of scroll ID string
  */
 function HeaderMotionContextProvider<T extends string>({
@@ -107,7 +122,6 @@ function HeaderMotionContextProvider<T extends string>({
   measureDynamicMode = 'mount',
   activeScrollId,
   progressExtrapolation = Extrapolation.CLAMP,
-  enableHeaderPan = false,
   children,
 }: HeaderMotionProps<T>) {
   const dynamicMeasurement = useSharedValue<number | undefined>(undefined);
@@ -208,24 +222,13 @@ function HeaderMotionContextProvider<T extends string>({
   // were not propagating reliably, while it works for refs. Revisit later.
   // We need to be updating the scrollTo on active scroll ID changes and doing it via state would cause re-renders.
   // It's a bit of an anti-pattern to use refs for this as well, but I am yet to figure out a better way to pass those if SV won't work.
-  const animatedHeaderBaseProps = useMemo(
-    () => ({
-      enableHeaderPan,
-      scrollToRef,
-      headerPanMomentumOffset,
-    }),
-    [enableHeaderPan, headerPanMomentumOffset]
-  );
-
   const ctxValue = useMemo(
     () => ({
       progress,
       originalHeaderHeight,
       measureDynamic: setOrUpdateDynamicMeasurement,
       measureTotalHeight,
-      enableHeaderPan,
       headerPanMomentumOffset,
-      animatedHeaderBaseProps,
       progressThreshold: progressThresholdValue,
       scrollValues,
       scrollToRef,
@@ -235,9 +238,7 @@ function HeaderMotionContextProvider<T extends string>({
       originalHeaderHeight,
       progress,
       measureTotalHeight,
-      enableHeaderPan,
       headerPanMomentumOffset,
-      animatedHeaderBaseProps,
       setOrUpdateDynamicMeasurement,
       scrollValues,
       activeScrollId,

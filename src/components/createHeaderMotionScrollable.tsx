@@ -23,13 +23,12 @@ export type HeaderMotionScrollableOwnProps<
   TRef extends InstanceOrElement = any
 > = HeaderMotionOffsetProps & {
   /**
-   * Optional unique identifier for this scroll view.
-   * Use this when you have multiple scroll views (e.g. in tabs) to track them separately.
+   * Unique identifier for this scrollable when one header is shared across
+   * multiple scrollables.
    */
   scrollId?: string;
   /**
-   * Optional animated ref to use for the scroll view.
-   * When provided, the scroll manager will use this ref instead of creating its own.
+   * Animated ref to reuse instead of letting HeaderMotion create one.
    */
   animatedRef?: AnimatedRef<TRef> | AnimatedRef;
 };
@@ -47,11 +46,14 @@ export interface CreateHeaderMotionScrollableOptions<
    */
   isComponentAnimated?: TIsComponentAnimated;
   /**
-   * Strategy used to apply header spacing and min-height handling.
+   * Controls how HeaderMotion injects content-container spacing.
+   *
    * - `children`: wraps `children` in an inner `Animated.View`
    * - `renderScrollComponent`: injects a custom scroll component that wraps the content
    *
-   * Use `renderScrollComponent` for FlatList-like implementations.
+   * Use `children` for ScrollView-like components. Use
+   * `renderScrollComponent` for FlatList-like components that own their
+   * internal scroll container.
    *
    * @default 'renderScrollComponent'
    */

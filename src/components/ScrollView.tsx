@@ -28,11 +28,8 @@ type HeaderMotionScrollViewComponent = (
  * </HeaderMotion>
  * ```
  */
-export const HeaderMotionScrollView = createHeaderMotionScrollable(
-  Animated.ScrollView,
-  {
-    displayName: 'HeaderMotion.ScrollView',
-    contentContainerMode: 'children',
-    isComponentAnimated: true,
-  }
-) as HeaderMotionScrollViewComponent;
+export const ScrollView = createHeaderMotionScrollable(Animated.ScrollView, {
+  displayName: 'HeaderMotion.ScrollView',
+  contentContainerMode: 'children',
+  isComponentAnimated: true,
+}) as HeaderMotionScrollViewComponent;

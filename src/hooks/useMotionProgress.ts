@@ -1,64 +1,31 @@
-import { useContext } from 'react';
-import { HeaderMotionContext } from '../context';
+import { useHeaderMotionContextOrThrow } from '../context';
 import type { MotionProgress } from '../types';
 
 /**
- * Hook to access motion progress values and measuring functions for header animations.
- * Returns the progress value (0-1), threshold, and measurement functions.
+ * Returns the two shared values most header animations actually need:
+ * `progress` and `progressThreshold`.
  *
- * Must be used within a {@link HeaderMotion} component.
+ * Use this inside your animated header components to derive transforms,
+ * opacity, scale, parallax, or any other visual response to scroll.
  *
- * @returns Motion progress values and measuring functions:
- * - `progress`: Shared value from 0 to 1
- * - `progressThreshold`: The threshold at which animation completes
- * - `measureTotalHeight`: Function to measure total header height. Should be passed to the `onLayout` prop of the base of a header, to let scrollables account for the total header height
- * - `measureDynamic`: Function to measure a dimension of choice of the animated element of the header - should be passed to the `onLayout` prop of such. If used, can be used for dynamic calculation of the {@link progressThreshold}.
- *
- * @throws Error if used outside of a {@link HeaderMotion} component
+ * `progress` usually lives in the `0..1` range, where `0` is the expanded
+ * state and `1` is the fully collapsed state. `progressThreshold` is the pixel
+ * distance that corresponds to that transition.
  *
  * @example
  * ```tsx
  * function MyHeader() {
- *   const { progress, progressThreshold, measureTotalHeight, measureDynamic } = useMotionProgress();
- *   const dynamicStyle = useAnimatedStyle(() => {
- *     const translateY = interpolate(
- *       progress.value,
- *       [0, 1],
- *       [0, -progressThreshold.get()],
- *       Extrapolation.CLAMP,
- *     )
- *     return { transform: [{ translateY }] }
- *   })
- *   return (
- *     <AnimatedHeaderBase onLayout={measureTotalHeight}>
- *       <Animated.View onLayout={measureDynamic} style={dynamicStyle} />
- *     </AnimatedHeaderBase>
- *   )
+ *   const { progress, progressThreshold } = useMotionProgress();
  * }
  * ```
  */
 export function useMotionProgress(): MotionProgress {
-  const ctxValue = useContext(HeaderMotionContext);
-  if (!ctxValue) {
-    throw new Error(
-      'useMotionProgress must be used within a <HeaderMotion /> component. If using inside a navigation header, consider using <HeaderMotion.Header /> instead to ensure context access.'
-    );
-  }
-  const {
-    progress,
-    measureTotalHeight,
-    measureDynamic,
-    progressThreshold,
-    animatedHeaderBaseProps,
-    activeScrollId,
-  } = ctxValue;
+  const { progress, progressThreshold } = useHeaderMotionContextOrThrow(
+    'useMotionProgress must be used within <HeaderMotion /> or <HeaderMotion.NavigationBridge />. If you are rendering inside a navigation header, bridge the context with <HeaderMotion.Bridge /> and <HeaderMotion.NavigationBridge />.'
+  );
 
   return {
     progress,
-    measureTotalHeight,
-    measureDynamic,
     progressThreshold,
-    animatedHeaderBaseProps,
-    activeScrollId,
   };
 }

@@ -17,22 +17,23 @@ const HeaderMotionFlashList = createHeaderMotionScrollable(FlashList, {
 export default function Screen() {
   return (
     <HeaderMotion>
-      <HeaderMotion.Header>
-        {(headerProps) => (
+      <HeaderMotion.Bridge>
+        {(value) => (
           <Stack.Screen
             options={{
               header: () => (
-                <ShowcaseCollapsibleHeader
-                  {...headerProps}
-                  title="FlashList"
-                  subtitle="Shared factory wrapper"
-                  backgroundColor="#14532d"
-                />
+                <HeaderMotion.NavigationBridge value={value}>
+                  <ShowcaseCollapsibleHeader
+                    title="FlashList"
+                    subtitle="Shared factory wrapper"
+                    backgroundColor="#14532d"
+                  />
+                </HeaderMotion.NavigationBridge>
               ),
             }}
           />
         )}
-      </HeaderMotion.Header>
+      </HeaderMotion.Bridge>
       <HeaderMotionFlashList
         data={content}
         keyExtractor={(item) => `${item.index}`}
