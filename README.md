@@ -1,48 +1,67 @@
 # React Native Header Motion
 
-High-level APIs for **orchestrating header motion** driven by scroll — built on top of [**React Native Reanimated**](https://docs.swmansion.com/react-native-reanimated/).
+High-level APIs for orchestrating scroll-driven header motion in React Native.
 
-This library is **100% a wrapper around Reanimated**. All the credit for the underlying animation engine, worklets, and primitives goes to **Reanimated** (and `react-native-worklets`). This package focuses on a specific use case: **header motion + scroll orchestration** (including multi-scroll/tab scenarios).
+This library is a wrapper around:
+
+- [React Native Reanimated](https://docs.swmansion.com/react-native-reanimated/) & [React Native Worklets](https://docs.swmansion.com/react-native-worklets/docs/)
+- [React Native Gesture Handler](https://docs.swmansion.com/react-native-gesture-handler/docs/)
+
+All credit for the underlying animation engine, worklets, gestures, and low-level primitives goes to those libraries. This package focuses on composing them into a specific higher-level use case: header motion and scroll orchestration.
+
+This library does not ship a predesigned "collapsible header" UI. It gives you the pieces to:
+
+- measure the parts of a header that matter
+- derive a shared `progress` value from scroll
+- keep multiple scrollables in sync when one header is shared across them
+- bridge that state into navigation-rendered headers
+
+You build the visuals yourself on top of that.
 
 <div align="center">
-<img src="https://github.com/user-attachments/assets/b673349a-f26a-4cc8-bfe1-60d77deb4390" width="70%" />
+  <img src="https://github.com/user-attachments/assets/b673349a-f26a-4cc8-bfe1-60d77deb4390" width="70%" />
 </div>
 
-## v1 alpha status
+## Version notes
 
-`v1.0.0-alpha.x` is pre-release quality.
+- If you are upgrading from `v0.3.x`, read [MIGRATION-v1.md](./MIGRATION-v1.md).
+- If you are still on the pre-v1 API and need the old docs, use the `v0` README:
+  [README on branch `v0`](https://github.com/pawicao/react-native-header-motion/blob/v0/README.md)
 
-- Expect additional API changes (including breaking ones) before stable `1.0.0`.
-- If you are upgrading from `0.3.x`, use the migration doc: [MIGRATION-v1.md](./MIGRATION-v1.md).
+## What's new in v1
 
-## What changed since `v0.3.0`
+The API change in v1 is quite substantial, but the migration is usually straightforward and the end result gives a much better developer experience.
 
-- **Performance-focused internals:** motion threshold + header height now flow through `SharedValue`s to reduce JS-side churn.
-- **Pannable header support:** `pannable` and `panDecayConfig` now live directly on `HeaderMotion.Header`.
-- **Ecosystem update:** example app moved to Expo 55 + Reanimated 4.2; `react-native-gesture-handler` is now a peer dependency.
+- Header panning built on top of `react-native-gesture-handler`. Dragging on the header itself can initiate or continue the scroll interaction naturally instead of forcing the user to only use the scrollables.
+- Context-first header API built around `HeaderMotion.Header` and `HeaderMotion.Header.Dynamic`
+- Explicit navigation bridging with `HeaderMotion.Bridge` and `HeaderMotion.NavigationBridge`
+- Narrower `useMotionProgress()` that focuses on `progress` and `progressThreshold`
+- Reusable custom-scrollable factory via `createHeaderMotionScrollable()`
+  - It's now easier than ever to wire up LegendList and FlashList to Header Motion!
+- `react-native-gesture-handler` added to the peer dependency surface
 
-## What this is (and isn’t)
+## What this library is good at
 
-**✅ This is**
+- Scroll-driven animated headers
+- Shared header state across tabs / pagers / multiple scrollables
+- Navigation headers rendered outside the provider subtree
+- Reusable wrappers around custom scrollables
 
-- A small set of components + hooks that expose a single `progress` shared value and a few measurement helpers.
-- A scroll orchestration layer that can keep multiple scrollables in sync (e.g. tabs + pager).
+## What this library is not trying to be
 
-**❌ This is NOT**
+- A fully styled header component
+- A page layout framework
+- A general-purpose animation abstraction on top of Reanimated
 
-- An out-of-the-box “collapsible header” component with a baked-in look.
+## Requirements
 
-You build any header motion you want by animating based on `progress`.
+Your app must provide:
 
-## Requirements (peer dependencies)
+- `react-native-gesture-handler >= 2.0.0`
+- `react-native-reanimated >= 4.0.0`
+- `react-native-worklets >= 0.4.0`
 
-You must have these installed in your app:
-
-- `react-native-gesture-handler` **>= 2.0.0**
-- `react-native-reanimated` **>= 4.0.0**
-- `react-native-worklets` **>= 0.4.0**
-
-This package declares them as peer dependencies, so your app owns those versions. Remember to install a version of Worklets compatible with your version of Reanimated.
+These are peer dependencies.
 
 ## Installation
 
@@ -56,119 +75,109 @@ or
 yarn add react-native-header-motion
 ```
 
-### Reanimated setup
+Then follow the normal setup instructions for:
 
-Follow the official Reanimated [installation instructions](https://docs.swmansion.com/react-native-reanimated/docs/fundamentals/getting-started/#installation) for your environment (Expo / bare RN).
+- [Reanimated](https://docs.swmansion.com/react-native-reanimated/docs/fundamentals/getting-started/#installation)
+- [Gesture Handler](https://docs.swmansion.com/react-native-gesture-handler/docs/fundamentals/installation)
+- [Worklets](https://docs.swmansion.com/react-native-reanimated/docs/fundamentals/getting-started/#installation)
 
 ## Mental model
 
-There are three key concepts:
+There are four concepts to understand:
 
-### 1) `progress` (SharedValue)
+### 1. `progress`
 
-`progress` is a Reanimated `SharedValue<number>` that represents the normalized progress of your header animation.
+`progress` is a `SharedValue<number>`.
 
-- `0` → animation start (initial state)
-- `1` → animation end (final state)
+- `0` means "expanded"
+- `1` means "collapsed"
 
-### 2) `progressThreshold` (prop vs runtime value)
+Most header animations should be derived from this value.
 
-`progressThreshold` is the distance needed for `progress` to move from `0 → 1`.
+### 2. `progressThreshold`
 
-As a `HeaderMotion` prop, you can provide:
+`progressThreshold` is the collapse distance in pixels.
 
-- a number, or
-- a function `(measuredDynamic) => threshold`
+It can be:
 
-If you provide a function, it uses the value measured by `measureDynamic`.
+- a fixed number
+- a function derived from the measured dynamic part of the header
 
-When you read `progressThreshold` from `useMotionProgress()`, it is a `SharedValue<number>`.
-Read it inside worklets via `progressThreshold.get()` (or `progressThreshold.value`).
+At runtime, `useMotionProgress()` gives you `progressThreshold` as a `SharedValue<number>`.
 
-### 3) Measurement functions
+In practice, `progress` is calculated by mapping scroll distance across that threshold:
 
-The library gives you two measurement callbacks that you pass to your header layout:
+- before the threshold, `progress` moves from `0` toward `1`
+- at the threshold, `progress` reaches `1`
+- past the threshold, behavior depends on `progressExtrapolation`
 
-- `measureTotalHeight` – attach to the _outer_ header container to measure the total header height. Scrollables use this to offset content so it starts below the header.
-- `measureDynamic` – attach to the part of the header that determines the threshold (often the animated/dynamic portion).
+### 3. Total header height vs dynamic header height
 
-## Why `HeaderMotion.Bridge` / `HeaderMotion.NavigationBridge` exist
+The library measures two different things:
 
-When you pass a `header` component to React Navigation / Expo Router, that header is rendered by the navigator in a different part of the React tree.
+- the total header height
+- the dynamic part of the header that should define the collapse distance
 
-Because of that, the navigation header **cannot read the `HeaderMotion` context** directly.
+`HeaderMotion.Header` wires the total-height measurement.
 
-Use:
+`HeaderMotion.Header.Dynamic` wires the dynamic measurement.
 
-- `HeaderMotion.Bridge` to read the full context inside the provider tree
-- `HeaderMotion.NavigationBridge` to re-provide that same context inside the navigation-rendered header subtree
+In many designs:
 
-Once bridged, your header component can call `useMotionProgress()` normally.
+- the sticky/top part stays visible
+- the dynamic part slides away
+- the dynamic part is what should feed `progressThreshold`
 
-## Why `HeaderMotion.Header` uses absolute positioning
+### 4. Navigation headers are a separate tree
 
-Navigation headers are special:
+When a navigation library renders a header outside your screen subtree, it cannot read the `HeaderMotion` context directly.
 
-- Even with `headerTransparent: true`, the navigator can still reserve layout space for the header container.
-- If you animate with translations without absolute positioning, you can end up with:
-  - content below becoming unclickable (an invisible parent header still sits on top), or
-  - content hidden under the header container.
+That is why the library has:
 
-`HeaderMotion.Header` is **absolutely positioned by default** (`overlay={true}`) to avoid those layout traps, which is especially important when you use transforms/translations.
+- `HeaderMotion.Bridge`
+- `HeaderMotion.NavigationBridge`
 
-## When to use components vs hooks
+Use them only to move HeaderMotion context across that boundary.
 
-You can use either style; pick based on your integration needs:
+## Recommended integration order
 
-- Prefer **components** when you want a “batteries included” wiring:
+The library allows (and requires) you to integrate your scrollables with headers to provide animation behavior.
 
-  - `HeaderMotion.ScrollView` / `HeaderMotion.FlatList` for common scrollables
-  - `createHeaderMotionScrollable()` for reusable wrappers around custom scrollables
-  - `HeaderMotion.ScrollManager` for one-off custom scrollables via render-props
+Use the simplest integration that fits your case:
 
-- Prefer **hooks** when you want to build your own wrappers:
-  - `useScrollManager()` (same engine as `HeaderMotion.ScrollManager`, but hook-based)
-  - `useMotionProgress()` when your header is inside the provider tree
+1. `HeaderMotion.ScrollView` or `HeaderMotion.FlatList` - exported directly from the library
+2. `createHeaderMotionScrollable()` - to easily create custom integrated scrollables on top of other scrollables (e.g. LegendList or FlashList)
+3. `HeaderMotion.ScrollManager` / `useScrollManager()` - for even more custom scenarios
 
-Also:
+For custom scrollables, prefer `createHeaderMotionScrollable()` first.
 
-- Use `HeaderMotion.Bridge` + `HeaderMotion.NavigationBridge` when your header is rendered by navigation.
-- Use `HeaderMotion.Header` + `HeaderMotion.Header.Dynamic` to wire header measurement automatically.
-- Use `useMotionProgress` when you only need `progress` and `progressThreshold`.
+Use the scroll managers only when the factory approach is not flexible enough.
 
-## Examples
+## Quick start: navigation header
 
-### Example app
-
-Examples live in the example app: `example/`. They demonstrate a few cases, from simple animations, to scroll orchestration and persisted header animation state between different tabs (e.g. with `react-native-pager-view`).
-
-Those examples use Expo Router as the navigation library, but it should be fairly simple to do the same with plain React Navigation.
-
-### Expo Router / React Navigation
-
-This is the core pattern used in the example app (`example/src/app/new-api.tsx`).
+This is the core v1 pattern when your header is rendered by Expo Router / React Navigation.
 
 ```tsx
 import HeaderMotion, { useMotionProgress } from 'react-native-header-motion';
 import { Stack } from 'expo-router';
+import { StyleSheet, View } from 'react-native';
 import Animated, {
   Extrapolation,
   interpolate,
   useAnimatedStyle,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { View } from 'react-native';
 
 export default function Screen() {
   return (
     <HeaderMotion>
       <HeaderMotion.Bridge>
-        {(value) => (
+        {(ctx) => (
           <Stack.Screen
             options={{
               header: () => (
-                <HeaderMotion.NavigationBridge value={value}>
-                  <MyHeader />
+                <HeaderMotion.NavigationBridge value={ctx}>
+                  <AppHeader />
                 </HeaderMotion.NavigationBridge>
               ),
             }}
@@ -176,240 +185,270 @@ export default function Screen() {
         )}
       </HeaderMotion.Bridge>
 
-      <HeaderMotion.ScrollView>
-        {/* your scrollable content */}
-      </HeaderMotion.ScrollView>
+      <HeaderMotion.ScrollView>{/* content */}</HeaderMotion.ScrollView>
     </HeaderMotion>
   );
 }
 
-function MyHeader() {
+function AppHeader() {
   const { progress, progressThreshold } = useMotionProgress();
   const insets = useSafeAreaInsets();
 
   const containerStyle = useAnimatedStyle(() => {
     const threshold = progressThreshold.get();
-    const translateY = interpolate(
-      progress.get(),
-      [0, 1],
-      [0, -threshold],
-      Extrapolation.CLAMP
-    );
-    return { transform: [{ translateY }] };
+
+    return {
+      transform: [
+        {
+          translateY: interpolate(
+            progress.get(),
+            [0, 1],
+            [0, -threshold],
+            Extrapolation.CLAMP
+          ),
+        },
+      ],
+    };
   });
 
   return (
-    <HeaderMotion.Header style={[{ paddingTop: insets.top }, containerStyle]}>
+    <HeaderMotion.Header
+      style={[styles.header, { paddingTop: insets.top }, containerStyle]}
+    >
       <HeaderMotion.Header.Dynamic>
-        {/* “dynamic” part of the header */}
+        {/* collapsible part */}
       </HeaderMotion.Header.Dynamic>
 
-      <View>{/* "regular" part of the header */}</View>
-    </HeaderMotion.Header>
-  );
-}
-```
-
-### Tabs / pager: synchronizing multiple scrollables
-
-If you have multiple scrollables (e.g. pages in `react-native-pager-view`), you can keep a single header progress by:
-
-1. Creating a shared “active scroll id” using `useActiveScrollId()`
-2. Passing `activeScrollId.sv` to `<HeaderMotion activeScrollId={...} />`
-3. Rendering each page scrollable with a unique `scrollId`
-
-The example app shows this pattern in `example/src/app/collapsible-pager.tsx` using `HeaderMotion.ScrollManager`.
-
-### Keeping the native header + custom animated content below
-
-If you want to keep the native header for back buttons/title, render your animated content _inside the screen_ under the native header:
-
-```tsx
-import HeaderMotion, { useMotionProgress } from 'react-native-header-motion';
-import { Stack } from 'expo-router';
-import Animated, {
-  Extrapolation,
-  interpolate,
-  useAnimatedStyle,
-} from 'react-native-reanimated';
-import { View } from 'react-native';
-
-export default function Screen() {
-  return (
-    <>
-      <Stack.Screen options={{ headerTransparent: true }} />
-      <HeaderMotion>
-        <InlineAnimatedHeader />
-        <HeaderMotion.ScrollView>
-          {/* rest of content */}
-        </HeaderMotion.ScrollView>
-      </HeaderMotion>
-    </>
-  );
-}
-
-function InlineAnimatedHeader() {
-  const { progress, progressThreshold } = useMotionProgress();
-
-  const containerStyle = useAnimatedStyle(() => {
-    const threshold = progressThreshold.get();
-    const translateY = interpolate(
-      progress.get(),
-      [0, 1],
-      [0, -threshold],
-      Extrapolation.CLAMP
-    );
-    return { transform: [{ translateY }] };
-  });
-
-  return (
-    <HeaderMotion.Header style={containerStyle}>
-      <HeaderMotion.Header.Dynamic>
-        {/* custom animated content below the native header */}
-      </HeaderMotion.Header.Dynamic>
       <View>{/* sticky part */}</View>
     </HeaderMotion.Header>
   );
 }
+
+const styles = StyleSheet.create({
+  header: {
+    backgroundColor: '#304077',
+  },
+});
 ```
 
-## API
+## Quick start: inline header inside the screen
 
-The package exports a default compound component plus hooks, types, and named aliases.
-
-### `HeaderMotion` (default export)
-
-`HeaderMotion` is a compound component:
-
-- `HeaderMotion` (provider)
-- `HeaderMotion.Header` (header container)
-- `HeaderMotion.Bridge` (bridge render-prop for navigation headers)
-- `HeaderMotion.NavigationBridge` (re-provides context into navigation headers)
-- `HeaderMotion.ScrollView` (pre-wired Animated.ScrollView)
-- `HeaderMotion.FlatList` (pre-wired Animated.FlatList)
-- `createHeaderMotionScrollable` (factory for reusable custom scrollables)
-- `HeaderMotion.ScrollManager` (render-prop API for custom scrollables)
-
-#### Props
-
-- `progressThreshold?: number | (measuredDynamic: number) => number`
-  - Defines how many pixels correspond to `progress` going from `0` to `1`.
-  - If you pass a function, it uses the value measured from `measureDynamic`.
-- `measureDynamic?: (e) => number`
-  - What value to read from the `onLayout` event (defaults to `height`).
-- `measureDynamicMode?: 'mount' | 'update'`
-  - Whether `measureDynamic` updates only once or on every layout recalculation.
-- `activeScrollId?: SharedValue<string>`
-  - Enables multi-scroll orchestration (tabs/pager).
-- `progressExtrapolation?: ExtrapolationType`
-  - Controls how progress behaves outside the threshold range (useful for overscroll).
-#### `HeaderMotion.Header`
-
-Header container component that:
-
-- measures total header height automatically
-- supports direct header pan gestures
-- renders an `Animated.View` by default
-- applies absolute overlay positioning by default
+If your animated header lives in the same subtree as `HeaderMotion`, you do not need bridging at all.
 
 ```tsx
-<HeaderMotion.Header overlay style={animatedStyle}>
-  <HeaderMotion.Header.Dynamic>
-    {/* dynamic measured section */}
-  </HeaderMotion.Header.Dynamic>
-</HeaderMotion.Header>
+function Screen() {
+  return (
+    <HeaderMotion>
+      <InlineHeader />
+      <HeaderMotion.ScrollView>{/* content */}</HeaderMotion.ScrollView>
+    </HeaderMotion>
+  );
+}
+
+function InlineHeader() {
+  const { progress, progressThreshold } = useMotionProgress();
+
+  return (
+    <HeaderMotion.Header>
+      <HeaderMotion.Header.Dynamic>
+        {/* collapsible section */}
+      </HeaderMotion.Header.Dynamic>
+    </HeaderMotion.Header>
+  );
+}
 ```
+
+## Shared header across multiple scrollables
+
+If one header is shared across tabs or pager pages:
+
+1. Create an active scroll id with `useActiveScrollId()`
+2. Pass `activeScrollId.sv` to `HeaderMotion`
+3. Give each scrollable a unique `scrollId`
+
+```tsx
+import { useRef } from 'react';
+import PagerView from 'react-native-pager-view';
+
+const indexToKey = new Map([
+  [0, 'A'],
+  [1, 'B'],
+]);
+
+function Screen() {
+  const [activeScrollId, setActiveScrollId] = useActiveScrollId<'A' | 'B'>('A');
+  const pagerRef = useRef<PagerView>(null);
+
+  return (
+    <HeaderMotion activeScrollId={activeScrollId.sv}>
+      <HeaderMotion.Bridge>
+        {(ctx) => (
+          <Stack.Screen
+            options={{
+              header: () => (
+                <HeaderMotion.NavigationBridge value={ctx}>
+                  <Header />
+                </HeaderMotion.NavigationBridge>
+              ),
+            }}
+          />
+        )}
+      </HeaderMotion.Bridge>
+
+      <PagerView
+        ref={pagerRef}
+        style={{ flex: 1 }}
+        initialPage={0}
+        onPageSelected={(e) => {
+          setActiveScrollId(indexToKey.get(e.nativeEvent.position)!);
+        }}
+      >
+        <View key="A">
+          <HeaderMotion.ScrollView scrollId="A">
+            {/* page A content */}
+          </HeaderMotion.ScrollView>
+        </View>
+
+        <View key="B">
+          <HeaderMotion.ScrollView scrollId="B">
+            {/* page B content */}
+          </HeaderMotion.ScrollView>
+        </View>
+      </PagerView>
+    </HeaderMotion>
+  );
+}
+```
+
+## Header panning
+
+Sometimes the header itself takes up a large part of the screen, so forcing the user to move their finger back down to the scrollable can feel awkward.
+
+In those cases, you can make the header surface itself drive the scroll interaction as well:
+
+```tsx
+function Header() {
+  return (
+    <HeaderMotion.Header pannable>
+      <HeaderMotion.Header.Dynamic>
+        {/* collapsible content */}
+      </HeaderMotion.Header.Dynamic>
+    </HeaderMotion.Header>
+  );
+}
+```
+
+## Public API
+
+### Default export: `HeaderMotion`
+
+Compound component with:
+
+- `HeaderMotion.Header`
+- `HeaderMotion.Bridge`
+- `HeaderMotion.NavigationBridge`
+- `HeaderMotion.ScrollView`
+- `HeaderMotion.FlatList`
+- `HeaderMotion.ScrollManager`
+
+Provider props:
+
+- `progressThreshold?: number | ((measuredDynamic: number) => number)`: collapse distance in pixels; when passed as a function, it is derived from the value measured by `HeaderMotion.Header.Dynamic`
+- `measureDynamic?: (e) => number`: controls what value is read from the dynamic section's layout event; defaults to its height
+- `measureDynamicMode?: 'mount' | 'update'`: `'mount'` measures once; `'update'` re-measures when the dynamic section lays out again
+- `activeScrollId?: SharedValue<string>`: identifies which scrollable currently owns header progress in multi-scroll setups
+- `progressExtrapolation?: ExtrapolationType`: controls how `progress` behaves outside the normal collapse range
+
+### `HeaderMotion.Header`
+
+Main header container.
+
+Responsibilities:
+
+- measures total header height
+- applies overlay positioning by default
+- can make the header surface pannable
 
 Props:
 
-- `overlay?: boolean`
-  - Defaults to `true`
-- `pannable?: boolean`
-  - Enables direct pan gestures on that specific header instance.
-- `panDecayConfig?: WithDecayConfig | ((event: GestureStateChangeEvent<PanGestureHandlerEventPayload>) => WithDecayConfig)`
-  - Optional momentum config used after the header pan ends.
-  - If you pass a function, it runs inside the gesture end worklet and must be worklet-safe.
-- `withGestureHandlerRootView?: boolean`
-- `asChild?: boolean`
+- all normal `Animated.View` props in default mode: styles, accessibility props, pointer events, and other normal animated view props work as expected
+- `overlay?: boolean`: keeps the header absolutely positioned above content; disable only if you intentionally want it in normal layout flow
+- `pannable?: boolean`: allows dragging directly on the header surface to continue the scroll interaction
+- `panDecayConfig?: WithDecayConfig | ((event) => WithDecayConfig)`: customizes the momentum animation after a header pan ends
+- `withGestureHandlerRootView?: boolean`: wraps the gesture subtree in `GestureHandlerRootView` when that part of the tree is not already under one
+- `asChild?: boolean`: injects the total-height measurement into a single child instead of rendering the default `Animated.View`
 
-When `asChild` is `true`, pass a single child that accepts `onLayout`.
+Use `asChild` when you want to inject the total-height measurement into a single child instead of rendering the default `Animated.View`.
 
-#### `HeaderMotion.Header.Dynamic`
+### `HeaderMotion.Header.Dynamic`
 
-Dynamic measured section of the header.
+Marks the part of the header whose layout should define the collapsible distance.
 
-- renders an `Animated.View` by default
-- wires `measureDynamic` automatically
-- supports `asChild`
+Use this for the section that visually disappears during collapse.
 
-#### `HeaderMotion.Bridge`
+Props:
 
-Render-prop bridge for navigation-rendered headers.
+- all normal `Animated.View` props in default mode: use these as you would on any animated view
+- `asChild?: boolean`: injects the dynamic measurement into a single child instead of rendering the default `Animated.View`
 
-```tsx
-<HeaderMotion.Bridge>
-  {(value) => /* pass value into HeaderMotion.NavigationBridge */}
-</HeaderMotion.Bridge>
-```
+### `HeaderMotion.Bridge`
 
-#### `HeaderMotion.NavigationBridge`
+Reads the current HeaderMotion context and exposes it through a render function.
 
-Re-provides header motion context in a separate subtree, typically inside a navigation header.
+Use it to move the context into a navigation-rendered header subtree.
 
-#### `HeaderMotion.ScrollView`
+Props:
 
-Animated ScrollView wired with:
+- `children: (value) => ReactNode`: receives the bridged HeaderMotion context value that should usually be passed into `HeaderMotion.NavigationBridge`
 
-- `onScroll` handler
-- `ref`
-- automatic content offset based on measured header height
+### `HeaderMotion.NavigationBridge`
 
-Supports:
+Re-provides a previously captured HeaderMotion context value in another subtree.
 
-- `scrollId?: string` for multi-scroll scenarios
-- `headerOffsetStrategy?: 'padding' | 'margin' | 'top' | 'translate' | 'none'`
-- `ensureScrollableContentMinHeight?: boolean`
-  Experimental. Defaults to `false`.
+Use it together with `HeaderMotion.Bridge`.
 
-`padding` is the default and recommended option. `top` and `translate` also add bottom compensation internally so the end of the content remains reachable.
+Props:
 
-#### `HeaderMotion.FlatList`
+- `value`: the bridged HeaderMotion context captured by `HeaderMotion.Bridge`
+- `children`: the subtree that should regain access to HeaderMotion context
 
-Animated FlatList wired similarly to the ScrollView.
+### `HeaderMotion.ScrollView`
+
+Pre-wired `Animated.ScrollView`.
 
 Supports:
 
-- `scrollId?: string` for multi-scroll scenarios
-- `headerOffsetStrategy?: 'padding' | 'margin' | 'top' | 'translate' | 'none'`
-- `ensureScrollableContentMinHeight?: boolean`
-  Experimental. Defaults to `false`.
+- `scrollId?: string`: unique id for this scrollable when one header is shared across multiple scrollables
+- `headerOffsetStrategy?: 'padding' | 'margin' | 'top' | 'translate' | 'none'`: controls how content is pushed below the measured header
+- `ensureScrollableContentMinHeight?: boolean`: experimental fallback for short content that otherwise could not scroll far enough to collapse the header fully
+- `animatedRef?: AnimatedRef`: lets you reuse your own animated ref instead of letting HeaderMotion create one
 
-#### `createHeaderMotionScrollable(Component, options?)`
+### `HeaderMotion.FlatList`
 
-Named export for building reusable scrollable wrappers on top of `useScrollManager()`.
-This is the same abstraction used internally by `HeaderMotion.ScrollView` and `HeaderMotion.FlatList`.
+Pre-wired `Animated.FlatList`.
 
-Returned components support:
+Supports the same HeaderMotion-specific props as `HeaderMotion.ScrollView`.
 
-- `scrollId?: string`
-- `headerOffsetStrategy?: 'padding' | 'margin' | 'top' | 'translate' | 'none'`
-- `ensureScrollableContentMinHeight?: boolean`
-  Experimental. Defaults to `false`.
+### `createHeaderMotionScrollable(Component, options?)`
+
+Factory for creating reusable HeaderMotion-aware wrappers around custom scrollables.
+
+Prefer this over the scroll managers whenever it is enough.
+
+Useful options:
+
+- `displayName`: custom component name shown in React DevTools
+- `isComponentAnimated`: set this when the input component is already animated and should not be wrapped again
+- `contentContainerMode: 'children' | 'renderScrollComponent'`: tells HeaderMotion how to inject content offsetting for that scrollable shape
 
 Use:
 
-- `contentContainerMode: 'children'` for ScrollView-like components
-- `contentContainerMode: 'renderScrollComponent'` for FlatList-like components
-- `isComponentAnimated: true` when you pass an already animated component
+- `'children'` for ScrollView-like components
+- `'renderScrollComponent'` for FlatList-like components
 
-The returned component keeps the wrapped component's prop shape, and list-like
-generic components preserve item inference at usage time. Users do not need to
-pass generics to `createHeaderMotionScrollable()` itself.
+Examples:
 
-By default, the factory wraps the provided component with
-`Animated.createAnimatedComponent()`.
-
-Example:
+`FlashList`
 
 ```tsx
 import { FlashList } from '@shopify/flash-list';
@@ -417,71 +456,36 @@ import { createHeaderMotionScrollable } from 'react-native-header-motion';
 
 const HeaderMotionFlashList = createHeaderMotionScrollable(FlashList, {
   displayName: 'HeaderMotionFlashList',
+  contentContainerMode: 'renderScrollComponent',
 });
 ```
 
-#### `HeaderMotion.ScrollManager`
-
-Render-prop API for custom scrollables (pager pages, 3rd party lists, etc.).
-
-If you use `HeaderMotion.ScrollManager` directly for custom integrations, pass refresh-related props to `ScrollManager` (instead of your inner scrollable):
-
-- `refreshControl`
-- `refreshing`
-- `onRefresh`
-- optional `progressViewOffset` if you want to force your offset.
-
-This is required, as the positioning of scrollables is affecting Refresh Control and has to be coupled with the header heights.
+`LegendList`
 
 ```tsx
-<HeaderMotion.ScrollManager scrollId="A">
-  {(
-    scrollableProps,
-    { originalHeaderHeight, minHeightContentContainerStyle }
-  ) => (
-    <Animated.ScrollView {...scrollableProps}>
-      <Animated.View
-        style={[
-          minHeightContentContainerStyle,
-          { paddingTop: originalHeaderHeight },
-        ]}
-      >
-        {/* content */}
-      </Animated.View>
-    </Animated.ScrollView>
-  )}
-</HeaderMotion.ScrollManager>
+import { LegendList } from '@legendapp/list';
+import { createHeaderMotionScrollable } from 'react-native-header-motion';
+
+const HeaderMotionLegendList = createHeaderMotionScrollable(LegendList, {
+  displayName: 'HeaderMotionLegendList',
+  isComponentAnimated: true,
+  contentContainerMode: 'renderScrollComponent',
+});
 ```
 
-Refresh example with explicit props on `ScrollManager`:
+### `HeaderMotion.ScrollManager`
 
-```tsx
-<HeaderMotion.ScrollManager
-  scrollId="A"
-  refreshing={refreshing}
-  onRefresh={onRefresh}
->
-  {(
-    { onScroll, refreshControl: managedRefreshControl, ...scrollableProps },
-    { originalHeaderHeight, minHeightContentContainerStyle }
-  ) => (
-    <Animated.ScrollView
-      {...scrollableProps}
-      onScroll={onScroll}
-      refreshControl={managedRefreshControl}
-    >
-      <Animated.View
-        style={[
-          minHeightContentContainerStyle,
-          { paddingTop: originalHeaderHeight },
-        ]}
-      >
-        {/* content */}
-      </Animated.View>
-    </Animated.ScrollView>
-  )}
-</HeaderMotion.ScrollManager>
-```
+Render-prop fallback for complex custom integrations.
+
+Most code should prefer `createHeaderMotionScrollable()`.
+
+Use `ScrollManager` only when you need a custom composition that the factory API cannot express cleanly.
+
+Props:
+
+- `scrollId?: string`: unique id for this scrollable when one header is shared across multiple scrollables
+- `children`: render function that receives `scrollableProps` and `headerMotionContext`
+- plus the same refresh / ref options accepted by `useScrollManager()`
 
 ### Hooks
 
@@ -489,63 +493,86 @@ Refresh example with explicit props on `ScrollManager`:
 
 Returns:
 
-- `progress` (`SharedValue<number>`)
-- `progressThreshold` (`SharedValue<number>`)
+- `progress`: `SharedValue<number>` that typically moves from `0` at expanded state to `1` at collapsed state
+- `progressThreshold`: `SharedValue<number>` representing the collapse distance in pixels
 
-Only use inside the `HeaderMotion` / `HeaderMotion.NavigationBridge` context tree.
+This is the primary animation hook for header UI.
 
 #### `useHeaderMotionBridge()`
 
-Returns the full bridge value used by `HeaderMotion.Bridge`.
+Returns the full internal bridge value.
 
-Use this only for advanced integrations that need to move HeaderMotion context into another subtree manually.
+Most app code should not need this. Prefer `useMotionProgress()` unless you are explicitly bridging context across a tree boundary.
 
-#### `useScrollManager(scrollId?)`
+Returns:
 
-Lower-level orchestration hook that powers the component APIs. Returns:
-
-- `scrollableProps`: `{ onScroll, ref }`
-- `headerMotionContext`:
-  - `originalHeaderHeight` (`SharedValue<number>`)
-  - `minHeightContentContainerStyle` (helps when content is shorter than the threshold)
+- full HeaderMotion context value, including measurement callbacks and scroll synchronization internals
 
 #### `useActiveScrollId(initialId)`
 
-Helper for multi-scroll scenarios (tabs/pager). Returns:
+Returns:
 
-- `[active, setActive]`
-- `active.state` (React state)
-- `active.sv` (SharedValue)
+- `{ state, sv }`: `state` is the React value for UI logic, `sv` is the matching shared value for HeaderMotion
+- setter function: updates both in sync
 
-### Types
+Use this for multi-scroll setups.
 
-- `HeaderMotionBridgeValue` – full bridge value passed through `HeaderMotion.Bridge`
-- `HeaderProps` – props for `HeaderMotion.Header`
-- `HeaderDynamicProps` – props for `HeaderMotion.Header.Dynamic`
+#### `useScrollManager(scrollId?, options?)`
 
-## Additional notes
+Hook-level fallback for complex custom scrollables.
+
+Most code should prefer `createHeaderMotionScrollable()`.
+
+Parameters:
+
+- `scrollId`: unique id for this scrollable when one header is shared across multiple scrollables
+- `options`: optional ref, refresh, and event-handler configuration
+
+Returns:
+
+- `scrollableProps`: props to spread onto the scrollable itself, including the managed ref, scroll handlers, and resolved refresh control
+- `headerMotionContext`: layout values for offsetting content below the measured header, including `originalHeaderHeight` and optional `contentContainerMinHeight`
+
+## Notes
+
+### Why `HeaderMotion.Header` is absolute by default
+
+Headers rendered by navigation are often easier to animate and interact with when they are visually overlayed above content rather than participating in normal layout flow.
+
+That is why `overlay` defaults to `true`.
+
+Disable it only when you intentionally want the header in normal layout flow.
+
+### `ensureScrollableContentMinHeight` (experimental)
+
+This is available on the pre-wired scrollables and the custom-scrollable APIs.
+
+It is useful when content is too short to naturally scroll through the full collapse distance.
+
+This feature is still experimental.
 
 ### Scroll event frequency
 
 `scrollEventThrottle` is intentionally not managed by this library.
 
-- Pass it directly to your scrollable when you need it.
-- If you run into performance issues, try adjusting `scrollEventThrottle` to reduce how many scroll events this library processes.
+Pass it directly to your scrollable when you need it.
 
-### Refresh Control (v.0.3.0+)
+If you run into performance issues, try adjusting `scrollEventThrottle` to reduce how many scroll events this library processes.
 
-Refresh control support was improved in `v0.3.0+`.
+### Refresh control
 
-- If you use `HeaderMotion.ScrollView` or `HeaderMotion.FlatList`, your refresh-control usage stays the same as in React Native.
-- If you use `HeaderMotion.ScrollManager` directly for custom integrations, pass refresh-related props to `ScrollManager`:
-  - `refreshControl`
-  - `refreshing`
-  - `onRefresh`
-  - optional `progressViewOffset`
+If you use `HeaderMotion.ScrollView` or `HeaderMotion.FlatList`, your refresh-control usage stays the same as in React Native.
 
-This is important because scrollable positioning affects refresh-control behavior and needs to stay coupled with measured header height.
+If you use `HeaderMotion.ScrollManager` directly for custom integrations, pass refresh-related props to `ScrollManager` itself:
 
-#### Platform support note:
+- `refreshControl`
+- `refreshing`
+- `onRefresh`
+- optional `progressViewOffset`
+
+This matters because scrollable positioning affects refresh-control behavior and needs to stay coupled with the measured header height.
+
+Platform support note:
 
 - Support for Refresh Control is currently partial.
 - Android works well with the current implementation.
@@ -554,15 +581,26 @@ This is important because scrollable positioning affects refresh-control behavio
 - Other iOS approaches tried so far introduced different issues.
 - Additional iOS support improvements are planned for future releases.
 
+## Examples
+
+See the example app in [`example/`](./example/).
+
+Useful files:
+
+- [`example/src/app/simple.tsx`](./example/src/app/simple.tsx)
+- [`example/src/app/flashlist.tsx`](./example/src/app/flashlist.tsx)
+- [`example/src/app/legend-list.tsx`](./example/src/app/legend-list.tsx)
+- [`example/src/app/pager-header-pan.tsx`](./example/src/app/pager-header-pan.tsx)
+- [`example/src/app/collapsible-pager.tsx`](./example/src/app/collapsible-pager.tsx)
+
 ## Contributing
 
-- Development workflow: see [CONTRIBUTING.md](CONTRIBUTING.md)
-- Code of conduct: see [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
+Development workflow: see [CONTRIBUTING.md](./CONTRIBUTING.md)
+
+Code of conduct: see [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md)
 
 ## License
 
 MIT
 
----
-
-Made with [create-react-native-library](https://github.com/callstack/react-native-builder-bob)
+Made with [`create-react-native-library`](https://github.com/callstack/react-native-builder-bob)
