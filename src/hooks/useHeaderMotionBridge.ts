@@ -2,9 +2,11 @@ import { useHeaderMotionContextOrThrow } from '../context';
 import type { HeaderMotionBridgeValue } from '../types';
 
 /**
- * Hook to access the full HeaderMotion bridge value.
- * Use this only when you need to bridge header motion context into another
- * part of the tree, such as a navigation-rendered header.
+ * Returns the full internal HeaderMotion context value.
+ *
+ * Most app code should use `useMotionProgress()` instead. Reach for this hook
+ * only when you need to carry HeaderMotion context across a tree boundary and
+ * re-provide it somewhere else.
  */
 export function useHeaderMotionBridge(): HeaderMotionBridgeValue {
   return useHeaderMotionContextOrThrow(

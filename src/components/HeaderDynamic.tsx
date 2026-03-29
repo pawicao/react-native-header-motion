@@ -8,6 +8,14 @@ import {
   resolveSlottableChild,
 } from '../utils';
 
+/**
+ * Marks the part of the header whose layout should define the collapsible
+ * distance.
+ *
+ * In most designs, this is the section that visually disappears while the
+ * header collapses. Its measured value feeds `measureDynamic`, which in turn
+ * can drive `progressThreshold`.
+ */
 export function HeaderDynamic(props: HeaderDynamicProps) {
   const ctxValue = useHeaderMotionContextOrThrow(
     'HeaderMotion.Header.Dynamic must be used within <HeaderMotion /> or <HeaderMotion.NavigationBridge />. If you are rendering inside a navigation header, bridge the context with <HeaderMotion.Bridge /> and <HeaderMotion.NavigationBridge />.'

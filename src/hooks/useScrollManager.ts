@@ -291,49 +291,64 @@ export interface UseScrollManagerOptions<TRef extends InstanceOrElement = any>
   extends Omit<ResolveRefreshControlOptions, 'progressViewOffset'>,
     ConsumerScrollEventHandlers {
   /**
-   * Optional animated ref to use instead of creating one internally.
-   * Useful when you need access to the scroll view ref from outside.
+   * Animated ref for the managed scrollable.
+   *
+   * Provide this when the caller also needs imperative access to the same
+   * scrollable instance. Otherwise the hook creates one internally.
    */
   animatedRef?: AnimatedRef<TRef>;
   /**
-   * Optional refresh progress offset override.
-   * When provided, it takes precedence over the automatic offset based on header height.
+   * Overrides the refresh indicator offset.
+   *
+   * By default, HeaderMotion derives this from the measured header height so
+   * pull-to-refresh starts below the header. Override it only when you need a
+   * custom refresh placement.
    */
   progressViewOffset?: ResolveRefreshControlOptions['progressViewOffset'];
   /**
-   * Experimental: opt-in fallback for short content that cannot scroll far enough
-   * to fully collapse the header.
+   * Ensures short content can still scroll far enough to fully collapse the
+   * header.
+   *
+   * **Experimental: this relies on extra layout measurement and may still be
+   * refined.**
+   *
+   * Enable this when your content is sometimes shorter than the viewport and
+   * you still want the header to reach the collapsed state.
    */
   ensureScrollableContentMinHeight?: boolean;
 }
 
 /**
- * Manages scroll tracking, synchronization, and scrollable wiring for a
- * collapsible header.
+ * Wires a custom scrollable into HeaderMotion.
  *
- * Use this hook inside `HeaderMotion` when integrating a custom scrollable
- * component instead of one of the built-in `HeaderMotion.*` wrappers.
- * If you prefer the same functionality from a render function instead of
- * calling a hook directly, use {@link HeaderMotionScrollManager}.
+ * Most code should not use this hook directly.
  *
- * Responsibilities:
- * - tracks the active scroll position used to drive header progress
- * - synchronizes inactive scrollables in multi-scroll setups
- * - wires refresh-related props through the library's refresh-control helper
- * - optionally computes a plain `contentContainerMinHeight` fallback for short
- *   content when `ensureScrollableContentMinHeight` is enabled
+ * **Prefer `createHeaderMotionScrollable()` whenever possible.** It gives
+ * you the same integration in a reusable component wrapper with less manual
+ * wiring. Reach for `useScrollManager()` only in more complex cases where the
+ * factory API is not enough, for example when a third-party scrollable needs
+ * highly custom composition.
  *
- * @param scrollId Optional unique identifier for the related scrollable.
- * Use this when tracking multiple scrollables, for example inside tabs.
- * @param options Optional configuration for refs, refresh handling, consumer
- * scroll callbacks, and the experimental short-content min-height fallback.
+ * It returns two things:
+ * - `scrollableProps`: the event handlers / ref / refresh-control props that
+ *   should go on the scrollable itself
+ * - `headerMotionContext`: layout values you can use to offset the content
+ *   below the measured header
+ *
+ * In multi-scroll setups, pass a unique `scrollId` for each scrollable.
+ * In single-scroll setups, you usually do not need one.
+ *
+ * If you need the same fallback behavior but prefer render-prop composition
+ * over a hook, use `HeaderMotion.ScrollManager`.
+ *
+ * @param scrollId Optional unique identifier for the managed scrollable.
+ * @param options Optional configuration for refs, refresh handling, user
+ * scroll callbacks, and short-content fallback behavior.
  * @returns Object containing:
  * - `scrollableProps`: props to spread onto the scrollable (`ref`, managed
  *   `onScroll`, optional `onLayout`, and resolved `refreshControl`)
  * - `headerMotionContext`: layout values for offsetting the content container
  *   (`originalHeaderHeight` and optional `contentContainerMinHeight`)
- *
- * @throws Error when used outside of a `HeaderMotion` provider.
  *
  * @example
  * ```tsx

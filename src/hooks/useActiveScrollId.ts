@@ -3,17 +3,18 @@ import { useSharedValue } from 'react-native-reanimated';
 import type { ActiveScrollIdValues, SetActiveScrollId } from '../types';
 
 /**
- * Hook to manage active scroll ID for multi-scroll scenarios (e.g. tabs with different scroll views).
- * Returns both a state value and a shared value, along with a setter function.
+ * Keeps a React state value and a shared value in sync for the currently active
+ * scrollable.
  *
- * Use this when you have multiple scroll views (like in a tabbed interface) and need to
- * track which one is currently active. Pass the shared value to `HeaderMotion`'s `activeScrollId` prop.
+ * Use this when one header is shared across multiple scroll views, for example
+ * pager pages or tabs. Pass `values.sv` to `HeaderMotion` and use the setter
+ * whenever the active page changes.
  *
  * @template T - The type of the scroll ID string
  * @param initialActiveScrollId - The initial active scroll ID
  * @returns A tuple containing:
- * - `[0]`: Object with `state` (React state) and `sv` (shared value) for the active scroll ID
- * - `[1]`: Function to set the active scroll ID
+ * - an object with both the React `state` and shared-value `sv`
+ * - a setter that updates both in lockstep
  *
  * @example
  * ```tsx

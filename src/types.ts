@@ -19,18 +19,27 @@ export type HeaderMotionOffsetStrategy =
 
 export interface HeaderMotionOffsetProps {
   /**
-   * Strategy used to offset the scrollable content by the measured original header height.
+   * How the scrollable content should be pushed below the measured header.
    *
-   * `top` and `translate` keep the bottom of the content reachable by compensating with extra bottom space.
+   * `padding` is the safest default for most screens. `margin`, `top`, and
+   * `translate` can be useful when the scrollable or its children need a
+   * different layout behavior.
+   *
+   * `top` and `translate` add bottom compensation so the end of the content
+   * remains reachable.
    *
    * @default 'padding'
    */
   headerOffsetStrategy?: HeaderMotionOffsetStrategy;
   /**
-   * Ensures the content container gets a minimum height large enough for short
-   * content to still scroll far enough to drive the header to its collapsed state.
+   * Adds a minimum content height so scrollables with short content can still collapse the
+   * header completely.
    *
-   * Experimental: this relies on extra layout measurement and may be refined in a future release.
+   * **Experimental: this relies on extra layout measurement and may still be
+   * refined.**
+   *
+   * Enable this when some screens do not have enough content to naturally
+   * scroll through the full collapse distance.
    *
    * @default false
    */

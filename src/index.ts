@@ -19,9 +19,55 @@ import {
   type HeaderProps,
 } from './components';
 
+type HeaderMotionCompound = typeof HeaderMotionContextProvider & {
+  /**
+   * Header container that measures the total header height and can optionally
+   * make the header surface pannable.
+   *
+   * Use `HeaderMotion.Header.Dynamic` inside it to mark the part of the header
+   * that should define the collapse distance.
+   */
+  Header: typeof Header;
+  /**
+   * Captures the current HeaderMotion context and exposes it through a render
+   * function so it can be forwarded across a React tree boundary.
+   *
+   * This is primarily useful for navigation-rendered headers.
+   */
+  Bridge: typeof Bridge;
+  /**
+   * Re-provides a previously captured HeaderMotion context value in another
+   * subtree.
+   *
+   * This is primarily useful for navigation libraries that render headers
+   * outside the screen subtree where `HeaderMotion` lives.
+   */
+  NavigationBridge: typeof NavigationBridge;
+  /**
+   * Render-prop wrapper for managing a custom scrollable.
+   *
+   * Prefer `createHeaderMotionScrollable()` for most custom integrations. Use
+   * `ScrollManager` only when the factory approach is not flexible enough.
+   */
+  ScrollManager: typeof ScrollManager;
+  /**
+   * Pre-wired `Animated.ScrollView` that participates in HeaderMotion's scroll
+   * tracking and header offsetting.
+   */
+  ScrollView: typeof ScrollView;
+  /**
+   * Pre-wired `Animated.FlatList` that participates in HeaderMotion's scroll
+   * tracking and header offsetting.
+   */
+  FlatList: typeof FlatList;
+};
+
 /**
  * Main HeaderMotion component.
- * A compound component that provides context for collapsible header animations.
+ * Root provider and compound entrypoint for the library.
+ *
+ * It tracks header measurements, derives the shared `progress` value, and
+ * exposes the pre-wired subcomponents used to connect headers and scrollables.
  *
  * @example
  * ```tsx
@@ -45,14 +91,17 @@ import {
  * </HeaderMotion>
  * ```
  */
-const HeaderMotion = Object.assign(HeaderMotionContextProvider, {
-  Header,
-  Bridge,
-  NavigationBridge,
-  ScrollManager,
-  ScrollView,
-  FlatList,
-});
+const HeaderMotion: HeaderMotionCompound = Object.assign(
+  HeaderMotionContextProvider,
+  {
+    Header,
+    Bridge,
+    NavigationBridge,
+    ScrollManager,
+    ScrollView,
+    FlatList,
+  }
+);
 
 export default HeaderMotion;
 export * from './hooks';

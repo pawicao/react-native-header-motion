@@ -12,26 +12,27 @@ export interface HeaderMotionScrollManagerProps<
   TRef extends InstanceOrElement = any
 > extends UseScrollManagerOptions<TRef> {
   /**
-   * Optional unique identifier for this scroll view.
-   * Use this when you have multiple scroll views (e.g., in tabs) to track them separately.
+   * Unique identifier for this scrollable in multi-scroll setups.
+   *
+   * Omit it for single-scroll screens.
    */
   scrollId?: string;
   /**
-   * Render function that receives scroll props and header context.
-   * Use this to create custom scroll implementations that integrate with HeaderMotion.
+   * Render function that receives:
+   * - the props to spread onto your scrollable
+   * - the layout values needed to offset content below the header
    */
   children: ScrollManagerRenderChildren<TRef>;
 }
 
 /**
- * ScrollManager component that provides scroll tracking functionality for
- * custom scroll implementations. Uses {@link useScrollManager} under the hood.
- * Must be used within a HeaderMotion component.
+ * Render-prop wrapper around `useScrollManager()`.
  *
- * This is useful when you need to use a scroll component that isn't directly supported
- * (like a custom scroll view or third-party list components).
- * If you would rather compose the same functionality in a hook-based API,
- * use {@link useScrollManager} directly.
+ * **Most code should prefer `createHeaderMotionScrollable()` instead.**
+ *
+ * Use `ScrollManager` only when the factory approach is not enough and you
+ * still need HeaderMotion to manage a custom scrollable through render-prop
+ * composition.
  *
  * @example
  * ```tsx
