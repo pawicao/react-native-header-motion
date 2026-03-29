@@ -111,6 +111,7 @@ const SECTIONS: ShowcaseSection[] = [
         href: '/short-content-no-min-height',
         icon: '📄',
       },
+      { title: 'Header asChild', href: '/as-child', icon: '🧩' },
     ],
   },
   {
