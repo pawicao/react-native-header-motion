@@ -46,11 +46,11 @@ bun add react-native-header-motion
 
 Header Motion relies on three peer dependencies that your project must provide:
 
-| Package | Required version |
-|---------|-----------------|
-| `react-native-reanimated` | `>= 4.0.0` |
-| `react-native-gesture-handler` | `^2.0.0` |
-| `react-native-worklets` | `>= 0.4.0` |
+| Package                        | Required version |
+| ------------------------------ | ---------------- |
+| `react-native-reanimated`      | `>= 4.0.0`       |
+| `react-native-gesture-handler` | `^2.0.0`         |
+| `react-native-worklets`        | `>= 0.4.0`       |
 
 If you already have these installed, you're good to go. Otherwise, follow their respective installation guides:
 

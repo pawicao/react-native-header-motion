@@ -36,11 +36,11 @@ The biggest shift is from a **prop-passing header API** to a **context-first hea
 
 v1 requires:
 
-| Package | Version |
-|---------|---------|
-| `react-native-gesture-handler` | `^2.0.0` |
-| `react-native-reanimated` | `>= 4.0.0` |
-| `react-native-worklets` | `>= 0.4.0` |
+| Package                        | Version    |
+| ------------------------------ | ---------- |
+| `react-native-gesture-handler` | `^2.0.0`   |
+| `react-native-reanimated`      | `>= 4.0.0` |
+| `react-native-worklets`        | `>= 0.4.0` |
 
 `react-native-gesture-handler` is new to the peer surface because header panning is built on it.
 

@@ -56,7 +56,7 @@ When you don't pass `progressThreshold` at all, the default behavior is `(measur
 By default, `HeaderMotion.Header.Dynamic` measures its height using the `onLayout` event:
 
 ```tsx
-(e) => e.nativeEvent.layout.height
+(e) => e.nativeEvent.layout.height;
 ```
 
 If you need a different measurement strategy — for example, measuring other properties or applying a multiplier — you can pass a custom `measureDynamic` function to `HeaderMotion`:
@@ -91,7 +91,7 @@ import { LinearGradient } from 'expo-linear-gradient';
   <LinearGradient colors={['#304077', '#1a1a2e']}>
     {/* your header content */}
   </LinearGradient>
-</HeaderMotion.Header>
+</HeaderMotion.Header>;
 ```
 
 This is useful when you need full control over the wrapper element.

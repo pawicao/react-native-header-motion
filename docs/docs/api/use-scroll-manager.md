@@ -15,36 +15,36 @@ Prefer `createHeaderMotionScrollable()` for most cases.
 function useScrollManager(
   scrollId?: string,
   options?: UseScrollManagerOptions
-): ScrollManagerConfig
+): ScrollManagerConfig;
 ```
 
 ## Parameters
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `scrollId` | `string` | Unique identifier for multi-scroll setups. |
-| `options.animatedRef` | `AnimatedRef` | External animated ref. |
-| `options.refreshControl` | `ReactElement` | Refresh control element. |
-| `options.refreshing` | `boolean` | Whether refresh is active. |
-| `options.onRefresh` | `() => void` | Refresh callback. |
-| `options.progressViewOffset` | `number` | Custom refresh indicator offset. |
-| `options.onScroll` | scroll handler | Consumer scroll handler (JS or worklet). |
-| `options.onScrollBeginDrag` | callback | Drag begin handler. |
-| `options.onScrollEndDrag` | callback | Drag end handler. |
-| `options.onMomentumScrollBegin` | callback | Momentum begin handler. |
-| `options.onMomentumScrollEnd` | callback | Momentum end handler. |
-| `options.ensureScrollableContentMinHeight` | `boolean` | Experimental min-height behavior. |
+| Parameter                                  | Type           | Description                                |
+| ------------------------------------------ | -------------- | ------------------------------------------ |
+| `scrollId`                                 | `string`       | Unique identifier for multi-scroll setups. |
+| `options.animatedRef`                      | `AnimatedRef`  | External animated ref.                     |
+| `options.refreshControl`                   | `ReactElement` | Refresh control element.                   |
+| `options.refreshing`                       | `boolean`      | Whether refresh is active.                 |
+| `options.onRefresh`                        | `() => void`   | Refresh callback.                          |
+| `options.progressViewOffset`               | `number`       | Custom refresh indicator offset.           |
+| `options.onScroll`                         | scroll handler | Consumer scroll handler (JS or worklet).   |
+| `options.onScrollBeginDrag`                | callback       | Drag begin handler.                        |
+| `options.onScrollEndDrag`                  | callback       | Drag end handler.                          |
+| `options.onMomentumScrollBegin`            | callback       | Momentum begin handler.                    |
+| `options.onMomentumScrollEnd`              | callback       | Momentum end handler.                      |
+| `options.ensureScrollableContentMinHeight` | `boolean`      | Experimental min-height behavior.          |
 
 ## Returns
 
-| Property | Type | Description |
-|----------|------|-------------|
-| `scrollableProps.onScroll` | handler | Managed scroll handler to spread onto the scrollable. |
-| `scrollableProps.onLayout` | handler | Layout handler for min-height calculations. |
-| `scrollableProps.refreshControl` | `ReactElement \| undefined` | Resolved refresh control. |
-| `scrollableProps.ref` | `AnimatedRef` | Animated ref for the scrollable. |
-| `headerMotionContext.originalHeaderHeight` | `number` | Header height for content offsetting. |
-| `headerMotionContext.contentContainerMinHeight` | `number \| undefined` | Computed minimum content height. |
+| Property                                        | Type                        | Description                                           |
+| ----------------------------------------------- | --------------------------- | ----------------------------------------------------- |
+| `scrollableProps.onScroll`                      | handler                     | Managed scroll handler to spread onto the scrollable. |
+| `scrollableProps.onLayout`                      | handler                     | Layout handler for min-height calculations.           |
+| `scrollableProps.refreshControl`                | `ReactElement \| undefined` | Resolved refresh control.                             |
+| `scrollableProps.ref`                           | `AnimatedRef`               | Animated ref for the scrollable.                      |
+| `headerMotionContext.originalHeaderHeight`      | `number`                    | Header height for content offsetting.                 |
+| `headerMotionContext.contentContainerMinHeight` | `number \| undefined`       | Computed minimum content height.                      |
 
 ## Usage
 

@@ -37,19 +37,22 @@ LegendList exports a pre-animated variant, `AnimatedLegendList`, which is what y
 import { AnimatedLegendList } from '@legendapp/list/reanimated';
 import { createHeaderMotionScrollable } from 'react-native-header-motion';
 
-const HeaderMotionLegendList = createHeaderMotionScrollable(AnimatedLegendList, {
-  displayName: 'HeaderMotionLegendList',
-  isComponentAnimated: true,
-});
+const HeaderMotionLegendList = createHeaderMotionScrollable(
+  AnimatedLegendList,
+  {
+    displayName: 'HeaderMotionLegendList',
+    isComponentAnimated: true,
+  }
+);
 ```
 
 ## Factory options
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `displayName` | `string` | Auto-derived from the component name | Sets the React `displayName` for dev tools. |
-| `isComponentAnimated` | `boolean` | `false` | When `true`, the factory skips `Animated.createAnimatedComponent()`. Set this when the component is already animated. |
-| `contentContainerMode` | `'children' \| 'renderScrollComponent'` | `'renderScrollComponent'` | `'children'` wraps children in an inner `Animated.View` (ScrollView-like). `'renderScrollComponent'` injects a custom scroll component that wraps the content (FlatList-like). |
+| Option                 | Type                                    | Default                              | Description                                                                                                                                                                    |
+| ---------------------- | --------------------------------------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `displayName`          | `string`                                | Auto-derived from the component name | Sets the React `displayName` for dev tools.                                                                                                                                    |
+| `isComponentAnimated`  | `boolean`                               | `false`                              | When `true`, the factory skips `Animated.createAnimatedComponent()`. Set this when the component is already animated.                                                          |
+| `contentContainerMode` | `'children' \| 'renderScrollComponent'` | `'renderScrollComponent'`            | `'children'` wraps children in an inner `Animated.View` (ScrollView-like). `'renderScrollComponent'` injects a custom scroll component that wraps the content (FlatList-like). |
 
 ## What's next?
 

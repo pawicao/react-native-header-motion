@@ -37,7 +37,7 @@ const onScroll = useAnimatedScrollHandler({
 
 <HeaderMotion.ScrollView onScroll={onScroll}>
   {/* content */}
-</HeaderMotion.ScrollView>
+</HeaderMotion.ScrollView>;
 ```
 
 ## Mixing approaches

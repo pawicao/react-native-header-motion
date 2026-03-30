@@ -24,6 +24,6 @@ Wrap the section that visually disappears during collapse with this component.
 
 Accepts all `Animated.View` props, plus:
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
+| Prop      | Type      | Default | Description                                                                                                   |
+| --------- | --------- | ------- | ------------------------------------------------------------------------------------------------------------- |
 | `asChild` | `boolean` | `false` | Injects the dynamic measurement into a single child element instead of rendering the default `Animated.View`. |

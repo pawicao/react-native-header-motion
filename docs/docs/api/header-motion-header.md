@@ -24,10 +24,10 @@ By default, the header is absolutely positioned above content (`overlay: true`).
 
 Accepts all `Animated.View` props, plus:
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `overlay` | `boolean` | `true` | Absolutely positions the header above content. Disable only if you want the header in normal layout flow. |
-| `pannable` | `boolean` | `false` | Allows dragging on the header surface to drive the scroll interaction. |
-| `panDecayConfig` | `WithDecayConfig \| (event: HeaderPanDecayEvent) => WithDecayConfig` | — | Customizes momentum animation after a header pan ends. |
-| `withGestureHandlerRootView` | `boolean` | `false` | Wraps the gesture subtree in `GestureHandlerRootView` when needed. |
-| `asChild` | `boolean` | `false` | Injects the total-height measurement into a single child instead of rendering the default `Animated.View`. |
+| Prop                         | Type                                                                 | Default | Description                                                                                                |
+| ---------------------------- | -------------------------------------------------------------------- | ------- | ---------------------------------------------------------------------------------------------------------- |
+| `overlay`                    | `boolean`                                                            | `true`  | Absolutely positions the header above content. Disable only if you want the header in normal layout flow.  |
+| `pannable`                   | `boolean`                                                            | `false` | Allows dragging on the header surface to drive the scroll interaction.                                     |
+| `panDecayConfig`             | `WithDecayConfig \| (event: HeaderPanDecayEvent) => WithDecayConfig` | —       | Customizes momentum animation after a header pan ends.                                                     |
+| `withGestureHandlerRootView` | `boolean`                                                            | `false` | Wraps the gesture subtree in `GestureHandlerRootView` when needed.                                         |
+| `asChild`                    | `boolean`                                                            | `false` | Injects the total-height measurement into a single child instead of rendering the default `Animated.View`. |

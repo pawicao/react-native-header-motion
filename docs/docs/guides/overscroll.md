@@ -21,7 +21,7 @@ import { Extrapolation } from 'react-native-reanimated';
   }}
 >
   {/* header and scrollable */}
-</HeaderMotion>
+</HeaderMotion>;
 ```
 
 Now `progress` can go below 0 when the user scrolls past the top.

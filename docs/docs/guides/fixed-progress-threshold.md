@@ -21,9 +21,7 @@ Instead of `HeaderMotion.Header.Dynamic`, you pass a numeric `progressThreshold`
 ```tsx
 <HeaderMotion progressThreshold={80}>
   <MyHeader />
-  <HeaderMotion.ScrollView>
-    {/* content */}
-  </HeaderMotion.ScrollView>
+  <HeaderMotion.ScrollView>{/* content */}</HeaderMotion.ScrollView>
 </HeaderMotion>
 ```
 
@@ -66,9 +64,7 @@ export default function Screen() {
         )}
       </HeaderMotion.Bridge>
 
-      <HeaderMotion.ScrollView>
-        {/* content */}
-      </HeaderMotion.ScrollView>
+      <HeaderMotion.ScrollView>{/* content */}</HeaderMotion.ScrollView>
     </HeaderMotion>
   );
 }
@@ -96,7 +92,11 @@ function FixedThresholdHeader() {
 
   return (
     <HeaderMotion.Header
-      style={[styles.header, { paddingTop: insets.top + PROGRESS_THRESHOLD }, containerStyle]}
+      style={[
+        styles.header,
+        { paddingTop: insets.top + PROGRESS_THRESHOLD },
+        containerStyle,
+      ]}
     >
       <Text style={styles.title}>My App</Text>
 
@@ -135,12 +135,12 @@ const styles = StyleSheet.create({
 
 ## vs. dynamic measurement
 
-| | Fixed `progressThreshold` | `Header.Dynamic` |
-|---|---|---|
-| Threshold source | You provide a number | Measured from layout |
-| Layout dependency | None | Yes |
-| Flexibility | Fixed at design time | Adapts to content |
-| Good for | Known heights, simple layouts | Layouts with elements of dynamic or unknown size, or when you simply don't want to hardcode a pixel value |
+|                   | Fixed `progressThreshold`     | `Header.Dynamic`                                                                                          |
+| ----------------- | ----------------------------- | --------------------------------------------------------------------------------------------------------- |
+| Threshold source  | You provide a number          | Measured from layout                                                                                      |
+| Layout dependency | None                          | Yes                                                                                                       |
+| Flexibility       | Fixed at design time          | Adapts to content                                                                                         |
+| Good for          | Known heights, simple layouts | Layouts with elements of dynamic or unknown size, or when you simply don't want to hardcode a pixel value |
 
 ## What's next?
 

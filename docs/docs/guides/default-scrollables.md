@@ -53,12 +53,12 @@ No new API to learn for basic usage. If you know `ScrollView` and `FlatList`, yo
 
 On top of the standard React Native props, Header Motion scrollables accept a few extra props:
 
-| Prop | Type | Description |
-|------|------|-------------|
-| `scrollId` | `string` | Identifies this scrollable in multi-scroll setups (e.g., tabs). Defaults to an internal ID. |
-| `headerOffsetStrategy` | `'padding' \| 'margin' \| 'top' \| 'translate' \| 'none'` | How the content is offset to appear below the header. Defaults to `'padding'`. |
-| `ensureScrollableContentMinHeight` | `boolean` | When `true`, ensures the content is tall enough to scroll even if the actual content is short. Defaults to `false`. |
-| `animatedRef` | `AnimatedRef` | Pass your own Reanimated animated ref if you need external access to the scrollable. |
+| Prop                               | Type                                                      | Description                                                                                                         |
+| ---------------------------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `scrollId`                         | `string`                                                  | Identifies this scrollable in multi-scroll setups (e.g., tabs). Defaults to an internal ID.                         |
+| `headerOffsetStrategy`             | `'padding' \| 'margin' \| 'top' \| 'translate' \| 'none'` | How the content is offset to appear below the header. Defaults to `'padding'`.                                      |
+| `ensureScrollableContentMinHeight` | `boolean`                                                 | When `true`, ensures the content is tall enough to scroll even if the actual content is short. Defaults to `false`. |
+| `animatedRef`                      | `AnimatedRef`                                             | Pass your own Reanimated animated ref if you need external access to the scrollable.                                |
 
 :::info
 You can also pass standard scroll event handlers like `onScroll`, `onScrollBeginDrag`, etc. They'll be composed with Header Motion's internal handlers — your callbacks still fire normally.

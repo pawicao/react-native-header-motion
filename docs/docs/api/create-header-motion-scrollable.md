@@ -15,15 +15,15 @@ This is the recommended way to integrate third-party scrollables like FlashList 
 function createHeaderMotionScrollable(
   Component: ScrollableComponent,
   options?: CreateHeaderMotionScrollableOptions
-): HeaderMotionScrollableComponent
+): HeaderMotionScrollableComponent;
 ```
 
 ## Options
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `displayName` | `string` | Auto-generated | Component name shown in React DevTools. |
-| `isComponentAnimated` | `boolean` | `false` | Set to `true` when the component is already animated (skips `Animated.createAnimatedComponent`). |
+| Option                 | Type                                    | Default                   | Description                                                                                                                      |
+| ---------------------- | --------------------------------------- | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `displayName`          | `string`                                | Auto-generated            | Component name shown in React DevTools.                                                                                          |
+| `isComponentAnimated`  | `boolean`                               | `false`                   | Set to `true` when the component is already animated (skips `Animated.createAnimatedComponent`).                                 |
 | `contentContainerMode` | `'children' \| 'renderScrollComponent'` | `'renderScrollComponent'` | How Header Motion injects content offsetting. Use `'children'` for ScrollView-like, `'renderScrollComponent'` for FlatList-like. |
 
 ## Examples
@@ -45,10 +45,13 @@ const HeaderMotionFlashList = createHeaderMotionScrollable(FlashList, {
 import { AnimatedLegendList } from '@legendapp/list/reanimated';
 import { createHeaderMotionScrollable } from 'react-native-header-motion';
 
-const HeaderMotionLegendList = createHeaderMotionScrollable(AnimatedLegendList, {
-  displayName: 'HeaderMotionLegendList',
-  isComponentAnimated: true,
-});
+const HeaderMotionLegendList = createHeaderMotionScrollable(
+  AnimatedLegendList,
+  {
+    displayName: 'HeaderMotionLegendList',
+    isComponentAnimated: true,
+  }
+);
 ```
 
 The returned component accepts all the original component's props plus Header Motion-specific props (`scrollId`, `headerOffsetStrategy`, `ensureScrollableContentMinHeight`, `animatedRef`).

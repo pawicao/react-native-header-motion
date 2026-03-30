@@ -23,9 +23,9 @@ Works identically to a standard `FlatList` with the same additional Header Motio
 
 Accepts all `Animated.FlatList` props, plus the same Header Motion-specific props:
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `scrollId` | `string` | — | Unique identifier for multi-scroll setups. |
-| `headerOffsetStrategy` | `'padding' \| 'margin' \| 'top' \| 'translate' \| 'none'` | `'padding'` | Controls how content is pushed below the header. |
-| `ensureScrollableContentMinHeight` | `boolean` | `false` | Experimental. Adds minimum content height for short lists. |
-| `animatedRef` | `AnimatedRef` | — | Your own animated ref for programmatic control. |
+| Prop                               | Type                                                      | Default     | Description                                                |
+| ---------------------------------- | --------------------------------------------------------- | ----------- | ---------------------------------------------------------- |
+| `scrollId`                         | `string`                                                  | —           | Unique identifier for multi-scroll setups.                 |
+| `headerOffsetStrategy`             | `'padding' \| 'margin' \| 'top' \| 'translate' \| 'none'` | `'padding'` | Controls how content is pushed below the header.           |
+| `ensureScrollableContentMinHeight` | `boolean`                                                 | `false`     | Experimental. Adds minimum content height for short lists. |
+| `animatedRef`                      | `AnimatedRef`                                             | —           | Your own animated ref for programmatic control.            |

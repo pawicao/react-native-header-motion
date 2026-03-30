@@ -69,7 +69,11 @@ Both the component and the hook accept a `scrollId` for multi-scroll scenarios. 
 ```tsx
 <HeaderMotion.ScrollManager scrollId="feed">
   {(scrollableProps, ctx) => (
-    <Animated.FlatList {...scrollableProps} data={feedData} renderItem={renderItem} />
+    <Animated.FlatList
+      {...scrollableProps}
+      data={feedData}
+      renderItem={renderItem}
+    />
   )}
 </HeaderMotion.ScrollManager>
 ```

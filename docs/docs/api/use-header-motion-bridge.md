@@ -14,21 +14,21 @@ Most app code should use `useMotionProgress()` instead. Only use this hook when 
 ## Signature
 
 ```tsx
-function useHeaderMotionBridge(): HeaderMotionBridgeValue
+function useHeaderMotionBridge(): HeaderMotionBridgeValue;
 ```
 
 ## Returns
 
-| Property | Type | Description |
-|----------|------|-------------|
-| `progress` | `SharedValue<number>` | The collapse progress (`0` to `1`). |
-| `progressThreshold` | `SharedValue<number>` | Collapse distance in pixels. |
-| `measureTotalHeight` | `(e: LayoutChangeEvent) => void` | Callback wired to `HeaderMotion.Header`. |
-| `measureDynamic` | `(e: LayoutChangeEvent) => void` | Callback wired to `HeaderMotion.Header.Dynamic`. |
-| `headerPanMomentumOffset` | `SharedValue<number \| null>` | Pan momentum tracking value. |
-| `scrollValues` | `SharedValue<ScrollValues>` | Internal scroll state for all registered scrollables. |
-| `activeScrollId` | `SharedValue<string> \| undefined` | Currently active scroll ID. |
-| `scrollToRef` | `RefObject<ScrollTo \| null>` | Imperative scroll function ref. |
-| `originalHeaderHeight` | `number` | Measured total header height. |
+| Property                  | Type                               | Description                                           |
+| ------------------------- | ---------------------------------- | ----------------------------------------------------- |
+| `progress`                | `SharedValue<number>`              | The collapse progress (`0` to `1`).                   |
+| `progressThreshold`       | `SharedValue<number>`              | Collapse distance in pixels.                          |
+| `measureTotalHeight`      | `(e: LayoutChangeEvent) => void`   | Callback wired to `HeaderMotion.Header`.              |
+| `measureDynamic`          | `(e: LayoutChangeEvent) => void`   | Callback wired to `HeaderMotion.Header.Dynamic`.      |
+| `headerPanMomentumOffset` | `SharedValue<number \| null>`      | Pan momentum tracking value.                          |
+| `scrollValues`            | `SharedValue<ScrollValues>`        | Internal scroll state for all registered scrollables. |
+| `activeScrollId`          | `SharedValue<string> \| undefined` | Currently active scroll ID.                           |
+| `scrollToRef`             | `RefObject<ScrollTo \| null>`      | Imperative scroll function ref.                       |
+| `originalHeaderHeight`    | `number`                           | Measured total header height.                         |
 
 Must be called within a `HeaderMotion` or `HeaderMotion.NavigationBridge` subtree.

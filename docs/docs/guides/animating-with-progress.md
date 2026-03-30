@@ -71,9 +71,7 @@ Shrink content as the header collapses:
 
 ```tsx
 const scaleStyle = useAnimatedStyle(() => ({
-  transform: [
-    { scale: interpolate(progress.get(), [0, 1], [1, 0.8]) },
-  ],
+  transform: [{ scale: interpolate(progress.get(), [0, 1], [1, 0.8]) }],
 }));
 ```
 

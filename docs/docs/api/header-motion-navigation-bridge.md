@@ -36,7 +36,7 @@ function MyHeader() {
 
 ## Props
 
-| Prop | Type | Description |
-|------|------|-------------|
-| `value` | `HeaderMotionBridgeValue` | The context value captured by `HeaderMotion.Bridge`. |
-| `children` | `ReactNode` | The subtree that should have access to HeaderMotion context. |
+| Prop       | Type                      | Description                                                  |
+| ---------- | ------------------------- | ------------------------------------------------------------ |
+| `value`    | `HeaderMotionBridgeValue` | The context value captured by `HeaderMotion.Bridge`.         |
+| `children` | `ReactNode`               | The subtree that should have access to HeaderMotion context. |

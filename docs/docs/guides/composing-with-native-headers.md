@@ -15,7 +15,7 @@ A better approach is to **compose** the native header with your animated header 
 The trick is simple:
 
 1. Set the navigation header to `headerTransparent: true` so it floats over the content without taking up layout space
-2. Place your `HeaderMotion.Header` inline on the screen — it renders *underneath* the transparent native header
+2. Place your `HeaderMotion.Header` inline on the screen — it renders _underneath_ the transparent native header
 3. The native elements (back button, title, `headerRight`, `headerLeft`) appear on top, while your custom animated header does its thing behind them
 
 Because the header is inline rather than in a separate navigation subtree, there's no need for bridging — `useMotionProgress()` works directly inside it.
@@ -62,7 +62,14 @@ function CollapsibleHeader() {
     const threshold = progressThreshold.get();
     return {
       transform: [
-        { translateY: interpolate(progress.get(), [0, 1], [0, -threshold], Extrapolation.CLAMP) },
+        {
+          translateY: interpolate(
+            progress.get(),
+            [0, 1],
+            [0, -threshold],
+            Extrapolation.CLAMP
+          ),
+        },
       ],
     };
   });
@@ -70,7 +77,14 @@ function CollapsibleHeader() {
   const dynamicStyle = useAnimatedStyle(() => ({
     opacity: interpolate(progress.get(), [0, 0.6], [1, 0], Extrapolation.CLAMP),
     transform: [
-      { scale: interpolate(progress.get(), [0, 1], [1, 0.8], Extrapolation.CLAMP) },
+      {
+        scale: interpolate(
+          progress.get(),
+          [0, 1],
+          [1, 0.8],
+          Extrapolation.CLAMP
+        ),
+      },
     ],
   }));
 

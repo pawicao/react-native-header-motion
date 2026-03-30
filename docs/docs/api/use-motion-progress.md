@@ -13,21 +13,25 @@ The primary hook for reading header animation state. Returns the shared `progres
 function useMotionProgress(): {
   progress: SharedValue<number>;
   progressThreshold: SharedValue<number>;
-}
+};
 ```
 
 ## Returns
 
-| Property | Type | Description |
-|----------|------|-------------|
-| `progress` | `SharedValue<number>` | Ranges from `0` (expanded) to `1` (collapsed). Behavior outside this range depends on `progressExtrapolation`. |
-| `progressThreshold` | `SharedValue<number>` | The collapse distance in pixels. Read it inside worklets with `.get()`. |
+| Property            | Type                  | Description                                                                                                    |
+| ------------------- | --------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `progress`          | `SharedValue<number>` | Ranges from `0` (expanded) to `1` (collapsed). Behavior outside this range depends on `progressExtrapolation`. |
+| `progressThreshold` | `SharedValue<number>` | The collapse distance in pixels. Read it inside worklets with `.get()`.                                        |
 
 ## Usage
 
 ```tsx
 import { useMotionProgress } from 'react-native-header-motion';
-import { useAnimatedStyle, interpolate, Extrapolation } from 'react-native-reanimated';
+import {
+  useAnimatedStyle,
+  interpolate,
+  Extrapolation,
+} from 'react-native-reanimated';
 
 function MyHeader() {
   const { progress, progressThreshold } = useMotionProgress();

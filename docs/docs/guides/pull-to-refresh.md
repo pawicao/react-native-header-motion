@@ -21,12 +21,9 @@ const handleRefresh = () => {
   fetchData().finally(() => setIsRefreshing(false));
 };
 
-<HeaderMotion.ScrollView
-  refreshing={isRefreshing}
-  onRefresh={handleRefresh}
->
+<HeaderMotion.ScrollView refreshing={isRefreshing} onRefresh={handleRefresh}>
   {/* content */}
-</HeaderMotion.ScrollView>
+</HeaderMotion.ScrollView>;
 ```
 
 You can also pass an explicit `RefreshControl` component if you need more control over its styling:

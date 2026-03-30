@@ -16,8 +16,8 @@
 
   --ifm-heading-font-family: 'Kumbh Sans', system-ui, -apple-system, sans-serif;
   --ifm-font-family-base: 'Inter', system-ui, -apple-system, sans-serif;
-  --ifm-font-family-monospace: 'Geist Mono', ui-monospace, SFMono-Regular,
-    Menlo, monospace;
+  --ifm-font-family-monospace: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo,
+    monospace;
 
   --ifm-code-font-size: 90%;
   --ifm-code-border-radius: 6px;

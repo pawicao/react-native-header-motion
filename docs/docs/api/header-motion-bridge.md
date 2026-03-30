@@ -27,6 +27,6 @@ Captures the current HeaderMotion context and exposes it through a render functi
 
 ## Props
 
-| Prop | Type | Description |
-|------|------|-------------|
+| Prop       | Type                                            | Description                                              |
+| ---------- | ----------------------------------------------- | -------------------------------------------------------- |
 | `children` | `(value: HeaderMotionBridgeValue) => ReactNode` | Render function that receives the bridged context value. |
