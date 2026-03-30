@@ -9,7 +9,11 @@ function HomepageHeader() {
   const { siteConfig } = useDocusaurusContext();
   return (
     <header className={clsx('hero', styles.heroBanner)}>
-      <div className="container">
+      <div className={styles.heroBg} aria-hidden="true">
+        <MockupScreen variant="expanded" />
+        <MockupScreen variant="collapsed" />
+      </div>
+      <div className={clsx('container', styles.heroContent)}>
         <h1 className="hero__title">{siteConfig.title}</h1>
         <p className="hero__subtitle">{siteConfig.tagline}</p>
         <div className={styles.buttons}>
@@ -69,6 +73,75 @@ const features = [
     icon: '/img/icons/palette.svg',
   },
 ];
+
+function MockupScreen({ variant }: { variant: 'expanded' | 'collapsed' }) {
+  const isExpanded = variant === 'expanded';
+  return (
+    <div
+      className={clsx(
+        styles.mockupWrapper,
+        isExpanded ? styles.mockupWrapperLeft : styles.mockupWrapperRight
+      )}
+    >
+      <div className={styles.mockupFrame}>
+        <div className={styles.mockupStatusBar}>
+          <div className={styles.mockupStatusLeft} />
+          <div className={styles.mockupStatusRight}>
+            <div className={styles.mockupStatusDot} />
+            <div className={styles.mockupStatusDot} />
+            <div className={styles.mockupStatusDot} />
+          </div>
+        </div>
+        <div
+          className={clsx(
+            styles.mockupHeader,
+            isExpanded
+              ? styles.mockupHeaderExpanded
+              : styles.mockupHeaderCollapsed
+          )}
+        >
+          <div className={styles.mockupNavRow}>
+            <div className={styles.mockupBackButton} />
+            <div className={styles.mockupNavTitle} />
+            <div className={styles.mockupNavAction} />
+          </div>
+          {isExpanded && (
+            <div className={styles.mockupDynamicSection}>
+              <div className={styles.mockupAvatar} />
+              <div className={styles.mockupDynamicText}>
+                <div
+                  className={styles.mockupTextLine}
+                  style={{ width: '60%' }}
+                />
+                <div
+                  className={styles.mockupTextLine}
+                  style={{ width: '40%', opacity: 0.5 }}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+        <div className={styles.mockupContent}>
+          {Array.from({ length: 7 }, (_, i) => (
+            <div key={i} className={styles.mockupRow}>
+              <div className={styles.mockupRowThumb} />
+              <div className={styles.mockupRowLines}>
+                <div
+                  className={styles.mockupRowLine}
+                  style={{ width: `${65 + (i % 3) * 12}%` }}
+                />
+                <div
+                  className={styles.mockupRowLineSub}
+                  style={{ width: `${40 + (i % 2) * 15}%` }}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function HomepageFeatures() {
   return (

@@ -66,8 +66,8 @@ const config: Config = {
       title: 'Header Motion',
       logo: {
         alt: 'React Native Header Motion',
-        src: 'img/logo-placeholder-light.svg',
-        srcDark: 'img/logo-placeholder-dark.svg',
+        src: 'img/headermotion-logo-light.svg',
+        srcDark: 'img/headermotion-logo-dark.svg',
       },
       items: [
         {
