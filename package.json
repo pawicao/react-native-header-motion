@@ -54,7 +54,7 @@
   "bugs": {
     "url": "https://github.com/pawicao/react-native-header-motion/issues"
   },
-  "homepage": "https://github.com/pawicao/react-native-header-motion#readme",
+  "homepage": "https://pawicao.github.io/react-native-header-motion/",
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },
