@@ -27,6 +27,11 @@ const SECTIONS: ShowcaseSection[] = [
       { title: 'FlatList', href: '/flatlist', icon: '📋' },
       { title: 'FlashList', href: '/flashlist', icon: '⚡️' },
       { title: 'LegendList', href: '/legendlist', icon: '🧾' },
+      {
+        title: 'Composing Navigation Header',
+        href: '/composing-header',
+        icon: '⛑️',
+      },
     ],
   },
   {

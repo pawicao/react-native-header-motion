@@ -1,0 +1,261 @@
+.heroBanner {
+  padding: 4rem 0;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.buttons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.features {
+  padding: 3rem 0;
+}
+
+.featureGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.25rem;
+}
+
+.featureHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.featureHeader h3 {
+  margin: 0;
+}
+
+/* ── Hero background mockups ── */
+
+.heroBg {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.heroContent {
+  position: relative;
+  z-index: 1;
+}
+
+.mockupWrapper {
+  width: min(220px, 22vw);
+  flex-shrink: 0;
+}
+
+.mockupWrapperLeft {
+  transform: rotate(-6deg) translateX(-8%);
+  mask-image: linear-gradient(
+    to right,
+    rgba(0, 0, 0, 0.55) 0%,
+    rgba(0, 0, 0, 0) 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to right,
+    rgba(0, 0, 0, 0.55) 0%,
+    rgba(0, 0, 0, 0) 100%
+  );
+}
+
+.mockupWrapperRight {
+  transform: rotate(6deg) translateX(8%);
+  mask-image: linear-gradient(
+    to left,
+    rgba(0, 0, 0, 0.55) 0%,
+    rgba(0, 0, 0, 0) 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to left,
+    rgba(0, 0, 0, 0.55) 0%,
+    rgba(0, 0, 0, 0) 100%
+  );
+}
+
+@media (max-width: 768px) {
+  .heroBg {
+    display: none;
+  }
+}
+
+.mockupFrame {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background-color: var(--ifm-background-color);
+  border: 1.5px solid var(--ifm-color-emphasis-200);
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+}
+
+.mockupStatusBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px;
+  background-color: var(--ifm-color-primary);
+  flex-shrink: 0;
+}
+
+.mockupStatusLeft {
+  width: 28px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: 3px;
+}
+
+.mockupStatusRight {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.mockupStatusDot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.mockupHeader {
+  background-color: var(--ifm-color-primary);
+  flex-shrink: 0;
+}
+
+.mockupHeaderExpanded {
+  padding-bottom: 14px;
+}
+
+.mockupHeaderCollapsed {
+  padding-bottom: 8px;
+}
+
+.mockupNavRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+}
+
+.mockupBackButton {
+  width: 16px;
+  height: 10px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 3px;
+}
+
+.mockupNavTitle {
+  width: 40%;
+  height: 10px;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 5px;
+}
+
+.mockupNavAction {
+  width: 16px;
+  height: 16px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+}
+
+.mockupDynamicSection {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 12px 4px;
+}
+
+.mockupAvatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.35);
+  flex-shrink: 0;
+}
+
+.mockupDynamicText {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex: 1;
+}
+
+.mockupTextLine {
+  height: 7px;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 4px;
+}
+
+.mockupContent {
+  flex: 1;
+  overflow: hidden;
+  padding: 6px 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.mockupRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+}
+
+.mockupRowThumb {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background-color: var(--ifm-color-emphasis-200);
+  flex-shrink: 0;
+}
+
+.mockupRowLines {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mockupRowLine {
+  height: 7px;
+  background-color: var(--ifm-color-emphasis-300);
+  border-radius: 4px;
+}
+
+.mockupRowLineSub {
+  height: 5px;
+  background-color: var(--ifm-color-emphasis-200);
+  border-radius: 4px;
+}
+
+/* ── Feature Cards ── */
+
+.featureIcon {
+  display: block;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  background-color: var(--ifm-color-primary);
+  opacity: 0.5;
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+}

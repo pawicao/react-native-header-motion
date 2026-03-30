@@ -1,0 +1,161 @@
+@import url('https://fonts.googleapis.com/css2?family=Kumbh+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap');
+
+:root {
+  --ifm-color-primary: #304077;
+  --ifm-color-primary-dark: #2b3a6b;
+  --ifm-color-primary-darker: #293665;
+  --ifm-color-primary-darkest: #212c53;
+  --ifm-color-primary-light: #354683;
+  --ifm-color-primary-lighter: #374a89;
+  --ifm-color-primary-lightest: #3f549b;
+
+  --ifm-background-color: #f9f7f7;
+  --ifm-background-surface-color: #f5f6fa;
+  --ifm-font-color-base: #232323;
+  --ifm-font-color-secondary: #6a6a6a;
+
+  --ifm-heading-font-family: 'Kumbh Sans', system-ui, -apple-system, sans-serif;
+  --ifm-font-family-base: 'Inter', system-ui, -apple-system, sans-serif;
+  --ifm-font-family-monospace: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo,
+    monospace;
+
+  --ifm-code-font-size: 90%;
+  --ifm-code-border-radius: 6px;
+
+  --ifm-navbar-background-color: #eef0f8;
+  --ifm-navbar-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --ifm-footer-background-color: #eef0f8;
+  --ifm-footer-color: #232323;
+
+  --ifm-link-color: #304077;
+  --ifm-link-hover-color: #24305a;
+
+  --ifm-card-background-color: #eef0f8;
+  --ifm-card-border-color: #e8eaf2;
+
+  --ifm-toc-border-color: #eae8e8;
+  --ifm-hr-border-color: #eae8e8;
+
+  --docusaurus-highlighted-code-line-bg: rgba(48, 64, 119, 0.08);
+}
+
+[data-theme='dark'] {
+  --ifm-color-primary: #9ca5d7;
+  --ifm-color-primary-dark: #8a93c0;
+  --ifm-color-primary-darker: #7e88b5;
+  --ifm-color-primary-darkest: #6672a0;
+  --ifm-color-primary-light: #aeb5de;
+  --ifm-color-primary-lighter: #bac0e4;
+  --ifm-color-primary-lightest: #d2d6ee;
+
+  --ifm-background-color: #232323;
+  --ifm-background-surface-color: #26282e;
+  --ifm-font-color-base: #f9f7f7;
+  --ifm-font-color-secondary: #a0a0a0;
+
+  --ifm-navbar-background-color: #26282e;
+  --ifm-navbar-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --ifm-footer-background-color: #26282e;
+  --ifm-footer-color: #f9f7f7;
+
+  --ifm-link-color: #9ca5d7;
+  --ifm-link-hover-color: #bac0e4;
+
+  --ifm-card-background-color: #26282e;
+  --ifm-card-border-color: #30333a;
+
+  --ifm-toc-border-color: #303030;
+  --ifm-hr-border-color: #303030;
+
+  --docusaurus-highlighted-code-line-bg: rgba(156, 165, 215, 0.15);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--ifm-heading-font-family);
+}
+
+.navbar__title {
+  font-family: var(--ifm-heading-font-family);
+  font-weight: 700;
+}
+
+code {
+  font-family: var(--ifm-font-family-monospace);
+}
+
+article .markdown > h2 {
+  margin-top: 2.5rem;
+}
+
+.theme-admonition {
+  border-radius: 8px;
+}
+
+.hero {
+  padding: 4rem 0;
+  background-color: var(--ifm-card-background-color);
+}
+
+.hero__title {
+  font-family: var(--ifm-heading-font-family);
+  font-weight: 800;
+  font-size: 3rem;
+}
+
+.hero__subtitle {
+  font-size: 1.25rem;
+  color: var(--ifm-font-color-secondary);
+}
+
+.feature-card {
+  border-radius: 12px;
+  padding: 1.5rem;
+  background: var(--ifm-card-background-color);
+  border: 1px solid var(--ifm-card-border-color);
+  transition: box-shadow 0.2s ease;
+}
+
+.feature-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme='dark'] .feature-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.table-of-contents__link {
+  font-size: 0.85rem;
+}
+
+.pagination-nav__link {
+  border-radius: 8px;
+  border-color: var(--ifm-card-border-color);
+}
+
+.pagination-nav__link:hover {
+  border-color: var(--ifm-color-primary);
+}
+
+.button--outline {
+  --ifm-button-color: var(--ifm-font-color-base);
+  border-color: var(--ifm-color-primary);
+}
+
+.button--outline:hover {
+  --ifm-button-color: var(--ifm-font-color-base);
+  background-color: transparent;
+  border-color: var(--ifm-color-primary-light);
+  color: var(--ifm-color-primary-light);
+}
+
+.footer__built-with {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.75rem;
+  opacity: 0.45;
+}
