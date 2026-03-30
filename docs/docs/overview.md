@@ -6,7 +6,18 @@ description: What React Native Header Motion does and how it works.
 
 # Overview
 
-![Header Motion banner — placeholder](https://placehold.co/800x300?text=Your+banner+here)
+<video
+autoPlay
+loop
+muted
+playsInline
+style={{ width: '100%', borderRadius: '12px', marginBottom: '2rem', cornerShape: 'squircle' }}
+
+>
+
+  <source src="/react-native-header-motion/video/headermotion-banner.webm" type="video/webm" />
+  <source src="/react-native-header-motion/video/headermotion-banner.mp4" type="video/mp4" />
+</video>
 
 React Native Header Motion gives you the building blocks for scroll-driven animated headers in React Native. Instead of shipping a pre-built "collapsible header" component, it provides the plumbing that lets you build any header animation you can imagine.
 
