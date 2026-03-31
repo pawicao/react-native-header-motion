@@ -38,7 +38,7 @@
     "typecheck": "tsc",
     "test": "jest",
     "release": "release-it --only-version",
-    "lint": "eslint \"**/*.{js,ts,tsx}\""
+    "lint": "eslint src example docs/src docs/*.ts *.js"
   },
   "keywords": [
     "react-native",
