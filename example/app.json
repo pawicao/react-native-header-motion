@@ -27,6 +27,10 @@
       "favicon": "./assets/favicon.png",
       "bundler": "metro"
     },
-    "plugins": ["expo-dev-client", "expo-router"]
+    "plugins": [
+      "expo-dev-client",
+      "expo-router",
+      "expo-font"
+    ]
   }
 }

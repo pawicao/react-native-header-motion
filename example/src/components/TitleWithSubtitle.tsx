@@ -1,4 +1,5 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Text } from './Text';
 
 interface TitleWithSubtitleProps {
   title: string;
@@ -23,10 +24,14 @@ export function TitleWithSubtitle({
 }: TitleWithSubtitleProps) {
   return (
     <View style={[styles.titleContainer, centered && styles.centered]}>
-      <Text style={[styles.title, { color: titleColor, fontSize: titleSize }]}>
+      <Text
+        weight="600"
+        style={{ color: titleColor, fontSize: titleSize }}
+      >
         {title}
       </Text>
       <Text
+        weight="400"
         style={[
           styles.subtitle,
           { color: subtitleColor, fontSize: subtitleSize },
@@ -48,11 +53,7 @@ const styles = StyleSheet.create({
   centered: {
     alignItems: 'center',
   },
-  title: {
-    fontWeight: '600',
-  },
   subtitle: {
-    fontWeight: '400',
     opacity: 0.6,
   },
 });

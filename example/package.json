@@ -9,12 +9,15 @@
     "web": "expo start --web"
   },
   "dependencies": {
+    "@expo-google-fonts/kumbh-sans": "^0.4.2",
     "@expo/metro-runtime": "~55.0.6",
     "@legendapp/list": "2.0.19",
     "@shopify/flash-list": "2.3.0",
     "expo": "~55.0.7",
     "expo-constants": "~55.0.8",
     "expo-dev-client": "~55.0.8",
+    "expo-font": "~55.0.4",
+    "expo-linear-gradient": "~55.0.9",
     "expo-linking": "~55.0.7",
     "expo-router": "~55.0.6",
     "expo-status-bar": "~55.0.4",

@@ -1,4 +1,5 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Text } from './Text';
 
 interface DynamicBoxProps {
   text?: string;
@@ -23,7 +24,9 @@ export function DynamicBox({
         { backgroundColor },
       ]}
     >
-      <Text style={[styles.text, { color: textColor }]}>{text}</Text>
+      <Text weight="700" style={{ color: textColor }}>
+        {text}
+      </Text>
     </View>
   );
 }
@@ -45,8 +48,5 @@ const styles = StyleSheet.create({
   },
   humongousBox: {
     minHeight: 450,
-  },
-  text: {
-    fontWeight: 'bold',
   },
 });

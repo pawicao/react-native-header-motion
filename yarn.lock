@@ -3466,6 +3466,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@expo-google-fonts/kumbh-sans@npm:^0.4.2":
+  version: 0.4.2
+  resolution: "@expo-google-fonts/kumbh-sans@npm:0.4.2"
+  checksum: 10c0/debb7f2a5ced32d7066c7ebfb662e7278d2d7de6cadda5ecdb3f123fdfbd4f67016857e3d4e8bdb7c650b28e4d42ac843d7a4f335ade962e26dffd21f10c6cc4
+  languageName: node
+  linkType: hard
+
 "@expo-google-fonts/material-symbols@npm:^0.4.1":
   version: 0.4.27
   resolution: "@expo-google-fonts/material-symbols@npm:0.4.27"
@@ -11297,6 +11304,17 @@ __metadata:
     expo: "*"
     react: "*"
   checksum: 10c0/a8bdd4c331086ec0cb2906aff11f2c6ff6acb852bde6db86af52f39391261bbe041f2692ae356ab00b33bec1f5aee29bdc24d2d57d6508d8e74a4b75a794acc5
+  languageName: node
+  linkType: hard
+
+"expo-linear-gradient@npm:~55.0.9":
+  version: 55.0.9
+  resolution: "expo-linear-gradient@npm:55.0.9"
+  peerDependencies:
+    expo: "*"
+    react: "*"
+    react-native: "*"
+  checksum: 10c0/6fea2e5c203351a59eea098d99b9b39017e449c0e0e748f791ef8026eb42f4e8561405bb92642a1bce93a4a27bb0af560272e517b1d24ff789b28e1ae6fde64c
   languageName: node
   linkType: hard
 
@@ -19308,12 +19326,15 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "react-native-header-motion-example@workspace:example"
   dependencies:
+    "@expo-google-fonts/kumbh-sans": "npm:^0.4.2"
     "@expo/metro-runtime": "npm:~55.0.6"
     "@legendapp/list": "npm:2.0.19"
     "@shopify/flash-list": "npm:2.3.0"
     expo: "npm:~55.0.7"
     expo-constants: "npm:~55.0.8"
     expo-dev-client: "npm:~55.0.8"
+    expo-font: "npm:~55.0.4"
+    expo-linear-gradient: "npm:~55.0.9"
     expo-linking: "npm:~55.0.7"
     expo-router: "npm:~55.0.6"
     expo-status-bar: "npm:~55.0.4"

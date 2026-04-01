@@ -1,4 +1,5 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Text } from './Text';
 
 interface ContentCardProps {
   index: number;
@@ -15,7 +16,7 @@ export function ContentCard({
 }: ContentCardProps) {
   return (
     <View style={[styles.card, { backgroundColor }]}>
-      <Text style={[styles.cardTitle, { color: textColor }]}>
+      <Text weight="700" style={[styles.cardTitle, { color: textColor }]}>
         {label ? `${label} ${index}` : `Item ${index}`}
       </Text>
     </View>
@@ -34,6 +35,5 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 20,
-    fontWeight: '700',
   },
 });

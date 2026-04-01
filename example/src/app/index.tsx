@@ -1,5 +1,6 @@
 import { Link, type Href } from 'expo-router';
-import { Pressable, SectionList, StyleSheet, Text, View } from 'react-native';
+import { Pressable, SectionList, StyleSheet, View } from 'react-native';
+import { Text } from '@/components';
 
 interface ShowcaseItem {
   title: string;
@@ -137,7 +138,9 @@ export default function Screen() {
       keyExtractor={(item, index) => item.href.toString() + index}
       renderSectionHeader={({ section }) => (
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>{section.title}</Text>
+          <Text weight="600" style={styles.sectionTitle}>
+            {section.title}
+          </Text>
         </View>
       )}
       renderItem={({ item }) => (
@@ -178,7 +181,6 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 13,
-    fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: 0.8,
     color: '#6B7280',

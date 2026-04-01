@@ -1,16 +1,16 @@
-import {
-  DynamicBox,
-  TabButton,
-  TitleWithSubtitle,
-  generateContent,
-} from '@/components';
+import { TabButton, Text, generateContent } from '@/components';
 import HeaderMotion, {
   useActiveScrollId,
   useMotionProgress,
 } from 'react-native-header-motion';
 import { Stack } from 'expo-router';
 import { useRef } from 'react';
-import { StyleSheet, View } from 'react-native';
+import {
+  ImageBackground,
+  StyleSheet,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 import PagerView, {
   type PagerViewOnPageSelectedEvent,
 } from 'react-native-pager-view';
@@ -20,18 +20,27 @@ import Animated, {
   useAnimatedStyle,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
+import { StatusBar } from 'expo-status-bar';
+
+const PIC =
+  'https://images.unsplash.com/photo-1716237389409-2a8eb869d74a?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D';
+// const AnimatedImage = Animated.createAnimatedComponent(Image);
+const AnimatedImageBackground =
+  Animated.createAnimatedComponent(ImageBackground);
 
 const indexToKey = new Map([
-  [0, 'A'],
-  [1, 'B'],
+  [0, 'details'],
+  [1, 'tracking'],
 ]);
 const keyToIndex = new Map([
-  ['A', 0],
-  ['B', 1],
+  ['details', 0],
+  ['tracking', 1],
 ]);
 
 export default function Screen() {
-  const [activeScrollId, setActiveScrollId] = useActiveScrollId<string>('A');
+  const [activeScrollId, setActiveScrollId] =
+    useActiveScrollId<string>('details');
   const pagerRef = useRef<PagerView>(null);
 
   const handleTabPress = (key: string) => {
@@ -43,41 +52,43 @@ export default function Screen() {
   };
 
   return (
-    <HeaderMotion activeScrollId={activeScrollId.sv}>
-      <HeaderMotion.Bridge>
-        {(value) => (
-          <Stack.Screen
-            options={{
-              header: () => (
-                <HeaderMotion.NavigationBridge value={value}>
-                  <CollapsibleHeader
-                    activeTab={activeScrollId.state}
-                    onTabChange={handleTabPress}
-                  />
-                </HeaderMotion.NavigationBridge>
-              ),
-            }}
-          />
-        )}
-      </HeaderMotion.Bridge>
-      <PagerView
-        ref={pagerRef}
-        style={styles.pagerView}
-        initialPage={0}
-        onPageSelected={onPageSelected}
-      >
-        <View key="A">
-          <HeaderMotion.ScrollView scrollId="A">
-            {pageAContent}
-          </HeaderMotion.ScrollView>
-        </View>
-        <View key="B">
-          <HeaderMotion.ScrollView scrollId="B">
-            {pageBContent}
-          </HeaderMotion.ScrollView>
-        </View>
-      </PagerView>
-    </HeaderMotion>
+    <View style={{ flex: 1, backgroundColor: '#26282e' }}>
+      <HeaderMotion activeScrollId={activeScrollId.sv}>
+        <HeaderMotion.Bridge>
+          {(value) => (
+            <Stack.Screen
+              options={{
+                header: () => (
+                  <HeaderMotion.NavigationBridge value={value}>
+                    <CollapsibleHeader
+                      activeTab={activeScrollId.state}
+                      onTabChange={handleTabPress}
+                    />
+                  </HeaderMotion.NavigationBridge>
+                ),
+              }}
+            />
+          )}
+        </HeaderMotion.Bridge>
+        <PagerView
+          ref={pagerRef}
+          style={styles.pagerView}
+          initialPage={0}
+          onPageSelected={onPageSelected}
+        >
+          <View key="details">
+            <HeaderMotion.ScrollView scrollId="details">
+              <DetailsPage />
+            </HeaderMotion.ScrollView>
+          </View>
+          <View key="tracking">
+            <HeaderMotion.ScrollView scrollId="tracking">
+              <TrackingPage />
+            </HeaderMotion.ScrollView>
+          </View>
+        </PagerView>
+      </HeaderMotion>
+    </View>
   );
 }
 
@@ -88,6 +99,9 @@ function CollapsibleHeader({
   activeTab: string;
   onTabChange: (newTab: string) => void;
 }) {
+  const windowDimensions = useWindowDimensions();
+  const imageWidth = windowDimensions.width;
+  const imageHeight = windowDimensions.height * 0.6;
   const { progress, progressThreshold } = useMotionProgress();
   const insets = useSafeAreaInsets();
 
@@ -139,6 +153,13 @@ function CollapsibleHeader({
     };
   });
 
+  void activeTab;
+  void onTabChange;
+  void insets;
+  void containerStyle;
+  void titleStyle;
+  void boxSectionStyle;
+
   return (
     <HeaderMotion.Header
       pannable
@@ -150,34 +171,68 @@ function CollapsibleHeader({
           deceleration: 0.997,
         };
       }}
-      style={[styles.headerWrapper, { paddingTop: insets.top }, containerStyle]}
+      style={{ backgroundColor: '#26282e' }}
     >
-      <Animated.View style={titleStyle}>
-        <TitleWithSubtitle
-          title="Pager + Header Pan"
-          subtitle="Scroll, swipe pages, or drag the header"
-        />
-      </Animated.View>
-
-      <View style={styles.dynamicContent}>
-        <HeaderMotion.Header.Dynamic
-          style={[styles.boxContainer, boxSectionStyle]}
+      <StatusBar style="light" />
+      <AnimatedImageBackground
+        source={{ uri: PIC }}
+        style={{
+          width: imageWidth,
+          height: imageHeight,
+        }}
+        resizeMode="cover"
+      >
+        <LinearGradient
+          style={{
+            inset: 0,
+            position: 'absolute',
+            justifyContent: 'flex-end',
+            alignItems: 'center',
+            padding: 16,
+          }}
+          colors={['rgba(38,40,46,0)', 'rgba(38,40,46,1)']}
         >
-          <DynamicBox variant="large" />
-          <DynamicBox variant="large" />
-        </HeaderMotion.Header.Dynamic>
-      </View>
-
+          <Animated.View style={{ alignItems: 'center' }}>
+            <Text weight="700" style={{ fontSize: 72, color: '#FFF' }}>
+              5
+            </Text>
+            <Text weight="700" style={{ fontSize: 28, color: '#FFF' }}>
+              minutes left
+            </Text>
+            <View id="segmented-progress-bar" style={styles.progressWrapper}>
+              <View style={styles.progressTrack}>
+                {[0, 1, 2, 3].map((segmentIndex) => (
+                  <View
+                    key={segmentIndex}
+                    style={[
+                      styles.progressSegment,
+                      segmentIndex <= 2
+                        ? styles.progressSegmentActive
+                        : styles.progressSegmentInactive,
+                    ]}
+                  />
+                ))}
+              </View>
+              {/* <Text weight="700" style={{ color: '#FFF' }}>
+                Alfredo&apos;s Pizza Cafe
+              </Text> */}
+              <Text weight="500" style={styles.progressLabel}>
+                Your order is on its way
+              </Text>
+            </View>
+          </Animated.View>
+        </LinearGradient>
+      </AnimatedImageBackground>
       <View style={styles.tabBar}>
         <TabButton
-          label="Page A"
-          isActive={activeTab === 'A'}
-          onPress={() => onTabChange('A')}
+          label="Details"
+          isActive={activeTab === 'details'}
+          // onPress={() => onTabChange('A')}
         />
         <TabButton
-          label="Page B"
-          isActive={activeTab === 'B'}
-          onPress={() => onTabChange('B')}
+          label="Tracking"
+          isActive={activeTab === 'tracking'}
+          // onPress={() => onTabChange('B')}
         />
       </View>
     </HeaderMotion.Header>
@@ -185,6 +240,7 @@ function CollapsibleHeader({
 }
 
 const styles = StyleSheet.create({
+  image: {},
   pagerView: {
     flex: 1,
   },
@@ -205,21 +261,47 @@ const styles = StyleSheet.create({
   },
   tabBar: {
     flexDirection: 'row',
-    backgroundColor: '#FFF',
-    borderTopWidth: 1,
-    borderTopColor: '#EEE',
+    // backgroundColor: '#FFF',
+    // borderTopWidth: 1,
+    // borderTopColor: '#EEE',
     paddingBottom: 4,
+  },
+  progressWrapper: {
+    alignItems: 'center',
+    gap: 10,
+    marginTop: 18,
+  },
+  progressTrack: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  progressSegment: {
+    width: 54,
+    height: 12,
+    borderRadius: 999,
+  },
+  progressSegmentActive: {
+    backgroundColor: '#22C55E',
+    shadowColor: '#22C55E',
+    shadowOpacity: 0.28,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+  },
+  progressSegmentInactive: {
+    backgroundColor: 'rgba(34,197,94,0.22)',
+  },
+  progressLabel: {
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.72)',
+    letterSpacing: 0.3,
   },
 });
 
-const pageAContent = generateContent({
-  count: 400,
-  backgroundColor: '#E3CBFC',
-  textColor: '#304077',
-});
+function DetailsPage() {
+  return null;
+}
 
-const pageBContent = generateContent({
-  count: 400,
-  backgroundColor: '#CDE7FF',
-  textColor: '#18345B',
-});
+function TrackingPage() {
+  return null;
+}

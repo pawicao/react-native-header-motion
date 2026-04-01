@@ -1,7 +1,12 @@
-import { DynamicBox, TitleWithSubtitle, generateContent } from '@/components';
+import {
+  DynamicBox,
+  Text,
+  TitleWithSubtitle,
+  generateContent,
+} from '@/components';
 import HeaderMotion, { useMotionProgress } from 'react-native-header-motion';
 import { Stack } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, {
   Extrapolation,
   interpolate,
@@ -42,7 +47,9 @@ export default function Screen() {
       </HeaderMotion.ScrollView>
 
       <Pressable style={styles.fab} onPress={handleScrollToTop}>
-        <Text style={styles.fabText}>TOP</Text>
+        <Text weight="800" style={styles.fabText}>
+          TOP
+        </Text>
       </Pressable>
     </HeaderMotion>
   );
@@ -157,7 +164,6 @@ const styles = StyleSheet.create({
   },
   fabText: {
     color: '#fff',
-    fontWeight: '800',
     fontSize: 13,
   },
 });

@@ -1,4 +1,5 @@
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Text } from './Text';
 
 interface TabButtonProps {
   label: string;
@@ -13,13 +14,14 @@ export function TabButton({
   label,
   isActive,
   onPress,
-  activeTextColor = '#232323',
-  inactiveTextColor = '#9CA5D7',
+  activeTextColor = '#9ca5d7',
+  inactiveTextColor = '#FFF',
   indicatorColor = '#232323',
 }: TabButtonProps) {
   return (
     <TouchableOpacity onPress={onPress} style={styles.tabItem}>
       <Text
+        weight="700"
         style={[
           styles.tabText,
           { color: isActive ? activeTextColor : inactiveTextColor },
@@ -27,11 +29,11 @@ export function TabButton({
       >
         {label}
       </Text>
-      {isActive && (
+      {/* {isActive && (
         <View
           style={[styles.activeIndicator, { backgroundColor: indicatorColor }]}
         />
-      )}
+      )} */}
     </TouchableOpacity>
   );
 }
@@ -45,8 +47,8 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   tabText: {
-    fontWeight: '600',
     fontSize: 14,
+    textAlign: 'center',
   },
   activeIndicator: {
     position: 'absolute',
