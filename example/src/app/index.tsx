@@ -17,11 +17,6 @@ const SECTIONS: ShowcaseSection[] = [
     title: 'Core',
     data: [
       { title: 'Collapsible', href: '/simple', icon: '📦' },
-      {
-        title: 'Collapsible + Pager View',
-        href: '/collapsible-pager',
-        icon: '📑',
-      },
       { title: 'Color Interpolation', href: '/colors', icon: '🎨' },
       { title: 'Overscroll', href: '/overscroll', icon: '🔄' },
       { title: 'FlatList', href: '/flatlist', icon: '📋' },
@@ -31,6 +26,31 @@ const SECTIONS: ShowcaseSection[] = [
         title: 'Composing Navigation Header',
         href: '/composing-header',
         icon: '⛑️',
+      },
+    ],
+  },
+  {
+    title: 'Pagers',
+    data: [
+      {
+        title: 'ScrollView + Pager',
+        href: '/collapsible-pager',
+        icon: '📑',
+      },
+      {
+        title: 'FlatList + Pager',
+        href: '/flatlist-pager',
+        icon: '📋📑',
+      },
+      {
+        title: 'FlashList + Pager',
+        href: '/flashlist-pager',
+        icon: '⚡️📑',
+      },
+      {
+        title: 'LegendList + Pager',
+        href: '/legendlist-pager',
+        icon: '🧾📑',
       },
     ],
   },
