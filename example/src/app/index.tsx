@@ -96,6 +96,21 @@ const SECTIONS: ShowcaseSection[] = [
         href: '/scroll-to-button',
         icon: '🎯',
       },
+      {
+        title: 'Scroll To Button (external ref) | FlatList',
+        href: '/scroll-to-button',
+        icon: '📋🎯',
+      },
+      {
+        title: 'Scroll To Button (external ref) | FlashList',
+        href: '/scroll-to-button',
+        icon: '⚡️🎯',
+      },
+      {
+        title: 'Scroll To Button (external ref) | LegendList',
+        href: '/scroll-to-button',
+        icon: '🧾🎯',
+      },
     ],
   },
   {

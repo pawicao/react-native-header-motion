@@ -105,6 +105,7 @@ const HeaderMotion: HeaderMotionCompound = Object.assign(
 
 export default HeaderMotion;
 export * from './hooks';
+export { ScrollablePresets } from './utils/presets';
 export type * from './types';
 export { createHeaderMotionScrollable };
 export { Bridge, Header, NavigationBridge };

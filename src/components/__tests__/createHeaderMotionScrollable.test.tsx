@@ -1,6 +1,5 @@
 const mockUseScrollManager = jest.fn();
 const mockCreateAnimatedComponent = jest.fn((Component) => Component);
-
 jest.mock('react', () => {
   const ReactActual = jest.requireActual('react');
 
@@ -19,7 +18,10 @@ jest.mock('react', () => {
 });
 
 import React from 'react';
-import { createHeaderMotionScrollable } from '../createHeaderMotionScrollable';
+import {
+  createHeaderMotionScrollable,
+  type CreateHeaderMotionScrollableOptions,
+} from '../createHeaderMotionScrollable';
 
 jest.mock('../../hooks', () => ({
   __esModule: true,
@@ -95,6 +97,21 @@ const invalidTypedProps: Parameters<
 void typedProps;
 // eslint-disable-next-line no-void
 void invalidTypedProps;
+
+const validChildrenOptions: CreateHeaderMotionScrollableOptions = {
+  contentContainerMode: 'children',
+};
+
+const invalidChildrenOptions: CreateHeaderMotionScrollableOptions = {
+  contentContainerMode: 'children',
+  // @ts-expect-error managedRefTarget is only valid for renderScrollComponent mode.
+  managedRefTarget: 'inner',
+};
+
+// eslint-disable-next-line no-void
+void validChildrenOptions;
+// eslint-disable-next-line no-void
+void invalidChildrenOptions;
 
 function createScrollManagerResult() {
   return {
@@ -208,14 +225,23 @@ describe('createHeaderMotionScrollable', () => {
         React.createElement(React.Fragment, null, item.label),
     }) as React.ReactElement<any>;
 
+    expect(mockUseScrollManager).toHaveBeenCalledWith(
+      undefined,
+      expect.objectContaining({
+        animatedRef: undefined,
+      })
+    );
     expect(element.props.children).toBeUndefined();
+    expect(element.props.ref).toBe(scrollManagerResult.scrollableProps.ref);
     expect(typeof element.props.renderScrollComponent).toBe('function');
 
     const scrollComponentElement = element.props.renderScrollComponent({
       children: React.createElement('Child'),
+      ref: { current: null },
     });
-    const renderedScrollComponent = scrollComponentElement.type(
-      scrollComponentElement.props
+    const renderedScrollComponent = scrollComponentElement.type.render(
+      scrollComponentElement.props,
+      null
     ) as React.ReactElement<any>;
 
     expect(renderedScrollComponent.props.children.props.style).toEqual([
@@ -223,5 +249,33 @@ describe('createHeaderMotionScrollable', () => {
       { transform: [{ translateY: 48 }], paddingBottom: 48 },
       contentContainerStyle,
     ]);
+  });
+
+  it('can target the injected inner scroll component for imperative sync', () => {
+    const scrollManagerResult = createScrollManagerResult();
+    mockUseScrollManager.mockReturnValue(scrollManagerResult);
+
+    const InnerManagedList = createHeaderMotionScrollable(GenericList, {
+      displayName: 'HeaderMotion.InnerManagedList',
+      isComponentAnimated: true,
+      managedRefTarget: 'inner',
+    });
+
+    const animatedRef = { current: null } as any;
+    const element = InnerManagedList({
+      data: [{ id: '1', label: 'Row' }],
+      animatedRef,
+      renderItem: ({ item }) =>
+        React.createElement(React.Fragment, null, item.label),
+    }) as React.ReactElement<any>;
+
+    expect(mockUseScrollManager).toHaveBeenCalledWith(
+      undefined,
+      expect.objectContaining({
+        animatedRef: undefined,
+      })
+    );
+    expect(element.props.ref).toBe(animatedRef);
+    expect(typeof element.props.renderScrollComponent).toBe('function');
   });
 });

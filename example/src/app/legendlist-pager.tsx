@@ -6,6 +6,7 @@ import {
 } from '@/components';
 import HeaderMotion, {
   createHeaderMotionScrollable,
+  ScrollablePresets,
   useActiveScrollId,
   useMotionProgress,
 } from 'react-native-header-motion';
@@ -25,10 +26,7 @@ import { AnimatedLegendList } from '@legendapp/list/reanimated';
 
 const HeaderMotionLegendList = createHeaderMotionScrollable(
   AnimatedLegendList,
-  {
-    displayName: 'HeaderMotionLegendList',
-    isComponentAnimated: true,
-  }
+  ScrollablePresets.AnimatedLegendList
 );
 
 const indexToKey = new Map([

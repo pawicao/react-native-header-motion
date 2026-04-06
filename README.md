@@ -30,7 +30,7 @@ Full documentation lives here:
 - Scroll-driven animated headers
 - Shared header state across tabs, pagers, and multiple scrollables
 - Navigation-rendered headers in Expo Router or React Navigation
-- Custom scrollables via `createHeaderMotionScrollable()`
+- Custom scrollables via `createHeaderMotionScrollable()` and `ScrollablePresets`
 - Optional header panning
 
 ## What it is not
