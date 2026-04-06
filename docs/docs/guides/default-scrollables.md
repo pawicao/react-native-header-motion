@@ -66,7 +66,7 @@ You can also pass standard scroll event handlers like `onScroll`, `onScrollBegin
 
 ## Custom scrollables
 
-For third-party scrollable components like [FlashList](https://shopify.github.io/flash-list/) or [LegendList](https://github.com/LegendApp/legend-list), use the `createHeaderMotionScrollable()` factory. For more information, check the [Custom scrollables](./custom-scrollables) guide.
+For third-party scrollable components like [FlashList](https://shopify.github.io/flash-list/) or [LegendList](https://github.com/LegendApp/legend-list), use the `createHeaderMotionScrollable()` factory. For those two common integrations, you can also start from the exported `ScrollablePresets`. For more information, check the [Custom scrollables](./custom-scrollables) guide.
 
 For even more control, you can manage the scroll integration yourself using `HeaderMotion.ScrollManager` or the `useScrollManager()` hook. See [Using ScrollManager](./using-scroll-manager) for details.
 

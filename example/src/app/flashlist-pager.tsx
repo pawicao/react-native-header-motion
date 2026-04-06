@@ -6,6 +6,7 @@ import {
 } from '@/components';
 import HeaderMotion, {
   createHeaderMotionScrollable,
+  ScrollablePresets,
   useActiveScrollId,
   useMotionProgress,
 } from 'react-native-header-motion';
@@ -23,9 +24,10 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FlashList } from '@shopify/flash-list';
 
-const HeaderMotionFlashList = createHeaderMotionScrollable(FlashList, {
-  displayName: 'HeaderMotionFlashList',
-});
+const HeaderMotionFlashList = createHeaderMotionScrollable(
+  FlashList,
+  ScrollablePresets.FlashList
+);
 
 const indexToKey = new Map([
   [0, 'A'],

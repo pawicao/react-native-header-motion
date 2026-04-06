@@ -33,9 +33,9 @@ export type HeaderMotionScrollableOwnProps<
   animatedRef?: AnimatedRef<TRef> | AnimatedRef;
 };
 
-export interface CreateHeaderMotionScrollableOptions<
+type CreateHeaderMotionScrollableCommonOptions<
   TIsComponentAnimated extends boolean = boolean
-> {
+> = {
   displayName?: string;
   /**
    * If true, this function will NOT call Animated.createAnimatedComponent internally.
@@ -58,7 +58,39 @@ export interface CreateHeaderMotionScrollableOptions<
    * @default 'renderScrollComponent'
    */
   contentContainerMode?: ContentContainerMode;
-}
+};
+
+type CreateHeaderMotionScrollableChildrenOptions<
+  TIsComponentAnimated extends boolean = boolean
+> = CreateHeaderMotionScrollableCommonOptions<TIsComponentAnimated> & {
+  contentContainerMode: 'children';
+  managedRefTarget?: never;
+};
+
+type CreateHeaderMotionScrollableRenderOptions<
+  TIsComponentAnimated extends boolean = boolean
+> = CreateHeaderMotionScrollableCommonOptions<TIsComponentAnimated> & {
+  contentContainerMode?: 'renderScrollComponent';
+  /**
+   * Controls which ref HeaderMotion uses for imperative scroll synchronization.
+   *
+   * - `outer`: attach the managed ref to the wrapped scrollable component itself
+   * - `inner`: attach the managed ref to the injected inner scroll component
+   *
+   * Use `inner` for list abstractions like FlashList or LegendList whose outer
+   * ref is not the actual native scroll view that Reanimated `scrollTo()`
+   * should target.
+   *
+   * @default 'outer'
+   */
+  managedRefTarget?: ManagedRefTarget;
+};
+
+export type CreateHeaderMotionScrollableOptions<
+  TIsComponentAnimated extends boolean = boolean
+> =
+  | CreateHeaderMotionScrollableChildrenOptions<TIsComponentAnimated>
+  | CreateHeaderMotionScrollableRenderOptions<TIsComponentAnimated>;
 
 export function createHeaderMotionScrollable<
   TScrollableComponent extends ScrollableComponent,
@@ -70,6 +102,7 @@ export function createHeaderMotionScrollable<
   const {
     isComponentAnimated = false,
     contentContainerMode = 'renderScrollComponent',
+    managedRefTarget = 'outer',
     displayName = `HeaderMotion(${getDisplayName(
       ScrollableComponent as {
         displayName?: string;
@@ -117,7 +150,7 @@ export function createHeaderMotionScrollable<
         onScrollEndDrag,
         onMomentumScrollBegin,
         onMomentumScrollEnd,
-        animatedRef,
+        animatedRef: managedRefTarget === 'inner' ? undefined : animatedRef,
         ensureScrollableContentMinHeight,
       }
     );
@@ -171,6 +204,7 @@ export function createHeaderMotionScrollable<
       children: rest.children,
       mode: contentContainerMode,
       style: managedContentContainerStyle,
+      scrollRef: managedRefTarget === 'inner' ? ref : undefined,
     });
 
     return (
@@ -179,7 +213,7 @@ export function createHeaderMotionScrollable<
         {...rest}
         {...refreshControlProps}
         {...contentContainerProps}
-        ref={ref}
+        ref={managedRefTarget === 'inner' ? animatedRef : ref}
         onLayout={handleLayout}
         onScroll={managedOnScroll}
       />
@@ -200,16 +234,26 @@ function useContentContainerProps({
   children: rawChildren,
   mode,
   style,
+  scrollRef,
 }: {
   children?: ReactNode;
   mode: ContentContainerMode;
   style?: any;
+  scrollRef?: Ref<any>;
 }) {
   const renderScrollComponent = useCallback(
-    (props: ScrollViewProps) => (
-      <AnimatedScrollContainer {...props} contentContainerStyle={style} />
-    ),
-    [style]
+    (props: ScrollComponentProps) => {
+      const { ref: outerScrollRef, ...scrollProps } = props;
+
+      return (
+        <AnimatedScrollContainer
+          {...scrollProps}
+          ref={mergeRefs(outerScrollRef, scrollRef)}
+          contentContainerStyle={style}
+        />
+      );
+    },
+    [scrollRef, style]
   );
 
   const children = <Animated.View style={style}>{rawChildren}</Animated.View>;
@@ -244,6 +288,25 @@ function getDisplayName(ScrollableComponent: {
 }
 
 type UserOnLayout = ScrollViewProps['onLayout'] | undefined;
+type ScrollComponentProps = ScrollViewProps & { ref?: Ref<any> };
+type ManagedRefTarget = 'outer' | 'inner';
+
+function mergeRefs<T>(...refs: Array<Ref<T> | undefined>) {
+  return (value: T | null) => {
+    refs.forEach((ref) => {
+      if (!ref) {
+        return;
+      }
+
+      if (typeof ref === 'function') {
+        ref(value);
+        return;
+      }
+
+      (ref as { current: T | null }).current = value;
+    });
+  };
+}
 
 // TODO: From here below Codex did some absolute TypeScript magic but it seems to work
 // Having limited time, I can't spend more on adjusting this to make it less convoluted

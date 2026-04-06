@@ -22,7 +22,7 @@ Header panning is built on Gesture Handler's pan gesture. Even if you don't use 
 
 ## Can I use this with FlashList / LegendList / other custom scrollables?
 
-Yes. Use `createHeaderMotionScrollable()` to wrap any scrollable component. See the [Custom scrollables](../guides/custom-scrollables) guide.
+Yes. Use `createHeaderMotionScrollable()` to wrap any scrollable component. For FlashList and LegendList, you can also use the built-in `ScrollablePresets` export so the recommended factory options are already filled in. See the [Custom scrollables](../guides/custom-scrollables) guide.
 
 ## Does pull to refresh work?
 
