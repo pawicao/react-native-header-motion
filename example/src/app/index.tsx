@@ -155,6 +155,21 @@ const SECTIONS: ShowcaseSection[] = [
     ],
   },
   {
+    title: 'SubHeaders',
+    data: [
+      {
+        title: 'SubHeader + FlatList',
+        href: '/subheader-flatlist',
+        icon: '🔎📋',
+      },
+      {
+        title: 'SubHeader + Pager',
+        href: '/subheader-pager',
+        icon: '🔎📑',
+      },
+    ],
+  },
+  {
     title: 'Header Pan',
     data: [
       { title: 'Header Pan', href: '/header-pan', icon: '👆' },
