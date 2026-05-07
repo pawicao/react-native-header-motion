@@ -80,6 +80,8 @@ const bridgeValue = {
   activeScrollId: undefined,
   scrollToRef: { current: jest.fn() },
   originalHeaderHeight: 0,
+  subHeaderHeights: {},
+  setSubHeaderHeight: jest.fn(),
 };
 
 const layoutEvent = {

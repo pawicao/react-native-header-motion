@@ -162,7 +162,7 @@ export function createHeaderMotionScrollable<
       ref,
       ...scrollViewProps
     } = scrollableProps;
-    const { originalHeaderHeight, contentContainerMinHeight } =
+    const { originalHeaderHeight, contentContainerMinHeight, subHeaderHeight } =
       headerMotionContext;
 
     const userOnLayoutRef = useRef<UserOnLayout>(rest.onLayout as UserOnLayout);
@@ -176,7 +176,11 @@ export function createHeaderMotionScrollable<
         contentContainerMinHeight !== undefined
           ? { minHeight: contentContainerMinHeight }
           : undefined,
-        resolveHeaderOffsetStyle(originalHeaderHeight, headerOffsetStrategy),
+        resolveHeaderAndSubHeaderOffsetStyle(
+          originalHeaderHeight,
+          headerOffsetStrategy,
+          subHeaderHeight ?? 0
+        ),
         contentContainerStyle,
       ],
       [
@@ -185,6 +189,7 @@ export function createHeaderMotionScrollable<
         ensureScrollableContentMinHeight,
         headerOffsetStrategy,
         originalHeaderHeight,
+        subHeaderHeight,
       ]
     );
 
@@ -228,6 +233,42 @@ export function createHeaderMotionScrollable<
 
   TypedHeaderMotionScrollable.displayName = displayName;
   return TypedHeaderMotionScrollable;
+}
+
+function resolveHeaderAndSubHeaderOffsetStyle(
+  originalHeaderHeight: number,
+  headerOffsetStrategy: HeaderMotionOffsetProps['headerOffsetStrategy'],
+  subHeaderHeight: number
+) {
+  const totalOffset = originalHeaderHeight + subHeaderHeight;
+  const base = resolveHeaderOffsetStyle(
+    originalHeaderHeight,
+    headerOffsetStrategy
+  );
+
+  if (!base) {
+    return undefined;
+  }
+
+  if ('paddingTop' in base) {
+    return { paddingTop: totalOffset };
+  }
+
+  if ('marginTop' in base) {
+    return { marginTop: totalOffset };
+  }
+
+  if ('top' in base) {
+    return {
+      top: totalOffset,
+      paddingBottom: totalOffset,
+    };
+  }
+
+  return {
+    transform: [{ translateY: totalOffset }],
+    paddingBottom: totalOffset,
+  };
 }
 
 function useContentContainerProps({

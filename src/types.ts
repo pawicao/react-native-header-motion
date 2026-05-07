@@ -97,6 +97,29 @@ export type HeaderDefaultProps = AnimatedProps<ViewProps> & {
 
 export type HeaderDynamicProps = HeaderDefaultProps | HeaderAsChildProps;
 
+export type HeaderSubHeaderProps = (HeaderDefaultProps | HeaderAsChildProps) & {
+  /**
+   * Scrollable identifier this sub-header belongs to.
+   *
+   * In single-scroll screens, you can omit it.
+   * In tab/pager setups, set this to the same value as the page's `scrollId`.
+   */
+  scrollId?: string;
+  /**
+   * Extra top inset added below the visible/collapsed header.
+   *
+   * @default 0
+   */
+  topInset?: number;
+  /**
+   * Optional static height hint for eager layout reservation.
+   *
+   * Provide this when sub-header height is known to avoid first-render padding
+   * shifts before dynamic measurement completes.
+   */
+  height?: number;
+};
+
 export interface HeaderMotionBridgeValue extends MotionProgress {
   measureTotalHeight: MeasureAnimatedHeaderAndSet;
   measureDynamic: MeasureAnimatedHeaderAndSet;
@@ -105,11 +128,14 @@ export interface HeaderMotionBridgeValue extends MotionProgress {
   activeScrollId: SharedValue<string> | undefined;
   scrollToRef: React.RefObject<ScrollTo | null>;
   originalHeaderHeight: number;
+  subHeaderHeights: Record<string, { height: number; topInset: number }>;
+  setSubHeaderHeight: (id: string, height: number, topInset?: number) => void;
 }
 
 export interface ScrollManagerHeaderMotionContext {
   originalHeaderHeight: number;
   contentContainerMinHeight?: number;
+  subHeaderHeight?: number;
 }
 
 export interface ScrollManagerConfig<TRef extends InstanceOrElement = any> {

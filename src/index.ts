@@ -7,6 +7,7 @@ import {
   NavigationBridge,
   ScrollManager,
   ScrollView,
+  SubHeader,
   type CreateHeaderMotionScrollableOptions,
   type HeaderProps,
   type HeaderMotionBridgeProps,
@@ -17,7 +18,7 @@ import {
   type HeaderMotionScrollableOwnProps,
   type HeaderMotionScrollViewProps,
 } from './components';
-import type { HeaderDynamicProps } from './types';
+import type { HeaderDynamicProps, HeaderSubHeaderProps } from './types';
 
 type HeaderMotionCompound = typeof HeaderMotionContextProvider & {
   /**
@@ -60,6 +61,13 @@ type HeaderMotionCompound = typeof HeaderMotionContextProvider & {
    * tracking and header offsetting.
    */
   FlatList: typeof FlatList;
+  /**
+   * Tab/page-local sticky sub-header that pins below the collapsing header.
+   *
+   * It measures its own height and HeaderMotion scrollables automatically add
+   * top spacing for the matching `scrollId`.
+   */
+  SubHeader: typeof SubHeader;
 };
 
 /**
@@ -100,6 +108,7 @@ const HeaderMotion: HeaderMotionCompound = Object.assign(
     ScrollManager,
     ScrollView,
     FlatList,
+    SubHeader,
   }
 );
 
@@ -112,6 +121,7 @@ export { Bridge, Header, NavigationBridge };
 export type {
   CreateHeaderMotionScrollableOptions,
   HeaderDynamicProps,
+  HeaderSubHeaderProps,
   HeaderMotionFlatListProps,
   HeaderMotionBridgeProps,
   HeaderMotionNavigationBridgeProps,

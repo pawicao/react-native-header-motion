@@ -6,3 +6,4 @@ export * from './HeaderMotion';
 export * from './ScrollManager';
 export * from './ScrollView';
 export * from './createHeaderMotionScrollable';
+export * from './SubHeader';

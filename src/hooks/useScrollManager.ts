@@ -374,7 +374,7 @@ export function useScrollManager<TRef extends InstanceOrElement = any>(
   scrollId?: string,
   options?: UseScrollManagerOptions<TRef>
 ): ScrollManagerConfig<TRef> {
-  const { originalHeaderHeight } = useScrollManagerContext();
+  const { originalHeaderHeight, subHeaderHeights } = useScrollManagerContext();
   const id = scrollId ?? DEFAULT_SCROLL_ID;
 
   const ensureScrollableContentMinHeight =
@@ -425,6 +425,9 @@ export function useScrollManager<TRef extends InstanceOrElement = any>(
   const headerMotionContext = {
     originalHeaderHeight,
     contentContainerMinHeight,
+    subHeaderHeight:
+      (subHeaderHeights[id]?.height ?? 0) +
+      (subHeaderHeights[id]?.topInset ?? 0),
   };
 
   return { scrollableProps, headerMotionContext };

@@ -126,6 +126,9 @@ function HeaderMotionContextProvider<T extends string>({
 }: HeaderMotionProps<T>) {
   const dynamicMeasurement = useSharedValue<number | undefined>(undefined);
   const [originalHeaderHeight, setOriginalHeaderHeight] = useState(0);
+  const [subHeaderHeights, setSubHeaderHeights] = useState<
+    Record<string, { height: number; topInset: number }>
+  >({});
   const progressThresholdValue = useSharedValue(
     typeof progressThreshold === 'number' ? progressThreshold : Infinity
   );
@@ -178,6 +181,22 @@ function HeaderMotionContextProvider<T extends string>({
       setOriginalHeaderHeight(measuredValue);
     },
     [setOriginalHeaderHeight]
+  );
+
+  const setSubHeaderHeight = useCallback(
+    (id: string, height: number, topInset: number = 0) => {
+      setSubHeaderHeights((prev) => {
+        const current = prev[id];
+        const heightDelta = Math.abs((current?.height ?? 0) - height);
+        const insetDelta = Math.abs((current?.topInset ?? 0) - topInset);
+        if (heightDelta < 0.5 && insetDelta < 0.5) {
+          return prev;
+        }
+
+        return { ...prev, [id]: { height, topInset } };
+      });
+    },
+    []
   );
 
   const scrollValues = useSharedValue<ScrollValues>({
@@ -233,6 +252,8 @@ function HeaderMotionContextProvider<T extends string>({
       scrollValues,
       scrollToRef,
       activeScrollId: activeScrollId as SharedValue<string> | undefined,
+      subHeaderHeights,
+      setSubHeaderHeight,
     }),
     [
       originalHeaderHeight,
@@ -243,6 +264,8 @@ function HeaderMotionContextProvider<T extends string>({
       scrollValues,
       activeScrollId,
       progressThresholdValue,
+      subHeaderHeights,
+      setSubHeaderHeight,
     ]
   );
 
