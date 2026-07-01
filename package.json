@@ -115,6 +115,21 @@
       ]
     ]
   },
+  "codegenConfig": {
+    "name": "rnheadermotion",
+    "type": "all",
+    "jsSrcsDir": "./src/specs",
+    "android": {
+      "javaPackageName": "com.headermotion"
+    },
+    "ios": {
+      "components": {
+        "HeaderMotionRefreshControl": {
+          "className": "HeaderMotionRefreshControlComponentView"
+        }
+      }
+    }
+  },
   "jest": {
     "preset": "react-native",
     "setupFilesAfterEnv": [

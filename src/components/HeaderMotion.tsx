@@ -15,8 +15,10 @@ import type {
   MeasureAnimatedHeader,
   MeasureAnimatedHeaderAndSet,
   ProgressThreshold,
+  RefreshControlState,
   ScrollValues,
 } from '../types';
+import { RefreshPhase } from '../types';
 import {
   DEFAULT_MEASURE_DYNAMIC,
   DEFAULT_PROGRESS_THRESHOLD,
@@ -130,6 +132,53 @@ function HeaderMotionContextProvider<T extends string>({
     typeof progressThreshold === 'number' ? progressThreshold : Infinity
   );
   const headerPanMomentumOffset = useSharedValue<number | null>(null);
+  const refreshControlPhase = useSharedValue<RefreshPhase>(0);
+  const refreshControlProgress = useSharedValue(0);
+  const refreshControlPullDistance = useSharedValue(0);
+  const refreshControlTriggerDistance = useSharedValue(0);
+  const refreshControlOvershoot = useDerivedValue(() =>
+    Math.max(0, refreshControlProgress.value - 1)
+  );
+  const refreshControlIsRefreshing = useDerivedValue(
+    () => refreshControlPhase.value === 3
+  );
+
+  useAnimatedReaction(
+    () => refreshControlPhase.get(),
+    (phase) => {
+      console.log('RefreshControl phase changed:', refreshPhaseToString(phase));
+    }
+  );
+  useAnimatedReaction(
+    () => refreshControlProgress.get(),
+    (progress) => {
+      console.log('RefreshControl progress changed:', progress);
+    }
+  );
+  useAnimatedReaction(
+    () => refreshControlPullDistance.get(),
+    (distance) => {
+      console.log('RefreshControl pull distance changed:', distance);
+    }
+  );
+  useAnimatedReaction(
+    () => refreshControlTriggerDistance.get(),
+    (distance) => {
+      console.log('RefreshControl trigger distance changed:', distance);
+    }
+  );
+  useAnimatedReaction(
+    () => refreshControlOvershoot.get(),
+    (overshoot) => {
+      console.log('RefreshControl overshoot changed:', overshoot);
+    }
+  );
+  useAnimatedReaction(
+    () => refreshControlIsRefreshing.get(),
+    (isRefreshing) => {
+      console.log('RefreshControl is refreshing changed:', isRefreshing);
+    }
+  );
 
   const setOrUpdateDynamicMeasurement =
     useCallback<MeasureAnimatedHeaderAndSet>(
@@ -218,6 +267,24 @@ function HeaderMotionContextProvider<T extends string>({
   });
 
   const scrollToRef = useRef<ScrollTo>(null);
+  const refreshControl = useMemo<RefreshControlState>(
+    () => ({
+      progress: refreshControlProgress,
+      pullDistance: refreshControlPullDistance,
+      triggerDistance: refreshControlTriggerDistance,
+      phase: refreshControlPhase,
+      overshoot: refreshControlOvershoot,
+      isRefreshing: refreshControlIsRefreshing,
+    }),
+    [
+      refreshControlIsRefreshing,
+      refreshControlOvershoot,
+      refreshControlPhase,
+      refreshControlProgress,
+      refreshControlPullDistance,
+      refreshControlTriggerDistance,
+    ]
+  );
   // FUTURE: SharedValue-based scrollTo was removed for now because function updates
   // were not propagating reliably, while it works for refs. Revisit later.
   // We need to be updating the scrollTo on active scroll ID changes and doing it via state would cause re-renders.
@@ -229,6 +296,7 @@ function HeaderMotionContextProvider<T extends string>({
       measureDynamic: setOrUpdateDynamicMeasurement,
       measureTotalHeight,
       headerPanMomentumOffset,
+      refreshControl,
       progressThreshold: progressThresholdValue,
       scrollValues,
       scrollToRef,
@@ -239,6 +307,7 @@ function HeaderMotionContextProvider<T extends string>({
       progress,
       measureTotalHeight,
       headerPanMomentumOffset,
+      refreshControl,
       setOrUpdateDynamicMeasurement,
       scrollValues,
       activeScrollId,
@@ -254,3 +323,25 @@ function HeaderMotionContextProvider<T extends string>({
 }
 
 export { HeaderMotionContextProvider };
+
+const refreshPhaseToString = (phase: RefreshPhase) => {
+  'worklet';
+  switch (phase) {
+    case RefreshPhase.Idle:
+      return 'Idle';
+    case RefreshPhase.Pulling:
+      return 'Pulling';
+    case RefreshPhase.Ready:
+      return 'Ready';
+    case RefreshPhase.Refreshing:
+      return 'Refreshing';
+    case RefreshPhase.Cancelling:
+      return 'Cancelling';
+    case RefreshPhase.Finishing:
+      return 'Finishing';
+    case RefreshPhase.Disabled:
+      return 'Disabled';
+    default:
+      return `Unknown (${phase})`;
+  }
+};

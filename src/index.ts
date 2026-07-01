@@ -5,6 +5,7 @@ import {
   FlatList,
   Header,
   NavigationBridge,
+  RefreshControl,
   ScrollManager,
   ScrollView,
   type CreateHeaderMotionScrollableOptions,
@@ -13,6 +14,7 @@ import {
   type HeaderMotionFlatListProps,
   type HeaderMotionNavigationBridgeProps,
   type HeaderMotionProps,
+  type HeaderMotionRefreshControlProps,
   type HeaderMotionScrollManagerProps,
   type HeaderMotionScrollableOwnProps,
   type HeaderMotionScrollViewProps,
@@ -43,6 +45,12 @@ type HeaderMotionCompound = typeof HeaderMotionContextProvider & {
    * outside the screen subtree where `HeaderMotion` lives.
    */
   NavigationBridge: typeof NavigationBridge;
+  /**
+   * Headless pull-to-refresh control that mirrors React Native's
+   * `RefreshControl` API and exposes refresh progress through
+   * `useRefreshControl()`.
+   */
+  RefreshControl: typeof RefreshControl;
   /**
    * Render-prop wrapper for managing a custom scrollable.
    *
@@ -97,6 +105,7 @@ const HeaderMotion: HeaderMotionCompound = Object.assign(
     Header,
     Bridge,
     NavigationBridge,
+    RefreshControl,
     ScrollManager,
     ScrollView,
     FlatList,
@@ -108,7 +117,7 @@ export * from './hooks';
 export { ScrollablePresets } from './utils/presets';
 export type * from './types';
 export { createHeaderMotionScrollable };
-export { Bridge, Header, NavigationBridge };
+export { Bridge, Header, NavigationBridge, RefreshControl };
 export type {
   CreateHeaderMotionScrollableOptions,
   HeaderDynamicProps,
@@ -116,6 +125,7 @@ export type {
   HeaderMotionBridgeProps,
   HeaderMotionNavigationBridgeProps,
   HeaderMotionProps,
+  HeaderMotionRefreshControlProps,
   HeaderMotionScrollManagerProps,
   HeaderMotionScrollableOwnProps,
   HeaderMotionScrollViewProps,

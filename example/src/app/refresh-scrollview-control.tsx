@@ -1,8 +1,11 @@
 import * as React from 'react';
 import { DynamicBox, TitleWithSubtitle, generateContent } from '@/components';
-import HeaderMotion, { useMotionProgress } from 'react-native-header-motion';
+import HeaderMotion, {
+  useMotionProgress,
+  useRefreshControl,
+} from 'react-native-header-motion';
 import { Stack } from 'expo-router';
-import { RefreshControl, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import Animated, {
   Extrapolation,
   interpolate,
@@ -37,7 +40,10 @@ export default function Screen() {
       </HeaderMotion.Bridge>
       <HeaderMotion.ScrollView
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          <HeaderMotion.RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+          />
         }
       >
         {content}
@@ -48,6 +54,7 @@ export default function Screen() {
 
 function CollapsibleHeader() {
   const { progress, progressThreshold } = useMotionProgress();
+  const refreshControl = useRefreshControl();
   const insets = useSafeAreaInsets();
 
   const containerStyle = useAnimatedStyle(() => {
@@ -98,6 +105,28 @@ function CollapsibleHeader() {
     };
   });
 
+  const refreshIndicatorStyle = useAnimatedStyle(() => {
+    const refreshProgress = Math.min(refreshControl.progress.value, 1.4);
+    const opacity = interpolate(
+      refreshProgress,
+      [0, 0.2, 1],
+      [0, 0.4, 1],
+      Extrapolation.CLAMP
+    );
+    const scale = interpolate(
+      refreshProgress,
+      [0, 1, 1.4],
+      [0.7, 1, 1.12],
+      Extrapolation.CLAMP
+    );
+    const rotate = interpolate(refreshProgress, [0, 1], [0, 180]);
+
+    return {
+      opacity,
+      transform: [{ scale }, { rotate: `${rotate}deg` }],
+    };
+  });
+
   return (
     <HeaderMotion.Header
       style={[styles.headerWrapper, { paddingTop: insets.top }, containerStyle]}
@@ -115,6 +144,11 @@ function CollapsibleHeader() {
         >
           <DynamicBox />
           <DynamicBox />
+          <Animated.View
+            style={[styles.refreshIndicator, refreshIndicatorStyle]}
+          >
+            <DynamicBox />
+          </Animated.View>
         </HeaderMotion.Header.Dynamic>
       </View>
     </HeaderMotion.Header>
@@ -136,6 +170,9 @@ const styles = StyleSheet.create({
     padding: 12,
     alignItems: 'stretch',
     overflow: 'hidden',
+  },
+  refreshIndicator: {
+    flex: 1,
   },
 });
 

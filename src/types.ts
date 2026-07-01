@@ -7,6 +7,7 @@ import type {
 import type {
   AnimatedProps,
   AnimatedRef,
+  DerivedValue,
   SharedValue,
 } from 'react-native-reanimated';
 import { DEFAULT_SCROLL_ID } from './utils/defaults';
@@ -79,6 +80,34 @@ export interface MotionProgress {
   progressThreshold: SharedValue<number>;
 }
 
+export enum RefreshPhase {
+  Idle = 0,
+  Pulling = 1,
+  Ready = 2,
+  Refreshing = 3,
+  Cancelling = 4,
+  Finishing = 5,
+  Disabled = 6,
+}
+
+export interface RefreshControlState {
+  /**
+   * Normalized pull progress. `1` means the refresh trigger distance has been
+   * reached; values above `1` represent pull overshoot.
+   */
+  progress: SharedValue<number>;
+  /** Raw pull distance in platform points/dp. */
+  pullDistance: SharedValue<number>;
+  /** Distance required to enter the ready-to-refresh phase. */
+  triggerDistance: SharedValue<number>;
+  /** Discrete lifecycle phase for custom refresh UI. */
+  phase: SharedValue<RefreshPhase>;
+  /** `max(0, progress - 1)` exposed for convenience. */
+  overshoot: DerivedValue<number>;
+  /** Convenience boolean derived from `phase === RefreshPhase.Refreshing`. */
+  isRefreshing: DerivedValue<boolean>;
+}
+
 export type HeaderPanDecayEvent =
   GestureStateChangeEvent<PanGestureHandlerEventPayload>;
 
@@ -101,6 +130,7 @@ export interface HeaderMotionBridgeValue extends MotionProgress {
   measureTotalHeight: MeasureAnimatedHeaderAndSet;
   measureDynamic: MeasureAnimatedHeaderAndSet;
   headerPanMomentumOffset: SharedValue<number | null>;
+  refreshControl: RefreshControlState;
   scrollValues: SharedValue<ScrollValues>;
   activeScrollId: SharedValue<string> | undefined;
   scrollToRef: React.RefObject<ScrollTo | null>;

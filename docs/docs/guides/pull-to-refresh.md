@@ -7,7 +7,10 @@ title: Pull to refresh
 
 Pull to refresh is tricky with collapsible headers. The header is overlayed on top of the scroll content, and the content itself is offset — so the refresh indicator needs to account for the header height to appear in the right place.
 
-Header Motion handles this under the hood by adjusting `progressViewOffset` on `RefreshControl` to match the current header height. From your perspective, the API is identical to standard React Native refresh.
+Header Motion supports two refresh modes:
+
+- React Native-compatible refresh, where Header Motion adjusts `progressViewOffset` for the built-in `RefreshControl`.
+- Headless refresh, where `HeaderMotion.RefreshControl` triggers refresh behavior and exposes progress through `useRefreshControl()` so your header can render the UI.
 
 ## Usage
 
@@ -38,12 +41,49 @@ You can also pass an explicit `RefreshControl` component if you need more contro
 </HeaderMotion.ScrollView>
 ```
 
+## Headless refresh UI
+
+Use `HeaderMotion.RefreshControl` when you want to render the refresh indicator yourself, usually inside the header:
+
+```tsx
+const [isRefreshing, setIsRefreshing] = useState(false);
+
+const handleRefresh = () => {
+  setIsRefreshing(true);
+  fetchData().finally(() => setIsRefreshing(false));
+};
+
+<HeaderMotion.ScrollView
+  refreshControl={
+    <HeaderMotion.RefreshControl
+      refreshing={isRefreshing}
+      onRefresh={handleRefresh}
+    />
+  }
+>
+  {/* content */}
+</HeaderMotion.ScrollView>;
+```
+
+Then read the refresh state anywhere inside the same `HeaderMotion` tree:
+
+```tsx
+const refresh = useRefreshControl();
+
+const style = useAnimatedStyle(() => ({
+  opacity: Math.min(refresh.progress.value, 1),
+  transform: [{ scale: 0.8 + Math.min(refresh.progress.value, 1) * 0.2 }],
+}));
+```
+
+The exposed state includes `progress`, `pullDistance`, `triggerDistance`, `phase`, `overshoot`, and `isRefreshing`.
+
 ## Platform notes
 
 :::info
-Android works well with the adjusted `progressViewOffset`.
+Built-in Android refresh works well with the adjusted `progressViewOffset`.
 
-On iOS, `progressViewOffset` is not fully reliable in all scenarios — the refresh indicator may not always appear in the expected position. We're aware of this and improvements for iOS are planned.
+For fully custom refresh UI, prefer `HeaderMotion.RefreshControl`. It does not render a native spinner.
 :::
 
 ## Using with ScrollManager
