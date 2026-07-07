@@ -132,7 +132,7 @@ function HeaderMotionContextProvider<T extends string>({
     typeof progressThreshold === 'number' ? progressThreshold : Infinity
   );
   const headerPanMomentumOffset = useSharedValue<number | null>(null);
-  const refreshControlPhase = useSharedValue<RefreshPhase>(0);
+  const refreshControlPhase = useSharedValue<RefreshPhase>(RefreshPhase.Idle);
   const refreshControlProgress = useSharedValue(0);
   const refreshControlRawProgress = useSharedValue(0);
   const refreshControlPullDistance = useSharedValue(0);
@@ -158,43 +158,6 @@ function HeaderMotionContextProvider<T extends string>({
     () =>
       refreshControlPhase.value !== RefreshPhase.Idle &&
       refreshControlPhase.value !== RefreshPhase.Disabled
-  );
-
-  useAnimatedReaction(
-    () => refreshControlPhase.get(),
-    (phase) => {
-      console.log('RefreshControl phase changed:', refreshPhaseToString(phase));
-    }
-  );
-  useAnimatedReaction(
-    () => refreshControlProgress.get(),
-    (progress) => {
-      console.log('RefreshControl progress changed:', progress);
-    }
-  );
-  useAnimatedReaction(
-    () => refreshControlPullDistance.get(),
-    (distance) => {
-      console.log('RefreshControl pull distance changed:', distance);
-    }
-  );
-  useAnimatedReaction(
-    () => refreshControlTriggerDistance.get(),
-    (distance) => {
-      console.log('RefreshControl trigger distance changed:', distance);
-    }
-  );
-  useAnimatedReaction(
-    () => refreshControlOvershoot.get(),
-    (overshoot) => {
-      console.log('RefreshControl overshoot changed:', overshoot);
-    }
-  );
-  useAnimatedReaction(
-    () => refreshControlIsRefreshing.get(),
-    (isRefreshing) => {
-      console.log('RefreshControl is refreshing changed:', isRefreshing);
-    }
   );
 
   const setOrUpdateDynamicMeasurement =
@@ -350,25 +313,3 @@ function HeaderMotionContextProvider<T extends string>({
 }
 
 export { HeaderMotionContextProvider };
-
-const refreshPhaseToString = (phase: RefreshPhase) => {
-  'worklet';
-  switch (phase) {
-    case RefreshPhase.Idle:
-      return 'Idle';
-    case RefreshPhase.Pulling:
-      return 'Pulling';
-    case RefreshPhase.Ready:
-      return 'Ready';
-    case RefreshPhase.Refreshing:
-      return 'Refreshing';
-    case RefreshPhase.Cancelling:
-      return 'Cancelling';
-    case RefreshPhase.Finishing:
-      return 'Finishing';
-    case RefreshPhase.Disabled:
-      return 'Disabled';
-    default:
-      return `Unknown (${phase})`;
-  }
-};

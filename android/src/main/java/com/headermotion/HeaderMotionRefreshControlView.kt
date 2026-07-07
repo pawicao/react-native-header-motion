@@ -34,11 +34,13 @@ internal class HeaderMotionRefreshControlView(context: Context) : ViewGroup(cont
       }
 
       field = value
+      removeCallbacks(controlledRefreshFallback)
       if (value) {
         stopAnimation()
         pullDistancePx = max(pullDistancePx, triggerDistancePx)
         emitProgress(HeaderMotionRefreshPhase.REFRESHING)
       } else {
+        pullDistancePx = max(pullDistancePx, triggerDistancePx)
         animateToIdle(HeaderMotionRefreshPhase.FINISHING)
       }
     }
@@ -62,6 +64,14 @@ internal class HeaderMotionRefreshControlView(context: Context) : ViewGroup(cont
   private var phase = HeaderMotionRefreshPhase.IDLE
   private var settleAnimator: ValueAnimator? = null
 
+  // Mirrors the iOS controlled-refresh fallback: if JS never commits
+  // `refreshing={true}` after onRefresh fired, settle back to idle.
+  private val controlledRefreshFallback = Runnable {
+    if (!refreshing && phase == HeaderMotionRefreshPhase.REFRESHING) {
+      animateToIdle(HeaderMotionRefreshPhase.FINISHING)
+    }
+  }
+
   override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
     val child = getChildAt(0)
     if (child != null) {
@@ -83,7 +93,15 @@ internal class HeaderMotionRefreshControlView(context: Context) : ViewGroup(cont
   }
 
   override fun onInterceptTouchEvent(event: MotionEvent): Boolean {
-    if (!refreshEnabled || refreshing || canChildScrollUp()) {
+    // Phase REFRESHING with `refreshing` still false covers the window between
+    // dispatching onRefresh and JS committing `refreshing={true}` — starting a
+    // new pull there would double-fire onRefresh.
+    if (
+      !refreshEnabled ||
+      refreshing ||
+      phase == HeaderMotionRefreshPhase.REFRESHING ||
+      canChildScrollUp()
+    ) {
       return false
     }
 
@@ -113,6 +131,15 @@ internal class HeaderMotionRefreshControlView(context: Context) : ViewGroup(cont
 
   override fun onTouchEvent(event: MotionEvent): Boolean {
     if (!isBeingDragged) {
+      return true
+    }
+
+    if (refreshing) {
+      // A controlled refresh started mid-drag; abandon the pull so it neither
+      // overrides the REFRESHING phase nor re-dispatches onRefresh on release.
+      isBeingDragged = false
+      finishNativeGesture(event)
+      parent?.requestDisallowInterceptTouchEvent(false)
       return true
     }
 
@@ -160,6 +187,7 @@ internal class HeaderMotionRefreshControlView(context: Context) : ViewGroup(cont
       pullDistancePx = triggerDistancePx
       emitProgress(HeaderMotionRefreshPhase.REFRESHING)
       dispatchRefresh()
+      postDelayed(controlledRefreshFallback, CONTROLLED_REFRESH_FALLBACK_MS)
       return
     }
 
@@ -193,8 +221,20 @@ internal class HeaderMotionRefreshControlView(context: Context) : ViewGroup(cont
   }
 
   private fun stopAnimation() {
-    settleAnimator?.cancel()
+    settleAnimator?.let {
+      // Strip listeners before cancelling — ValueAnimator fires onAnimationEnd
+      // on cancel, which would zero pullDistancePx and emit a spurious IDLE.
+      it.removeAllUpdateListeners()
+      it.removeAllListeners()
+      it.cancel()
+    }
     settleAnimator = null
+  }
+
+  override fun onDetachedFromWindow() {
+    super.onDetachedFromWindow()
+    removeCallbacks(controlledRefreshFallback)
+    stopAnimation()
   }
 
   private fun emitProgress(nextPhase: Int) {
@@ -260,5 +300,8 @@ internal class HeaderMotionRefreshControlView(context: Context) : ViewGroup(cont
   companion object {
     private const val DEFAULT_TRIGGER_DISTANCE = 80f
     private const val SETTLE_DURATION_MS = 180L
+
+    // Keep in sync with the iOS controlled-refresh fallback (0.2s).
+    private const val CONTROLLED_REFRESH_FALLBACK_MS = 200L
   }
 }

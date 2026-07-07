@@ -29,6 +29,9 @@ export type HeaderMotionRefreshControlProps = RNRefreshControlProps & {
    * Keeps the scroll content visually pinned while the native pull gesture is
    * measured. Disable this to expose the platform overscroll gap on iOS.
    *
+   * iOS only. On Android the pull gesture is intercepted before the scrollable
+   * receives it, so the content never moves during a pull.
+   *
    * Defaults to `true`.
    */
   keepScrollContentPinned?: boolean;
@@ -131,6 +134,17 @@ export function RefreshControl({
   );
 
   useEffect(() => {
+    return () => {
+      // Reset the shared refresh state when the control unmounts so custom
+      // refresh UI does not stay frozen mid-refresh.
+      state.phase.set(RefreshPhase.Idle);
+      state.rawProgress.set(0);
+      state.progress.set(0);
+      state.pullDistance.set(0);
+    };
+  }, [state]);
+
+  useEffect(() => {
     commitDuration.set(progressCommitDuration);
     settleDuration.set(progressSettleDuration);
     state.triggerDistance.set(triggerDistance);
@@ -180,3 +194,11 @@ export function RefreshControl({
     </AnimatedRefreshControl>
   );
 }
+
+/**
+ * Marks the component so `resolveRefreshControl` can recognize it without
+ * importing this module (which would create an import cycle). The headless
+ * native control never reads `progressViewOffset`, so the resolver must not
+ * swap this element for the built-in `RefreshControl` when injecting offsets.
+ */
+RefreshControl.isHeaderMotionRefreshControl = true;

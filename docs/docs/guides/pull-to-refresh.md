@@ -68,6 +68,9 @@ const handleRefresh = () => {
 Then read the refresh state anywhere inside the same `HeaderMotion` tree:
 
 ```tsx
+import { useRefreshControl } from 'react-native-header-motion';
+import { useAnimatedStyle } from 'react-native-reanimated';
+
 const refresh = useRefreshControl();
 
 const style = useAnimatedStyle(() => ({

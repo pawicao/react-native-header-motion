@@ -97,28 +97,40 @@ static const CFTimeInterval HeaderMotionRefreshSettleDuration = 0.18;
 
   [super updateProps:props oldProps:oldProps];
 
+  const BOOL enabledChanged = newRefreshProps.enabled != oldRefreshProps.enabled;
+  const BOOL refreshingChanged = newRefreshProps.refreshing != oldRefreshProps.refreshing;
+
   _progressViewOffset = newRefreshProps.progressViewOffset;
   _triggerDistance = MAX(1, (CGFloat)newRefreshProps.triggerDistance);
   _keepScrollContentPinned = newRefreshProps.keepScrollContentPinned;
+  // Track enabled/refreshing unconditionally so they never go stale when both
+  // change within a single commit.
+  _enabled = newRefreshProps.enabled;
+  _refreshing = newRefreshProps.refreshing;
   [self updatePinnedContentTransformWithDistance:[self scrollViewPullDistance]];
 
-  if (newRefreshProps.enabled != oldRefreshProps.enabled) {
-    _enabled = newRefreshProps.enabled;
-    if (!_enabled) {
-      [self stopSettlingAnimation];
-      _pullDistance = 0;
-      [self resetPinnedContentTransform];
-      [self emitProgress:HeaderMotionRefreshPhaseDisabled];
-      return;
-    }
+  if (enabledChanged && !_enabled) {
+    [self stopSettlingAnimation];
+    _pullDistance = 0;
+    [self resetPinnedContentTransform];
+    [self emitProgress:HeaderMotionRefreshPhaseDisabled];
+    return;
+  }
 
-    if (_phase == HeaderMotionRefreshPhaseDisabled) {
+  if (!_enabled) {
+    return;
+  }
+
+  if (enabledChanged && _phase == HeaderMotionRefreshPhaseDisabled && !refreshingChanged) {
+    if (_refreshing) {
+      _pullDistance = _triggerDistance;
+      [self emitProgress:HeaderMotionRefreshPhaseRefreshing];
+    } else {
       [self emitProgress:HeaderMotionRefreshPhaseIdle];
     }
   }
 
-  if (newRefreshProps.refreshing != oldRefreshProps.refreshing) {
-    _refreshing = newRefreshProps.refreshing;
+  if (refreshingChanged) {
     if (_refreshing) {
       [self stopSettlingAnimation];
       _pullDistance = _triggerDistance;
@@ -151,8 +163,16 @@ static const CFTimeInterval HeaderMotionRefreshSettleDuration = 0.18;
   [self updatePullDistanceFromScrollView];
 }
 
+- (void)dealloc
+{
+  [self detachFromScrollView];
+}
+
 - (void)detachFromScrollView
 {
+  // CADisplayLink retains its target — never leave it running past detach.
+  [self stopSettlingAnimation];
+
   if (_scrollView && _observingContentOffset) {
     [_scrollView removeObserver:self forKeyPath:@"contentOffset" context:HeaderMotionRefreshContentOffsetContext];
     [_scrollView.panGestureRecognizer removeTarget:self action:@selector(handlePanGesture:)];
@@ -179,7 +199,10 @@ static const CFTimeInterval HeaderMotionRefreshSettleDuration = 0.18;
 
 - (void)handlePanGesture:(UIPanGestureRecognizer *)panGestureRecognizer
 {
-  if (!_enabled || _refreshing) {
+  // Treat the window between dispatching onRefresh and JS committing
+  // `refreshing={true}` (phase Refreshing, _refreshing still NO) as
+  // refreshing, otherwise a quick second pull double-fires onRefresh.
+  if (!_enabled || _refreshing || _phase == HeaderMotionRefreshPhaseRefreshing) {
     return;
   }
 
@@ -212,6 +235,13 @@ static const CFTimeInterval HeaderMotionRefreshSettleDuration = 0.18;
     return;
   }
 
+  if (_settleDisplayLink) {
+    // A settle animation owns pull distance and event emission; letting the
+    // scroll view's own bounce-back mutate _pullDistance here races the
+    // display link and can emit Idle mid-settle.
+    return;
+  }
+
   _pullDistance = distance;
 
   if (_scrollView.panGestureRecognizer.state == UIGestureRecognizerStateChanged && distance > 0) {
@@ -223,7 +253,7 @@ static const CFTimeInterval HeaderMotionRefreshSettleDuration = 0.18;
 
 - (void)finishPullGesture
 {
-  if (!_enabled || _refreshing) {
+  if (!_enabled || _refreshing || _phase == HeaderMotionRefreshPhaseRefreshing) {
     return;
   }
 
@@ -273,7 +303,8 @@ static const CFTimeInterval HeaderMotionRefreshSettleDuration = 0.18;
   __weak HeaderMotionRefreshControlComponentView *weakSelf = self;
   dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
     HeaderMotionRefreshControlComponentView *strongSelf = weakSelf;
-    if (!strongSelf || strongSelf->_refreshing) {
+    if (!strongSelf || strongSelf->_refreshing ||
+        strongSelf->_phase != HeaderMotionRefreshPhaseRefreshing) {
       return;
     }
 
