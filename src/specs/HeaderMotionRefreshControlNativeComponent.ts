@@ -18,6 +18,7 @@ export interface NativeProps extends ViewProps {
   refreshing: boolean;
   progressViewOffset?: WithDefault<Float, 0>;
   triggerDistance?: WithDefault<Float, 80>;
+  keepScrollContentPinned?: WithDefault<boolean, true>;
   onRefresh?: DirectEventHandler<null>;
   onRefreshProgress?: DirectEventHandler<RefreshProgressEvent>;
 }

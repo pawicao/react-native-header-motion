@@ -44,6 +44,7 @@ internal class HeaderMotionRefreshControlView(context: Context) : ViewGroup(cont
     }
 
   var progressViewOffsetPx = 0f
+  var keepScrollContentPinned = true
 
   var triggerDistancePx = PixelUtil.toPixelFromDIP(DEFAULT_TRIGGER_DISTANCE)
     set(value) {

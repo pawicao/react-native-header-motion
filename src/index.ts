@@ -116,6 +116,7 @@ export default HeaderMotion;
 export * from './hooks';
 export { ScrollablePresets } from './utils/presets';
 export type * from './types';
+export { RefreshPhase } from './types';
 export { createHeaderMotionScrollable };
 export { Bridge, Header, NavigationBridge, RefreshControl };
 export type {

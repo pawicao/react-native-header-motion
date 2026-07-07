@@ -34,6 +34,7 @@ static const CFTimeInterval HeaderMotionRefreshSettleDuration = 0.18;
   BOOL _observingContentOffset;
   BOOL _enabled;
   BOOL _refreshing;
+  BOOL _keepScrollContentPinned;
   CGFloat _progressViewOffset;
   CGFloat _triggerDistance;
   CGFloat _pullDistance;
@@ -56,6 +57,7 @@ static const CFTimeInterval HeaderMotionRefreshSettleDuration = 0.18;
     _props = defaultProps;
     self.hidden = YES;
     _enabled = YES;
+    _keepScrollContentPinned = YES;
     _triggerDistance = HeaderMotionRefreshDefaultTriggerDistance;
     _phase = HeaderMotionRefreshPhaseIdle;
   }
@@ -70,6 +72,7 @@ static const CFTimeInterval HeaderMotionRefreshSettleDuration = 0.18;
   [self stopSettlingAnimation];
   _enabled = YES;
   _refreshing = NO;
+  _keepScrollContentPinned = YES;
   _progressViewOffset = 0;
   _triggerDistance = HeaderMotionRefreshDefaultTriggerDistance;
   _pullDistance = 0;
@@ -96,12 +99,15 @@ static const CFTimeInterval HeaderMotionRefreshSettleDuration = 0.18;
 
   _progressViewOffset = newRefreshProps.progressViewOffset;
   _triggerDistance = MAX(1, (CGFloat)newRefreshProps.triggerDistance);
+  _keepScrollContentPinned = newRefreshProps.keepScrollContentPinned;
+  [self updatePinnedContentTransformWithDistance:[self scrollViewPullDistance]];
 
   if (newRefreshProps.enabled != oldRefreshProps.enabled) {
     _enabled = newRefreshProps.enabled;
     if (!_enabled) {
       [self stopSettlingAnimation];
       _pullDistance = 0;
+      [self resetPinnedContentTransform];
       [self emitProgress:HeaderMotionRefreshPhaseDisabled];
       return;
     }
@@ -115,9 +121,10 @@ static const CFTimeInterval HeaderMotionRefreshSettleDuration = 0.18;
     _refreshing = newRefreshProps.refreshing;
     if (_refreshing) {
       [self stopSettlingAnimation];
-      _pullDistance = MAX(_pullDistance, _triggerDistance);
+      _pullDistance = _triggerDistance;
       [self emitProgress:HeaderMotionRefreshPhaseRefreshing];
     } else {
+      _pullDistance = _triggerDistance;
       [self animateToIdle:HeaderMotionRefreshPhaseFinishing];
     }
   }
@@ -152,6 +159,7 @@ static const CFTimeInterval HeaderMotionRefreshSettleDuration = 0.18;
   }
 
   _observingContentOffset = NO;
+  [self resetPinnedContentTransform];
   _scrollView = nil;
   _scrollViewComponentView = nil;
 }
@@ -193,12 +201,17 @@ static const CFTimeInterval HeaderMotionRefreshSettleDuration = 0.18;
 
 - (void)updatePullDistanceFromScrollView
 {
-  if (!_scrollView || !_enabled || _refreshing) {
+  if (!_scrollView || !_enabled) {
     return;
   }
 
-  const CGFloat topInset = _scrollView.adjustedContentInset.top;
-  const CGFloat distance = MAX(0, -(_scrollView.contentOffset.y + topInset));
+  const CGFloat distance = [self scrollViewPullDistance];
+  [self updatePinnedContentTransformWithDistance:distance];
+
+  if (_refreshing || _phase == HeaderMotionRefreshPhaseRefreshing) {
+    return;
+  }
+
   _pullDistance = distance;
 
   if (_scrollView.panGestureRecognizer.state == UIGestureRecognizerStateChanged && distance > 0) {
@@ -223,6 +236,36 @@ static const CFTimeInterval HeaderMotionRefreshSettleDuration = 0.18;
   }
 
   [self animateToIdle:HeaderMotionRefreshPhaseCancelling];
+}
+
+- (CGFloat)scrollViewPullDistance
+{
+  if (!_scrollView) {
+    return 0;
+  }
+
+  const CGFloat topInset = _scrollView.adjustedContentInset.top;
+  return MAX(0, -(_scrollView.contentOffset.y + topInset));
+}
+
+- (void)updatePinnedContentTransformWithDistance:(CGFloat)distance
+{
+  if (!_scrollViewComponentView) {
+    return;
+  }
+
+  UIView *containerView = _scrollViewComponentView.containerView;
+  if (!_keepScrollContentPinned || !_enabled || distance <= 0) {
+    containerView.transform = CGAffineTransformIdentity;
+    return;
+  }
+
+  containerView.transform = CGAffineTransformMakeTranslation(0, -distance);
+}
+
+- (void)resetPinnedContentTransform
+{
+  _scrollViewComponentView.containerView.transform = CGAffineTransformIdentity;
 }
 
 - (void)scheduleControlledRefreshFallback

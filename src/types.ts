@@ -92,10 +92,15 @@ export enum RefreshPhase {
 
 export interface RefreshControlState {
   /**
-   * Normalized pull progress. `1` means the refresh trigger distance has been
-   * reached; values above `1` represent pull overshoot.
+   * UI-ready normalized progress. It follows the native pull progress while the
+   * user is dragging, eases overshoot back to `1` when refresh commits, and
+   * eases from its current displayed value back to `0` when settling.
    */
   progress: SharedValue<number>;
+  /**
+   * Raw normalized progress emitted by native. Prefer `progress` for visuals.
+   */
+  rawProgress: SharedValue<number>;
   /** Raw pull distance in platform points/dp. */
   pullDistance: SharedValue<number>;
   /** Distance required to enter the ready-to-refresh phase. */
@@ -104,8 +109,16 @@ export interface RefreshControlState {
   phase: SharedValue<RefreshPhase>;
   /** `max(0, progress - 1)` exposed for convenience. */
   overshoot: DerivedValue<number>;
+  /** Convenience boolean derived from the pulling phase. */
+  isPulling: DerivedValue<boolean>;
+  /** Convenience boolean derived from the ready-to-refresh phase. */
+  isReady: DerivedValue<boolean>;
   /** Convenience boolean derived from `phase === RefreshPhase.Refreshing`. */
   isRefreshing: DerivedValue<boolean>;
+  /** Convenience boolean for cancelling or finishing settle animations. */
+  isSettling: DerivedValue<boolean>;
+  /** Convenience boolean for any non-idle and non-disabled phase. */
+  isActive: DerivedValue<boolean>;
 }
 
 export type HeaderPanDecayEvent =

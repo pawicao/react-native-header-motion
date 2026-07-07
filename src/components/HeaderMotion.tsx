@@ -134,13 +134,30 @@ function HeaderMotionContextProvider<T extends string>({
   const headerPanMomentumOffset = useSharedValue<number | null>(null);
   const refreshControlPhase = useSharedValue<RefreshPhase>(0);
   const refreshControlProgress = useSharedValue(0);
+  const refreshControlRawProgress = useSharedValue(0);
   const refreshControlPullDistance = useSharedValue(0);
   const refreshControlTriggerDistance = useSharedValue(0);
   const refreshControlOvershoot = useDerivedValue(() =>
     Math.max(0, refreshControlProgress.value - 1)
   );
+  const refreshControlIsPulling = useDerivedValue(
+    () => refreshControlPhase.value === RefreshPhase.Pulling
+  );
+  const refreshControlIsReady = useDerivedValue(
+    () => refreshControlPhase.value === RefreshPhase.Ready
+  );
   const refreshControlIsRefreshing = useDerivedValue(
-    () => refreshControlPhase.value === 3
+    () => refreshControlPhase.value === RefreshPhase.Refreshing
+  );
+  const refreshControlIsSettling = useDerivedValue(
+    () =>
+      refreshControlPhase.value === RefreshPhase.Cancelling ||
+      refreshControlPhase.value === RefreshPhase.Finishing
+  );
+  const refreshControlIsActive = useDerivedValue(
+    () =>
+      refreshControlPhase.value !== RefreshPhase.Idle &&
+      refreshControlPhase.value !== RefreshPhase.Disabled
   );
 
   useAnimatedReaction(
@@ -270,17 +287,27 @@ function HeaderMotionContextProvider<T extends string>({
   const refreshControl = useMemo<RefreshControlState>(
     () => ({
       progress: refreshControlProgress,
+      rawProgress: refreshControlRawProgress,
       pullDistance: refreshControlPullDistance,
       triggerDistance: refreshControlTriggerDistance,
       phase: refreshControlPhase,
       overshoot: refreshControlOvershoot,
+      isPulling: refreshControlIsPulling,
+      isReady: refreshControlIsReady,
       isRefreshing: refreshControlIsRefreshing,
+      isSettling: refreshControlIsSettling,
+      isActive: refreshControlIsActive,
     }),
     [
+      refreshControlIsActive,
+      refreshControlIsPulling,
+      refreshControlIsReady,
       refreshControlIsRefreshing,
+      refreshControlIsSettling,
       refreshControlOvershoot,
       refreshControlPhase,
       refreshControlProgress,
+      refreshControlRawProgress,
       refreshControlPullDistance,
       refreshControlTriggerDistance,
     ]

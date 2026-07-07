@@ -46,6 +46,11 @@ internal class HeaderMotionRefreshControlManager :
     view.triggerDistancePx = PixelUtil.toPixelFromDIP(value)
   }
 
+  @ReactProp(name = "keepScrollContentPinned", defaultBoolean = true)
+  override fun setKeepScrollContentPinned(view: HeaderMotionRefreshControlView, value: Boolean) {
+    view.keepScrollContentPinned = value
+  }
+
   override fun getExportedCustomDirectEventTypeConstants(): Map<String, Any> =
     (super.getExportedCustomDirectEventTypeConstants() ?: mutableMapOf<String, Any>()).apply {
       put(

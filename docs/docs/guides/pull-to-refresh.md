@@ -76,7 +76,9 @@ const style = useAnimatedStyle(() => ({
 }));
 ```
 
-The exposed state includes `progress`, `pullDistance`, `triggerDistance`, `phase`, `overshoot`, and `isRefreshing`.
+The exposed state includes the UI-ready `progress`, advanced `rawProgress`, `pullDistance`, `triggerDistance`, `phase`, `overshoot`, and convenience booleans like `isReady`, `isRefreshing`, `isSettling`, and `isActive`.
+
+Use `progressCommitDuration` to tune how quickly overshoot visually snaps back to committed refresh progress, and `progressSettleDuration` to tune the return to idle.
 
 ## Platform notes
 

@@ -122,6 +122,41 @@ const SECTIONS: ShowcaseSection[] = [
         icon: '🔃',
       },
       {
+        title: 'Custom Refresh Control',
+        href: '/custom-refresh-control',
+        icon: '🌀',
+      },
+      {
+        title: 'Custom Refresh Control 2',
+        href: '/custom-refresh-control-2',
+        icon: '✨',
+      },
+      {
+        title: 'Custom Refresh Control 3',
+        href: '/custom-refresh-control-3',
+        icon: '📊',
+      },
+      {
+        title: 'Custom Refresh Control 4',
+        href: '/custom-refresh-control-4',
+        icon: '🏷️',
+      },
+      {
+        title: 'Custom Refresh Control 5',
+        href: '/custom-refresh-control-5',
+        icon: '🧱',
+      },
+      {
+        title: 'Custom Refresh Control 6',
+        href: '/custom-refresh-control-6',
+        icon: '◉',
+      },
+      {
+        title: 'Custom Refresh Control 7',
+        href: '/custom-refresh-control-7',
+        icon: '▥',
+      },
+      {
         title: 'Refresh FlatList (refreshControl)',
         href: '/refresh-flatlist-control',
         icon: '🔁',
