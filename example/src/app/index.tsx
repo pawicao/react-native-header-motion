@@ -152,11 +152,6 @@ const SECTIONS: ShowcaseSection[] = [
         icon: '◉',
       },
       {
-        title: 'Custom Refresh Control 7',
-        href: '/custom-refresh-control-7',
-        icon: '▥',
-      },
-      {
         title: 'Refresh FlatList (refreshControl)',
         href: '/refresh-flatlist-control',
         icon: '🔁',
