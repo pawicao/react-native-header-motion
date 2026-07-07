@@ -24,6 +24,7 @@ static const NSInteger HeaderMotionRefreshPhaseFinishing = 5;
 static const NSInteger HeaderMotionRefreshPhaseDisabled = 6;
 static const CGFloat HeaderMotionRefreshDefaultTriggerDistance = 80.0;
 static const CFTimeInterval HeaderMotionRefreshSettleDuration = 0.18;
+static const NSInteger HeaderMotionRefreshDefaultConfirmationTimeoutMs = 200;
 
 @interface HeaderMotionRefreshControlComponentView () <RCTHeaderMotionRefreshControlViewProtocol>
 @end
@@ -38,6 +39,7 @@ static const CFTimeInterval HeaderMotionRefreshSettleDuration = 0.18;
   CGFloat _progressViewOffset;
   CGFloat _triggerDistance;
   CGFloat _pullDistance;
+  NSInteger _refreshConfirmationTimeout;
   NSInteger _phase;
   CADisplayLink *_settleDisplayLink;
   CFTimeInterval _settleStartTime;
@@ -59,6 +61,7 @@ static const CFTimeInterval HeaderMotionRefreshSettleDuration = 0.18;
     _enabled = YES;
     _keepScrollContentPinned = YES;
     _triggerDistance = HeaderMotionRefreshDefaultTriggerDistance;
+    _refreshConfirmationTimeout = HeaderMotionRefreshDefaultConfirmationTimeoutMs;
     _phase = HeaderMotionRefreshPhaseIdle;
   }
 
@@ -75,6 +78,7 @@ static const CFTimeInterval HeaderMotionRefreshSettleDuration = 0.18;
   _keepScrollContentPinned = YES;
   _progressViewOffset = 0;
   _triggerDistance = HeaderMotionRefreshDefaultTriggerDistance;
+  _refreshConfirmationTimeout = HeaderMotionRefreshDefaultConfirmationTimeoutMs;
   _pullDistance = 0;
   _phase = HeaderMotionRefreshPhaseIdle;
 }
@@ -103,6 +107,7 @@ static const CFTimeInterval HeaderMotionRefreshSettleDuration = 0.18;
   _progressViewOffset = newRefreshProps.progressViewOffset;
   _triggerDistance = MAX(1, (CGFloat)newRefreshProps.triggerDistance);
   _keepScrollContentPinned = newRefreshProps.keepScrollContentPinned;
+  _refreshConfirmationTimeout = newRefreshProps.refreshConfirmationTimeout;
   // Track enabled/refreshing unconditionally so they never go stale when both
   // change within a single commit.
   _enabled = newRefreshProps.enabled;
@@ -300,8 +305,17 @@ static const CFTimeInterval HeaderMotionRefreshSettleDuration = 0.18;
 
 - (void)scheduleControlledRefreshFallback
 {
+  if (_refreshConfirmationTimeout <= 0) {
+    // Fallback disabled — stay in Refreshing until the `refreshing` prop
+    // commits, matching React Native's built-in refresh controls.
+    return;
+  }
+
   __weak HeaderMotionRefreshControlComponentView *weakSelf = self;
-  dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+  dispatch_after(
+      dispatch_time(DISPATCH_TIME_NOW, (int64_t)_refreshConfirmationTimeout * (int64_t)NSEC_PER_MSEC),
+      dispatch_get_main_queue(),
+      ^{
     HeaderMotionRefreshControlComponentView *strongSelf = weakSelf;
     if (!strongSelf || strongSelf->_refreshing ||
         strongSelf->_phase != HeaderMotionRefreshPhaseRefreshing) {

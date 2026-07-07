@@ -83,6 +83,8 @@ The exposed state includes the UI-ready `progress`, advanced `rawProgress`, `pul
 
 Use `progressCommitDuration` to tune how quickly overshoot visually snaps back to committed refresh progress, and `progressSettleDuration` to tune the return to idle.
 
+If `onRefresh` fires but you never set `refreshing={true}`, the control settles back to idle after `refreshConfirmationTimeout` milliseconds (default `200`). Pass `0` or a negative value to disable this fallback — the control then stays in the `Refreshing` phase until you toggle `refreshing`, like React Native's built-in refresh controls.
+
 ## Platform notes
 
 :::info

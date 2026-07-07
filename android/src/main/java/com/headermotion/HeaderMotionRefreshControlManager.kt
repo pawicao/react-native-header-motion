@@ -51,6 +51,11 @@ internal class HeaderMotionRefreshControlManager :
     view.keepScrollContentPinned = value
   }
 
+  @ReactProp(name = "refreshConfirmationTimeout", defaultInt = 200)
+  override fun setRefreshConfirmationTimeout(view: HeaderMotionRefreshControlView, value: Int) {
+    view.refreshConfirmationTimeoutMs = value.toLong()
+  }
+
   override fun getExportedCustomDirectEventTypeConstants(): Map<String, Any> =
     (super.getExportedCustomDirectEventTypeConstants() ?: mutableMapOf<String, Any>()).apply {
       put(

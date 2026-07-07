@@ -48,6 +48,11 @@ internal class HeaderMotionRefreshControlView(context: Context) : ViewGroup(cont
   var progressViewOffsetPx = 0f
   var keepScrollContentPinned = true
 
+  // How long to wait for the `refreshing` prop to commit after dispatching
+  // onRefresh before settling back to idle. Zero or negative disables the
+  // fallback (the control then waits indefinitely, like RN's built-in ones).
+  var refreshConfirmationTimeoutMs = DEFAULT_CONFIRMATION_TIMEOUT_MS
+
   var triggerDistancePx = PixelUtil.toPixelFromDIP(DEFAULT_TRIGGER_DISTANCE)
     set(value) {
       field = max(1f, value)
@@ -187,7 +192,9 @@ internal class HeaderMotionRefreshControlView(context: Context) : ViewGroup(cont
       pullDistancePx = triggerDistancePx
       emitProgress(HeaderMotionRefreshPhase.REFRESHING)
       dispatchRefresh()
-      postDelayed(controlledRefreshFallback, CONTROLLED_REFRESH_FALLBACK_MS)
+      if (refreshConfirmationTimeoutMs > 0) {
+        postDelayed(controlledRefreshFallback, refreshConfirmationTimeoutMs)
+      }
       return
     }
 
@@ -301,7 +308,7 @@ internal class HeaderMotionRefreshControlView(context: Context) : ViewGroup(cont
     private const val DEFAULT_TRIGGER_DISTANCE = 80f
     private const val SETTLE_DURATION_MS = 180L
 
-    // Keep in sync with the iOS controlled-refresh fallback (0.2s).
-    private const val CONTROLLED_REFRESH_FALLBACK_MS = 200L
+    // Keep in sync with the iOS default and the codegen spec default.
+    private const val DEFAULT_CONFIRMATION_TIMEOUT_MS = 200L
   }
 }

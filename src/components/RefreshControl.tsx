@@ -17,6 +17,7 @@ const AnimatedRefreshControl = Animated.createAnimatedComponent(
 
 const DEFAULT_REFRESH_PROGRESS_COMMIT_DURATION = 160;
 const DEFAULT_REFRESH_PROGRESS_SETTLE_DURATION = 180;
+const DEFAULT_REFRESH_CONFIRMATION_TIMEOUT = 200;
 
 export type HeaderMotionRefreshControlProps = RNRefreshControlProps & {
   /**
@@ -49,6 +50,20 @@ export type HeaderMotionRefreshControlProps = RNRefreshControlProps & {
    * Defaults to `180`.
    */
   progressSettleDuration?: number;
+  /**
+   * How long (in milliseconds) the native control waits for `refreshing={true}`
+   * to commit after `onRefresh` fires. If the confirmation does not arrive in
+   * time, the control settles back to idle through the `Finishing` phase.
+   *
+   * Pass `0` or a negative value to disable the fallback entirely — the
+   * control then stays in the `Refreshing` phase until `refreshing` is
+   * toggled, matching the behavior of React Native's built-in refresh
+   * controls. Note that while the fallback is disabled and no confirmation
+   * arrives, new pull gestures stay blocked.
+   *
+   * Defaults to `200`.
+   */
+  refreshConfirmationTimeout?: number;
   children?: ReactNode;
 };
 
@@ -83,6 +98,7 @@ export function RefreshControl({
   keepScrollContentPinned = true,
   progressCommitDuration = DEFAULT_REFRESH_PROGRESS_COMMIT_DURATION,
   progressSettleDuration = DEFAULT_REFRESH_PROGRESS_SETTLE_DURATION,
+  refreshConfirmationTimeout = DEFAULT_REFRESH_CONFIRMATION_TIMEOUT,
   children,
   colors: _colors,
   progressBackgroundColor: _progressBackgroundColor,
@@ -187,6 +203,7 @@ export function RefreshControl({
       progressViewOffset={progressViewOffset}
       triggerDistance={triggerDistance}
       keepScrollContentPinned={keepScrollContentPinned}
+      refreshConfirmationTimeout={Math.round(refreshConfirmationTimeout)}
       onRefresh={onRefresh}
       onRefreshProgress={onRefreshProgress as any}
     >

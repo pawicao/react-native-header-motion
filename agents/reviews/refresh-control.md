@@ -126,6 +126,8 @@ Ordered by severity; all are in the working tree of this branch.
    `setRefreshing(true)` commits after the fallback fires, the UI plays
    Finishing → Idle → Refreshing. RN's own controls keep spinning indefinitely
    instead. Consider a longer window or making the fallback duration a prop.
+   *Addressed in a follow-up: `refreshConfirmationTimeout` prop (ms, default
+   200; `<= 0` disables the fallback for RN-built-in semantics).*
 5. **Single shared refresh state.** Two mounted `HeaderMotion.RefreshControl`s
    (multi-`scrollId` setups) write to the same context shared values and their
    effects fight over `triggerDistance`. The spec defers the coordinator —
