@@ -159,6 +159,12 @@ Ordered by severity; all are in the working tree of this branch.
 - Android: `./gradlew :react-native-header-motion:compileDebugKotlin` — **BUILD
   SUCCESSFUL** with the applied changes (requires `ANDROID_HOME` or
   `local.properties`; neither was set in this checkout).
-- Runtime behavior (pull gestures on simulator/emulator) was not exercised in
-  this pass — do a manual QA round of the example screens on both platforms
-  before merging.
+- iOS runtime verified on simulator (music + custom-refresh-control screens):
+  pull tracking, trigger, refresh, and settle all work. Android runtime not yet
+  exercised — do a manual QA round there before merging.
+- Gotcha found during verification: the example's `ios/Podfile.lock` is
+  gitignored and `pod install` had never run since the library gained native
+  code, so iOS builds silently shipped **without** the native component
+  (Android Gradle autolinks every build, masking this). If `pod install` fails
+  with `Unicode Normalization not appropriate for ASCII-8BIT`, run it with
+  `LANG=en_US.UTF-8` (CocoaPods 1.16.2 + Ruby 4 issue).

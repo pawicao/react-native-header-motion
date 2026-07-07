@@ -152,6 +152,11 @@ const SECTIONS: ShowcaseSection[] = [
         icon: '◉',
       },
       {
+        title: 'Music Streaming Refresh',
+        href: '/music-streaming-refresh',
+        icon: '🎵',
+      },
+      {
         title: 'Refresh FlatList (refreshControl)',
         href: '/refresh-flatlist-control',
         icon: '🔁',
