@@ -7,6 +7,7 @@ import type {
 import type {
   AnimatedProps,
   AnimatedRef,
+  DerivedValue,
   SharedValue,
 } from 'react-native-reanimated';
 import { DEFAULT_SCROLL_ID } from './utils/defaults';
@@ -79,6 +80,71 @@ export interface MotionProgress {
   progressThreshold: SharedValue<number>;
 }
 
+/**
+ * Refresh lifecycle phases.
+ *
+ * A const object rather than a TS `enum` so the phase can be handled either
+ * way: `phase === RefreshPhase.Pulling` and `phase === 'pulling'` both
+ * type-check and narrow, since the members are the string literals themselves.
+ */
+export const RefreshPhase = {
+  Idle: 'idle',
+  Pulling: 'pulling',
+  Ready: 'ready',
+  Refreshing: 'refreshing',
+  Cancelling: 'cancelling',
+  Finishing: 'finishing',
+  Disabled: 'disabled',
+} as const;
+
+export type RefreshPhase = (typeof RefreshPhase)[keyof typeof RefreshPhase];
+
+/**
+ * Native emits the phase as an `Int32`; index maps the wire code to the
+ * public phase. Keep the order in sync with the `HeaderMotionRefreshPhase`
+ * constants on iOS and Android.
+ */
+export const REFRESH_PHASE_BY_NATIVE_CODE: readonly RefreshPhase[] = [
+  RefreshPhase.Idle,
+  RefreshPhase.Pulling,
+  RefreshPhase.Ready,
+  RefreshPhase.Refreshing,
+  RefreshPhase.Cancelling,
+  RefreshPhase.Finishing,
+  RefreshPhase.Disabled,
+];
+
+export interface RefreshControlState {
+  /**
+   * UI-ready normalized progress. It follows the native pull progress while the
+   * user is dragging, eases overshoot back to `1` when refresh commits, and
+   * eases from its current displayed value back to `0` when settling.
+   */
+  progress: SharedValue<number>;
+  /**
+   * Raw normalized progress emitted by native. Prefer `progress` for visuals.
+   */
+  rawProgress: SharedValue<number>;
+  /** Raw pull distance in platform points/dp. */
+  pullDistance: SharedValue<number>;
+  /** Distance required to enter the ready-to-refresh phase. */
+  triggerDistance: SharedValue<number>;
+  /** Discrete lifecycle phase for custom refresh UI. */
+  phase: SharedValue<RefreshPhase>;
+  /** `max(0, progress - 1)` exposed for convenience. */
+  overshoot: DerivedValue<number>;
+  /** Convenience boolean derived from the pulling phase. */
+  isPulling: DerivedValue<boolean>;
+  /** Convenience boolean derived from the ready-to-refresh phase. */
+  isReady: DerivedValue<boolean>;
+  /** Convenience boolean derived from `phase === RefreshPhase.Refreshing`. */
+  isRefreshing: DerivedValue<boolean>;
+  /** Convenience boolean for cancelling or finishing settle animations. */
+  isSettling: DerivedValue<boolean>;
+  /** Convenience boolean for any non-idle and non-disabled phase. */
+  isActive: DerivedValue<boolean>;
+}
+
 export type HeaderPanDecayEvent =
   GestureStateChangeEvent<PanGestureHandlerEventPayload>;
 
@@ -101,6 +167,13 @@ export interface HeaderMotionBridgeValue extends MotionProgress {
   measureTotalHeight: MeasureAnimatedHeaderAndSet;
   measureDynamic: MeasureAnimatedHeaderAndSet;
   headerPanMomentumOffset: SharedValue<number | null>;
+  refreshControl: RefreshControlState;
+  /**
+   * Internal ownership token for the shared refresh state. Holds the id of
+   * the `HeaderMotion.RefreshControl` instance currently driving the state,
+   * or `null` when unowned. Not part of the public API.
+   */
+  refreshControlOwner: SharedValue<number | null>;
   scrollValues: SharedValue<ScrollValues>;
   activeScrollId: SharedValue<string> | undefined;
   scrollToRef: React.RefObject<ScrollTo | null>;

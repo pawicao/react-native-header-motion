@@ -7,7 +7,10 @@ title: Pull to refresh
 
 Pull to refresh is tricky with collapsible headers. The header is overlayed on top of the scroll content, and the content itself is offset — so the refresh indicator needs to account for the header height to appear in the right place.
 
-Header Motion handles this under the hood by adjusting `progressViewOffset` on `RefreshControl` to match the current header height. From your perspective, the API is identical to standard React Native refresh.
+Header Motion supports two refresh modes:
+
+- React Native-compatible refresh, where Header Motion adjusts `progressViewOffset` for the built-in `RefreshControl`.
+- Headless refresh, where `HeaderMotion.RefreshControl` triggers refresh behavior and exposes progress through `useRefreshControl()` so your header can render the UI.
 
 ## Usage
 
@@ -38,12 +41,62 @@ You can also pass an explicit `RefreshControl` component if you need more contro
 </HeaderMotion.ScrollView>
 ```
 
+## Headless refresh UI
+
+Use `HeaderMotion.RefreshControl` when you want to render the refresh indicator yourself, usually inside the header:
+
+```tsx
+const [isRefreshing, setIsRefreshing] = useState(false);
+
+const handleRefresh = () => {
+  setIsRefreshing(true);
+  fetchData().finally(() => setIsRefreshing(false));
+};
+
+<HeaderMotion.ScrollView
+  refreshControl={
+    <HeaderMotion.RefreshControl
+      refreshing={isRefreshing}
+      onRefresh={handleRefresh}
+    />
+  }
+>
+  {/* content */}
+</HeaderMotion.ScrollView>;
+```
+
+Then read the refresh state anywhere inside the same `HeaderMotion` tree:
+
+```tsx
+import { useRefreshControl } from 'react-native-header-motion';
+import { useAnimatedStyle } from 'react-native-reanimated';
+
+const refresh = useRefreshControl();
+
+const style = useAnimatedStyle(() => ({
+  opacity: Math.min(refresh.progress.get(), 1),
+  transform: [{ scale: 0.8 + Math.min(refresh.progress.get(), 1) * 0.2 }],
+}));
+```
+
+The exposed state includes the UI-ready `progress`, advanced `rawProgress`, `pullDistance`, `triggerDistance`, `phase`, `overshoot`, and convenience booleans like `isReady`, `isRefreshing`, `isSettling`, and `isActive`. See [`useRefreshControl`](../api/use-refresh-control) for the full state reference, including how `progress` differs from `rawProgress`.
+
+Use `progressCommitDuration` to tune how quickly overshoot visually snaps back to committed refresh progress, and `progressSettleDuration` to tune the return to idle.
+
+If `onRefresh` fires but you never set `refreshing={true}`, the control settles back to idle after `refreshConfirmationTimeout` milliseconds (default `200`). Pass `0` or a negative value to disable this fallback — the control then stays in the `Refreshing` phase until you toggle `refreshing`, like React Native's built-in refresh controls. Pull gestures stay blocked for as long as that phase lasts, so with the fallback disabled every `onRefresh` must eventually flip `refreshing` back to `false`.
+
+`triggerDistance` is measured against the damped pull distance the control reports, not against how far the finger moved: iOS reads the scroll view's rubber-banded overscroll and Android applies a `0.5` drag rate on top of the touch slop. Expect the same value to feel different per platform and tune it on-device.
+
+:::note One refresh state per HeaderMotion
+The refresh state lives in the `HeaderMotion` context, because its intended consumer is the header. All refresh controls inside one `HeaderMotion` share that single state — independent simultaneous refresh controls are deliberately not supported. In tab or pager setups this is what you want: the header keeps showing the active refresh even if the user switches tabs mid-refresh.
+:::
+
 ## Platform notes
 
 :::info
-Android works well with the adjusted `progressViewOffset`.
+Built-in Android refresh works well with the adjusted `progressViewOffset`.
 
-On iOS, `progressViewOffset` is not fully reliable in all scenarios — the refresh indicator may not always appear in the expected position. We're aware of this and improvements for iOS are planned.
+For fully custom refresh UI, prefer `HeaderMotion.RefreshControl`. It does not render a native spinner.
 :::
 
 ## Using with ScrollManager
