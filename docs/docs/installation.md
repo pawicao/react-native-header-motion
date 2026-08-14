@@ -46,16 +46,23 @@ bun add react-native-header-motion
 
 Header Motion relies on three peer dependencies that your project must provide:
 
-| Package                        | Required version |
-| ------------------------------ | ---------------- |
-| `react-native-reanimated`      | `^4.0.0`         |
-| `react-native-gesture-handler` | `^2.0.0`         |
-| `react-native-worklets`        | `>= 0.4.0`       |
+| Package                        | Required version     |
+| ------------------------------ | -------------------- |
+| `react-native-reanimated`      | `^4.0.0`             |
+| `react-native-gesture-handler` | `^2.0.0 \|\| ^3.0.0` |
+| `react-native-worklets`        | `>= 0.4.0`           |
 
 If you already have these installed, you're good to go. Otherwise, follow their respective installation guides:
 
 - [Reanimated & Worklets installation](https://docs.swmansion.com/react-native-reanimated/docs/fundamentals/getting-started/#installation)
 - [Gesture Handler installation](https://docs.swmansion.com/react-native-gesture-handler/docs/fundamentals/installation)
+
+:::info
+Both Gesture Handler v2 and v3 are supported, and no configuration is needed to
+pick between them. Header Motion uses the gesture API that v3 keeps at the
+package root, and v3's `GestureDetector` transparently handles it — so the same
+code runs on either major.
+:::
 
 :::caution
 Make sure the version of `react-native-worklets` you install is compatible with your version of Reanimated. Check the [compatibility table](https://docs.swmansion.com/react-native-reanimated/docs/guides/compatibility) before installing.
