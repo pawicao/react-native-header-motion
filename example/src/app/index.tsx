@@ -157,6 +157,11 @@ const SECTIONS: ShowcaseSection[] = [
         icon: '🎵',
       },
       {
+        title: 'Refresh Edge Cases',
+        href: '/refresh-control-edge-cases',
+        icon: '🧪',
+      },
+      {
         title: 'Refresh FlatList (refreshControl)',
         href: '/refresh-flatlist-control',
         icon: '🔁',

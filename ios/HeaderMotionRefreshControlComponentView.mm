@@ -23,8 +23,14 @@ static const NSInteger HeaderMotionRefreshPhaseCancelling = 4;
 static const NSInteger HeaderMotionRefreshPhaseFinishing = 5;
 static const NSInteger HeaderMotionRefreshPhaseDisabled = 6;
 static const CGFloat HeaderMotionRefreshDefaultTriggerDistance = 80.0;
-static const CFTimeInterval HeaderMotionRefreshSettleDuration = 0.18;
+static const NSInteger HeaderMotionRefreshDefaultSettleDurationMs = 180;
 static const NSInteger HeaderMotionRefreshDefaultConfirmationTimeoutMs = 200;
+
+static const std::shared_ptr<const HeaderMotionRefreshControlProps> &HeaderMotionRefreshControlDefaultProps()
+{
+  static const auto defaultProps = std::make_shared<const HeaderMotionRefreshControlProps>();
+  return defaultProps;
+}
 
 @interface HeaderMotionRefreshControlComponentView () <RCTHeaderMotionRefreshControlViewProtocol>
 @end
@@ -40,7 +46,12 @@ static const NSInteger HeaderMotionRefreshDefaultConfirmationTimeoutMs = 200;
   CGFloat _triggerDistance;
   CGFloat _pullDistance;
   NSInteger _refreshConfirmationTimeout;
+  NSInteger _progressSettleDuration;
   NSInteger _phase;
+  // Invalidates in-flight confirmation-fallback blocks: a block only acts when
+  // its captured generation still matches, so a timer scheduled for an earlier
+  // refresh cycle can never settle a later one.
+  NSInteger _fallbackGeneration;
   CADisplayLink *_settleDisplayLink;
   CFTimeInterval _settleStartTime;
   CGFloat _settleStartDistance;
@@ -55,13 +66,13 @@ static const NSInteger HeaderMotionRefreshDefaultConfirmationTimeoutMs = 200;
 - (instancetype)initWithFrame:(CGRect)frame
 {
   if (self = [super initWithFrame:frame]) {
-    static const auto defaultProps = std::make_shared<const HeaderMotionRefreshControlProps>();
-    _props = defaultProps;
+    _props = HeaderMotionRefreshControlDefaultProps();
     self.hidden = YES;
     _enabled = YES;
     _keepScrollContentPinned = YES;
     _triggerDistance = HeaderMotionRefreshDefaultTriggerDistance;
     _refreshConfirmationTimeout = HeaderMotionRefreshDefaultConfirmationTimeoutMs;
+    _progressSettleDuration = HeaderMotionRefreshDefaultSettleDurationMs;
     _phase = HeaderMotionRefreshPhaseIdle;
   }
 
@@ -73,12 +84,21 @@ static const NSInteger HeaderMotionRefreshDefaultConfirmationTimeoutMs = 200;
   [super prepareForRecycle];
   [self detachFromScrollView];
   [self stopSettlingAnimation];
+  _fallbackGeneration++;
+  // `RCTViewComponentView` keeps the previous mount's props across recycling,
+  // and the reuse pass calls `updateProps:` with a null `oldProps`. Without
+  // this reset the next mount would diff its props against the *previous*
+  // screen's values and emit phantom transitions (a `Finishing` settle for a
+  // control that mounts idle, for example). Restoring the defaults keeps the
+  // diff aligned with the ivars reset below.
+  _props = HeaderMotionRefreshControlDefaultProps();
   _enabled = YES;
   _refreshing = NO;
   _keepScrollContentPinned = YES;
   _progressViewOffset = 0;
   _triggerDistance = HeaderMotionRefreshDefaultTriggerDistance;
   _refreshConfirmationTimeout = HeaderMotionRefreshDefaultConfirmationTimeoutMs;
+  _progressSettleDuration = HeaderMotionRefreshDefaultSettleDurationMs;
   _pullDistance = 0;
   _phase = HeaderMotionRefreshPhaseIdle;
 }
@@ -99,15 +119,19 @@ static const NSInteger HeaderMotionRefreshDefaultConfirmationTimeoutMs = 200;
   const auto &oldRefreshProps = static_cast<const HeaderMotionRefreshControlProps &>(*_props);
   const auto &newRefreshProps = static_cast<const HeaderMotionRefreshControlProps &>(*props);
 
-  [super updateProps:props oldProps:oldProps];
-
+  // Read the old props before `super` swaps `_props` — the reference above
+  // points into the object the current `_props` owns, and nothing here keeps
+  // it alive once that pointer is replaced.
   const BOOL enabledChanged = newRefreshProps.enabled != oldRefreshProps.enabled;
   const BOOL refreshingChanged = newRefreshProps.refreshing != oldRefreshProps.refreshing;
+
+  [super updateProps:props oldProps:oldProps];
 
   _progressViewOffset = newRefreshProps.progressViewOffset;
   _triggerDistance = MAX(1, (CGFloat)newRefreshProps.triggerDistance);
   _keepScrollContentPinned = newRefreshProps.keepScrollContentPinned;
   _refreshConfirmationTimeout = newRefreshProps.refreshConfirmationTimeout;
+  _progressSettleDuration = newRefreshProps.progressSettleDuration;
   // Track enabled/refreshing unconditionally so they never go stale when both
   // change within a single commit.
   _enabled = newRefreshProps.enabled;
@@ -147,6 +171,18 @@ static const NSInteger HeaderMotionRefreshDefaultConfirmationTimeoutMs = 200;
   }
 }
 
+- (void)updateEventEmitter:(const EventEmitter::Shared &)eventEmitter
+{
+  [super updateEventEmitter:eventEmitter];
+  // On the mount path Fabric applies props before installing the event
+  // emitter, so a phase emitted from that first updateProps (a control
+  // mounting with `refreshing={true}` or `enabled={false}`) was dropped.
+  // Replay the current phase once the emitter exists.
+  if (_eventEmitter && _phase != HeaderMotionRefreshPhaseIdle) {
+    [self emitProgress:_phase];
+  }
+}
+
 - (void)attachToScrollView
 {
   if (_scrollView) {
@@ -177,6 +213,7 @@ static const NSInteger HeaderMotionRefreshDefaultConfirmationTimeoutMs = 200;
 {
   // CADisplayLink retains its target — never leave it running past detach.
   [self stopSettlingAnimation];
+  _fallbackGeneration++;
 
   if (_scrollView && _observingContentOffset) {
     [_scrollView removeObserver:self forKeyPath:@"contentOffset" context:HeaderMotionRefreshContentOffsetContext];
@@ -212,9 +249,30 @@ static const NSInteger HeaderMotionRefreshDefaultConfirmationTimeoutMs = 200;
   }
 
   switch (panGestureRecognizer.state) {
-    case UIGestureRecognizerStateBegan:
+    case UIGestureRecognizerStateBegan: {
+      const CGFloat overscroll = [self scrollViewPullDistance];
+      if (_settleDisplayLink && overscroll <= 0) {
+        // A purely presentational settle (e.g. right after a refresh) with no
+        // real overscroll — let it finish on its own timeline. The guard in
+        // finishPullGesture keeps this gesture's release from reading the
+        // decaying settle distance as a pull.
+        break;
+      }
+
       [self stopSettlingAnimation];
+      // The settle animation eased _pullDistance on its own timeline; re-sync
+      // it with the real overscroll so a stale value can neither freeze the
+      // phase mid-settle nor pass the trigger check on release and re-fire
+      // onRefresh from what was effectively a tap.
+      _pullDistance = overscroll;
+      if (_pullDistance > 0) {
+        [self emitProgress:_pullDistance >= _triggerDistance ? HeaderMotionRefreshPhaseReady
+                                                            : HeaderMotionRefreshPhasePulling];
+      } else if (_phase != HeaderMotionRefreshPhaseIdle) {
+        [self emitProgress:HeaderMotionRefreshPhaseIdle];
+      }
       break;
+    }
 
     case UIGestureRecognizerStateEnded:
     case UIGestureRecognizerStateCancelled:
@@ -262,6 +320,12 @@ static const NSInteger HeaderMotionRefreshDefaultConfirmationTimeoutMs = 200;
     return;
   }
 
+  if (_settleDisplayLink) {
+    // A settle animation owns _pullDistance; this gesture never became a pull,
+    // so its release must not read the decaying settle value as one.
+    return;
+  }
+
   if (_pullDistance >= _triggerDistance) {
     _pullDistance = _triggerDistance;
     [self emitProgress:HeaderMotionRefreshPhaseRefreshing];
@@ -305,19 +369,22 @@ static const NSInteger HeaderMotionRefreshDefaultConfirmationTimeoutMs = 200;
 
 - (void)scheduleControlledRefreshFallback
 {
+  _fallbackGeneration++;
+
   if (_refreshConfirmationTimeout <= 0) {
     // Fallback disabled — stay in Refreshing until the `refreshing` prop
     // commits, matching React Native's built-in refresh controls.
     return;
   }
 
+  const NSInteger generation = _fallbackGeneration;
   __weak HeaderMotionRefreshControlComponentView *weakSelf = self;
   dispatch_after(
       dispatch_time(DISPATCH_TIME_NOW, (int64_t)_refreshConfirmationTimeout * (int64_t)NSEC_PER_MSEC),
       dispatch_get_main_queue(),
       ^{
     HeaderMotionRefreshControlComponentView *strongSelf = weakSelf;
-    if (!strongSelf || strongSelf->_refreshing ||
+    if (!strongSelf || strongSelf->_fallbackGeneration != generation || strongSelf->_refreshing ||
         strongSelf->_phase != HeaderMotionRefreshPhaseRefreshing) {
       return;
     }
@@ -330,7 +397,7 @@ static const NSInteger HeaderMotionRefreshDefaultConfirmationTimeoutMs = 200;
 {
   [self stopSettlingAnimation];
 
-  if (_pullDistance <= 0) {
+  if (_pullDistance <= 0 || _progressSettleDuration <= 0) {
     _pullDistance = 0;
     [self emitProgress:_enabled ? HeaderMotionRefreshPhaseIdle : HeaderMotionRefreshPhaseDisabled];
     return;
@@ -339,14 +406,19 @@ static const NSInteger HeaderMotionRefreshDefaultConfirmationTimeoutMs = 200;
   _settlePhase = settlingPhase;
   _settleStartDistance = _pullDistance;
   _settleStartTime = CACurrentMediaTime();
+  // Emit the settling phase synchronously — the display link's first frame
+  // lands a frame later, and that frame of lag is enough for the native
+  // timeline to reach Idle before the JS presentation animation finishes.
+  [self emitProgress:settlingPhase];
   _settleDisplayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(handleSettleFrame:)];
   [_settleDisplayLink addToRunLoop:NSRunLoop.mainRunLoop forMode:NSRunLoopCommonModes];
 }
 
 - (void)handleSettleFrame:(CADisplayLink *)displayLink
 {
+  const CFTimeInterval settleDuration = _progressSettleDuration / 1000.0;
   const CFTimeInterval elapsed = CACurrentMediaTime() - _settleStartTime;
-  const CGFloat t = MIN(1, elapsed / HeaderMotionRefreshSettleDuration);
+  const CGFloat t = MIN(1, elapsed / settleDuration);
   const CGFloat eased = 1 - pow(1 - t, 2);
   _pullDistance = _settleStartDistance * (1 - eased);
 

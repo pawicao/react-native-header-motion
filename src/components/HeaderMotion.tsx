@@ -132,32 +132,33 @@ function HeaderMotionContextProvider<T extends string>({
     typeof progressThreshold === 'number' ? progressThreshold : Infinity
   );
   const headerPanMomentumOffset = useSharedValue<number | null>(null);
+  const refreshControlOwner = useSharedValue<number | null>(null);
   const refreshControlPhase = useSharedValue<RefreshPhase>(RefreshPhase.Idle);
   const refreshControlProgress = useSharedValue(0);
   const refreshControlRawProgress = useSharedValue(0);
   const refreshControlPullDistance = useSharedValue(0);
   const refreshControlTriggerDistance = useSharedValue(0);
   const refreshControlOvershoot = useDerivedValue(() =>
-    Math.max(0, refreshControlProgress.value - 1)
+    Math.max(0, refreshControlProgress.get() - 1)
   );
   const refreshControlIsPulling = useDerivedValue(
-    () => refreshControlPhase.value === RefreshPhase.Pulling
+    () => refreshControlPhase.get() === RefreshPhase.Pulling
   );
   const refreshControlIsReady = useDerivedValue(
-    () => refreshControlPhase.value === RefreshPhase.Ready
+    () => refreshControlPhase.get() === RefreshPhase.Ready
   );
   const refreshControlIsRefreshing = useDerivedValue(
-    () => refreshControlPhase.value === RefreshPhase.Refreshing
+    () => refreshControlPhase.get() === RefreshPhase.Refreshing
   );
   const refreshControlIsSettling = useDerivedValue(
     () =>
-      refreshControlPhase.value === RefreshPhase.Cancelling ||
-      refreshControlPhase.value === RefreshPhase.Finishing
+      refreshControlPhase.get() === RefreshPhase.Cancelling ||
+      refreshControlPhase.get() === RefreshPhase.Finishing
   );
   const refreshControlIsActive = useDerivedValue(
     () =>
-      refreshControlPhase.value !== RefreshPhase.Idle &&
-      refreshControlPhase.value !== RefreshPhase.Disabled
+      refreshControlPhase.get() !== RefreshPhase.Idle &&
+      refreshControlPhase.get() !== RefreshPhase.Disabled
   );
 
   const setOrUpdateDynamicMeasurement =
@@ -287,6 +288,7 @@ function HeaderMotionContextProvider<T extends string>({
       measureTotalHeight,
       headerPanMomentumOffset,
       refreshControl,
+      refreshControlOwner,
       progressThreshold: progressThresholdValue,
       scrollValues,
       scrollToRef,
@@ -298,6 +300,7 @@ function HeaderMotionContextProvider<T extends string>({
       measureTotalHeight,
       headerPanMomentumOffset,
       refreshControl,
+      refreshControlOwner,
       setOrUpdateDynamicMeasurement,
       scrollValues,
       activeScrollId,

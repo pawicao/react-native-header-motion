@@ -89,6 +89,7 @@ const bridgeValue = {
     isSettling: createSharedValue(false),
     isActive: createSharedValue(false),
   },
+  refreshControlOwner: createSharedValue<number | null>(null),
   scrollValues: createSharedValue({}),
   activeScrollId: undefined,
   scrollToRef: { current: jest.fn() },

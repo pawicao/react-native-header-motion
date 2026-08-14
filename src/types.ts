@@ -80,15 +80,39 @@ export interface MotionProgress {
   progressThreshold: SharedValue<number>;
 }
 
-export enum RefreshPhase {
-  Idle = 0,
-  Pulling = 1,
-  Ready = 2,
-  Refreshing = 3,
-  Cancelling = 4,
-  Finishing = 5,
-  Disabled = 6,
-}
+/**
+ * Refresh lifecycle phases.
+ *
+ * A const object rather than a TS `enum` so the phase can be handled either
+ * way: `phase === RefreshPhase.Pulling` and `phase === 'pulling'` both
+ * type-check and narrow, since the members are the string literals themselves.
+ */
+export const RefreshPhase = {
+  Idle: 'idle',
+  Pulling: 'pulling',
+  Ready: 'ready',
+  Refreshing: 'refreshing',
+  Cancelling: 'cancelling',
+  Finishing: 'finishing',
+  Disabled: 'disabled',
+} as const;
+
+export type RefreshPhase = (typeof RefreshPhase)[keyof typeof RefreshPhase];
+
+/**
+ * Native emits the phase as an `Int32`; index maps the wire code to the
+ * public phase. Keep the order in sync with the `HeaderMotionRefreshPhase`
+ * constants on iOS and Android.
+ */
+export const REFRESH_PHASE_BY_NATIVE_CODE: readonly RefreshPhase[] = [
+  RefreshPhase.Idle,
+  RefreshPhase.Pulling,
+  RefreshPhase.Ready,
+  RefreshPhase.Refreshing,
+  RefreshPhase.Cancelling,
+  RefreshPhase.Finishing,
+  RefreshPhase.Disabled,
+];
 
 export interface RefreshControlState {
   /**
@@ -144,6 +168,12 @@ export interface HeaderMotionBridgeValue extends MotionProgress {
   measureDynamic: MeasureAnimatedHeaderAndSet;
   headerPanMomentumOffset: SharedValue<number | null>;
   refreshControl: RefreshControlState;
+  /**
+   * Internal ownership token for the shared refresh state. Holds the id of
+   * the `HeaderMotion.RefreshControl` instance currently driving the state,
+   * or `null` when unowned. Not part of the public API.
+   */
+  refreshControlOwner: SharedValue<number | null>;
   scrollValues: SharedValue<ScrollValues>;
   activeScrollId: SharedValue<string> | undefined;
   scrollToRef: React.RefObject<ScrollTo | null>;

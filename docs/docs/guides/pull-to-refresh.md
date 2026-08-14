@@ -74,16 +74,22 @@ import { useAnimatedStyle } from 'react-native-reanimated';
 const refresh = useRefreshControl();
 
 const style = useAnimatedStyle(() => ({
-  opacity: Math.min(refresh.progress.value, 1),
-  transform: [{ scale: 0.8 + Math.min(refresh.progress.value, 1) * 0.2 }],
+  opacity: Math.min(refresh.progress.get(), 1),
+  transform: [{ scale: 0.8 + Math.min(refresh.progress.get(), 1) * 0.2 }],
 }));
 ```
 
-The exposed state includes the UI-ready `progress`, advanced `rawProgress`, `pullDistance`, `triggerDistance`, `phase`, `overshoot`, and convenience booleans like `isReady`, `isRefreshing`, `isSettling`, and `isActive`.
+The exposed state includes the UI-ready `progress`, advanced `rawProgress`, `pullDistance`, `triggerDistance`, `phase`, `overshoot`, and convenience booleans like `isReady`, `isRefreshing`, `isSettling`, and `isActive`. See [`useRefreshControl`](../api/use-refresh-control) for the full state reference, including how `progress` differs from `rawProgress`.
 
 Use `progressCommitDuration` to tune how quickly overshoot visually snaps back to committed refresh progress, and `progressSettleDuration` to tune the return to idle.
 
-If `onRefresh` fires but you never set `refreshing={true}`, the control settles back to idle after `refreshConfirmationTimeout` milliseconds (default `200`). Pass `0` or a negative value to disable this fallback — the control then stays in the `Refreshing` phase until you toggle `refreshing`, like React Native's built-in refresh controls.
+If `onRefresh` fires but you never set `refreshing={true}`, the control settles back to idle after `refreshConfirmationTimeout` milliseconds (default `200`). Pass `0` or a negative value to disable this fallback — the control then stays in the `Refreshing` phase until you toggle `refreshing`, like React Native's built-in refresh controls. Pull gestures stay blocked for as long as that phase lasts, so with the fallback disabled every `onRefresh` must eventually flip `refreshing` back to `false`.
+
+`triggerDistance` is measured against the damped pull distance the control reports, not against how far the finger moved: iOS reads the scroll view's rubber-banded overscroll and Android applies a `0.5` drag rate on top of the touch slop. Expect the same value to feel different per platform and tune it on-device.
+
+:::note One refresh state per HeaderMotion
+The refresh state lives in the `HeaderMotion` context, because its intended consumer is the header. All refresh controls inside one `HeaderMotion` share that single state — independent simultaneous refresh controls are deliberately not supported. In tab or pager setups this is what you want: the header keeps showing the active refresh even if the user switches tabs mid-refresh.
+:::
 
 ## Platform notes
 

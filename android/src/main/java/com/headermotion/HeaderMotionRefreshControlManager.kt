@@ -26,6 +26,15 @@ internal class HeaderMotionRefreshControlManager :
   override fun createViewInstance(reactContext: ThemedReactContext) =
     HeaderMotionRefreshControlView(reactContext)
 
+  // The view carries live gesture and phase state (phase, pull distance,
+  // pending confirmation fallbacks). Recycling an instance would leak that
+  // state into an unrelated mount — e.g. a leftover REFRESHING phase blocks
+  // every pull on the next screen. Opt out so each mount starts pristine.
+  override fun prepareToRecycleView(
+    reactContext: ThemedReactContext,
+    view: HeaderMotionRefreshControlView,
+  ): HeaderMotionRefreshControlView? = null
+
   @ReactProp(name = "enabled", defaultBoolean = true)
   override fun setEnabled(view: HeaderMotionRefreshControlView, value: Boolean) {
     view.refreshEnabled = value
@@ -54,6 +63,11 @@ internal class HeaderMotionRefreshControlManager :
   @ReactProp(name = "refreshConfirmationTimeout", defaultInt = 200)
   override fun setRefreshConfirmationTimeout(view: HeaderMotionRefreshControlView, value: Int) {
     view.refreshConfirmationTimeoutMs = value.toLong()
+  }
+
+  @ReactProp(name = "progressSettleDuration", defaultInt = 180)
+  override fun setProgressSettleDuration(view: HeaderMotionRefreshControlView, value: Int) {
+    view.settleDurationMs = value.coerceAtLeast(0).toLong()
   }
 
   override fun getExportedCustomDirectEventTypeConstants(): Map<String, Any> =

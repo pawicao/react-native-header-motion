@@ -2,6 +2,7 @@ package com.headermotion
 
 import android.animation.ValueAnimator
 import android.content.Context
+import android.os.SystemClock
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
@@ -20,10 +21,22 @@ internal class HeaderMotionRefreshControlView(context: Context) : ViewGroup(cont
       field = value
       if (!value) {
         stopAnimation()
+        // isBeingDragged is deliberately NOT cleared here: an open touch
+        // stream must still reach onTouchEvent's disabled branch, which pairs
+        // notifyNativeGestureEnded with the started gesture and releases the
+        // parent's intercept lock. Clearing the flag would strand both.
+        hasEligibleDown = false
         pullDistancePx = 0f
         emitProgress(HeaderMotionRefreshPhase.DISABLED)
       } else if (phase == HeaderMotionRefreshPhase.DISABLED) {
-        emitProgress(HeaderMotionRefreshPhase.IDLE)
+        if (refreshing) {
+          // Match iOS: re-enabling while a controlled refresh is active must
+          // come back as REFRESHING, not IDLE.
+          pullDistancePx = max(pullDistancePx, triggerDistancePx)
+          emitProgress(HeaderMotionRefreshPhase.REFRESHING)
+        } else {
+          emitProgress(HeaderMotionRefreshPhase.IDLE)
+        }
       }
     }
 
@@ -35,6 +48,13 @@ internal class HeaderMotionRefreshControlView(context: Context) : ViewGroup(cont
 
       field = value
       removeCallbacks(controlledRefreshFallback)
+      if (!refreshEnabled) {
+        // Fabric applies changed props one setter at a time, so a commit that
+        // carries both `enabled={false}` and a `refreshing` change must not
+        // emit active phases over DISABLED. Record the value only — the
+        // refreshEnabled setter reconciles it on re-enable.
+        return
+      }
       if (value) {
         stopAnimation()
         pullDistancePx = max(pullDistancePx, triggerDistancePx)
@@ -53,6 +73,10 @@ internal class HeaderMotionRefreshControlView(context: Context) : ViewGroup(cont
   // fallback (the control then waits indefinitely, like RN's built-in ones).
   var refreshConfirmationTimeoutMs = DEFAULT_CONFIRMATION_TIMEOUT_MS
 
+  // Matches the JS progressSettleDuration so the phase reaches IDLE exactly
+  // when the JS presentation progress finishes its own settle animation.
+  var settleDurationMs = DEFAULT_SETTLE_DURATION_MS
+
   var triggerDistancePx = PixelUtil.toPixelFromDIP(DEFAULT_TRIGGER_DISTANCE)
     set(value) {
       field = max(1f, value)
@@ -64,6 +88,9 @@ internal class HeaderMotionRefreshControlView(context: Context) : ViewGroup(cont
   private var initialDownY = 0f
   private var initialDownX = 0f
   private var isBeingDragged = false
+  private var hasEligibleDown = false
+  private var activePointerId = INVALID_POINTER
+  private var pullStartOffsetPx = 0f
   private var nativeGestureStarted = false
   private var pullDistancePx = 0f
   private var phase = HeaderMotionRefreshPhase.IDLE
@@ -101,33 +128,51 @@ internal class HeaderMotionRefreshControlView(context: Context) : ViewGroup(cont
     // Phase REFRESHING with `refreshing` still false covers the window between
     // dispatching onRefresh and JS committing `refreshing={true}` — starting a
     // new pull there would double-fire onRefresh.
-    if (
-      !refreshEnabled ||
-      refreshing ||
-      phase == HeaderMotionRefreshPhase.REFRESHING ||
-      canChildScrollUp()
-    ) {
-      return false
-    }
+    val canStartPull =
+      refreshEnabled &&
+        !refreshing &&
+        phase != HeaderMotionRefreshPhase.REFRESHING &&
+        !canChildScrollUp()
 
     when (event.actionMasked) {
       MotionEvent.ACTION_DOWN -> {
-        initialDownY = event.y
-        initialDownX = event.x
         isBeingDragged = false
-        stopAnimation()
+        // Only a DOWN that landed while a pull was possible may grow into a
+        // pull. Without this, a gesture that started mid-list would reuse
+        // coordinates recorded for an earlier gesture once the child scrolls
+        // back to its top edge.
+        hasEligibleDown = canStartPull
+        if (canStartPull) {
+          activePointerId = event.getPointerId(0)
+          initialDownY = event.y
+          initialDownX = event.x
+        }
       }
 
       MotionEvent.ACTION_MOVE -> {
-        val yDiff = event.y - initialDownY
-        val xDiff = abs(event.x - initialDownX)
+        if (!canStartPull || !hasEligibleDown) {
+          return false
+        }
+
+        val pointerIndex = event.findPointerIndex(activePointerId)
+        if (pointerIndex < 0) {
+          return false
+        }
+
+        val yDiff = event.getY(pointerIndex) - initialDownY
+        val xDiff = abs(event.getX(pointerIndex) - initialDownX)
         if (yDiff > touchSlop && yDiff > xDiff) {
-          isBeingDragged = true
-          parent?.requestDisallowInterceptTouchEvent(true)
-          startNativeGesture(event)
-          updatePullDistance((yDiff - touchSlop) * dragRate)
+          startDrag(event)
+          updatePullDistance(pullStartOffsetPx + (yDiff - touchSlop) * dragRate)
           return true
         }
+      }
+
+      MotionEvent.ACTION_POINTER_UP -> onSecondaryPointerUp(event)
+
+      MotionEvent.ACTION_UP,
+      MotionEvent.ACTION_CANCEL -> {
+        hasEligibleDown = false
       }
     }
 
@@ -139,9 +184,10 @@ internal class HeaderMotionRefreshControlView(context: Context) : ViewGroup(cont
       return true
     }
 
-    if (refreshing) {
-      // A controlled refresh started mid-drag; abandon the pull so it neither
-      // overrides the REFRESHING phase nor re-dispatches onRefresh on release.
+    if (refreshing || !refreshEnabled) {
+      // A controlled refresh started (or the control was disabled) mid-drag;
+      // abandon the pull so it neither overrides the current phase nor
+      // dispatches onRefresh on release.
       isBeingDragged = false
       finishNativeGesture(event)
       parent?.requestDisallowInterceptTouchEvent(false)
@@ -150,9 +196,14 @@ internal class HeaderMotionRefreshControlView(context: Context) : ViewGroup(cont
 
     when (event.actionMasked) {
       MotionEvent.ACTION_MOVE -> {
-        val distance = max(0f, (event.y - initialDownY - touchSlop) * dragRate)
-        updatePullDistance(distance)
+        val pointerIndex = event.findPointerIndex(activePointerId)
+        if (pointerIndex >= 0) {
+          val pulled = (event.getY(pointerIndex) - initialDownY - touchSlop) * dragRate
+          updatePullDistance(max(0f, pullStartOffsetPx + pulled))
+        }
       }
+
+      MotionEvent.ACTION_POINTER_UP -> onSecondaryPointerUp(event)
 
       MotionEvent.ACTION_UP,
       MotionEvent.ACTION_CANCEL -> {
@@ -162,6 +213,31 @@ internal class HeaderMotionRefreshControlView(context: Context) : ViewGroup(cont
     }
 
     return true
+  }
+
+  private fun startDrag(event: MotionEvent) {
+    isBeingDragged = true
+    // Stop the settle animator only when a real drag starts — a plain tap must
+    // not freeze a settle mid-flight. Carrying the residual distance over keeps
+    // the pull continuous when the user catches a settling refresh UI.
+    stopAnimation()
+    pullStartOffsetPx = pullDistancePx
+    parent?.requestDisallowInterceptTouchEvent(true)
+    startNativeGesture(event)
+  }
+
+  private fun onSecondaryPointerUp(event: MotionEvent) {
+    val pointerIndex = event.actionIndex
+    if (event.getPointerId(pointerIndex) != activePointerId) {
+      return
+    }
+
+    // The tracked pointer went up; hand tracking over to another pointer and
+    // shift the reference coordinates so the pull distance stays continuous.
+    val newPointerIndex = if (pointerIndex == 0) 1 else 0
+    initialDownY += event.getY(newPointerIndex) - event.getY(pointerIndex)
+    initialDownX += event.getX(newPointerIndex) - event.getX(pointerIndex)
+    activePointerId = event.getPointerId(newPointerIndex)
   }
 
   override fun requestDisallowInterceptTouchEvent(disallowIntercept: Boolean) {
@@ -186,12 +262,14 @@ internal class HeaderMotionRefreshControlView(context: Context) : ViewGroup(cont
 
   private fun finishPull() {
     isBeingDragged = false
+    hasEligibleDown = false
     parent?.requestDisallowInterceptTouchEvent(false)
 
     if (pullDistancePx >= triggerDistancePx) {
       pullDistancePx = triggerDistancePx
       emitProgress(HeaderMotionRefreshPhase.REFRESHING)
       dispatchRefresh()
+      removeCallbacks(controlledRefreshFallback)
       if (refreshConfirmationTimeoutMs > 0) {
         postDelayed(controlledRefreshFallback, refreshConfirmationTimeoutMs)
       }
@@ -205,7 +283,7 @@ internal class HeaderMotionRefreshControlView(context: Context) : ViewGroup(cont
     stopAnimation()
     val startDistance = pullDistancePx
 
-    if (startDistance <= 0f) {
+    if (startDistance <= 0f || settleDurationMs <= 0L) {
       pullDistancePx = 0f
       emitProgress(if (refreshEnabled) HeaderMotionRefreshPhase.IDLE else HeaderMotionRefreshPhase.DISABLED)
       return
@@ -213,7 +291,7 @@ internal class HeaderMotionRefreshControlView(context: Context) : ViewGroup(cont
 
     settleAnimator =
       ValueAnimator.ofFloat(startDistance, 0f).apply {
-        duration = SETTLE_DURATION_MS
+        duration = settleDurationMs
         interpolator = DecelerateInterpolator()
         addUpdateListener {
           pullDistancePx = it.animatedValue as Float
@@ -223,8 +301,12 @@ internal class HeaderMotionRefreshControlView(context: Context) : ViewGroup(cont
           pullDistancePx = 0f
           emitProgress(if (refreshEnabled) HeaderMotionRefreshPhase.IDLE else HeaderMotionRefreshPhase.DISABLED)
         }
-        start()
       }
+    // Emit the settling phase synchronously — the animator's first update
+    // lands a frame later, and that frame of lag is enough for the native
+    // timeline to reach IDLE before the JS presentation animation finishes.
+    emitProgress(settlingPhase)
+    settleAnimator?.start()
   }
 
   private fun stopAnimation() {
@@ -242,6 +324,17 @@ internal class HeaderMotionRefreshControlView(context: Context) : ViewGroup(cont
     super.onDetachedFromWindow()
     removeCallbacks(controlledRefreshFallback)
     stopAnimation()
+    // If the view goes away mid-drag, the touch stream will never deliver the
+    // UP/CANCEL that pairs notifyNativeGestureEnded with the started gesture —
+    // close it defensively so future touches are not blocked.
+    if (nativeGestureStarted) {
+      val now = SystemClock.uptimeMillis()
+      val cancelEvent = MotionEvent.obtain(now, now, MotionEvent.ACTION_CANCEL, 0f, 0f, 0)
+      finishNativeGesture(cancelEvent)
+      cancelEvent.recycle()
+    }
+    isBeingDragged = false
+    hasEligibleDown = false
   }
 
   private fun emitProgress(nextPhase: Int) {
@@ -305,10 +398,11 @@ internal class HeaderMotionRefreshControlView(context: Context) : ViewGroup(cont
   }
 
   companion object {
+    private const val INVALID_POINTER = -1
     private const val DEFAULT_TRIGGER_DISTANCE = 80f
-    private const val SETTLE_DURATION_MS = 180L
 
-    // Keep in sync with the iOS default and the codegen spec default.
+    // Keep these in sync with the iOS defaults and the codegen spec defaults.
+    private const val DEFAULT_SETTLE_DURATION_MS = 180L
     private const val DEFAULT_CONFIRMATION_TIMEOUT_MS = 200L
   }
 }
