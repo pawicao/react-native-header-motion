@@ -20,6 +20,14 @@ If your header lives inside the same component tree as `HeaderMotion` (not rende
 
 Header panning is built on Gesture Handler's pan gesture. Even if you don't use the `pannable` prop, the library imports from `react-native-gesture-handler`. Most React Native projects already have it installed.
 
+## Does Header Motion work with Gesture Handler v3?
+
+Yes. Both v2 and v3 are supported by the same build — there's no separate entry point, flag, or configuration to set.
+
+Header Motion touches a deliberately small part of Gesture Handler: the `Gesture` builder, `GestureDetector`, `GestureHandlerRootView`, and the `GestureStateChangeEvent` / `PanGestureHandlerEventPayload` types. v3 still exports all of these from the package root under the same names, and its `GestureDetector` accepts gestures from either API and routes them accordingly. The v3 rename that moved parts of the v2 surface behind `Legacy*` names affected components and gesture instance types that this library doesn't use.
+
+One consequence worth knowing if you compile with `skipLibCheck: false`: Gesture Handler v3 currently ships a native component spec whose props don't structurally extend React Native's `ViewProps`, so that setting fails inside `react-native-gesture-handler` itself, independently of Header Motion. `skipLibCheck: true` — the React Native template default — is the supported configuration.
+
 ## Can I use this with FlashList / LegendList / other custom scrollables?
 
 Yes. Use `createHeaderMotionScrollable()` to wrap any scrollable component. For FlashList and LegendList, you can also use the built-in `ScrollablePresets` export so the recommended factory options are already filled in. See the [Custom scrollables](../guides/custom-scrollables) guide.

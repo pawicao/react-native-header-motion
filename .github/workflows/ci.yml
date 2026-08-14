@@ -44,6 +44,48 @@ jobs:
       - name: Run unit tests
         run: yarn test --maxWorkers=2 --coverage
 
+  # Enforces the `react-native-gesture-handler: ^2.0.0 || ^3.0.0` peer range.
+  #
+  # `yarn typecheck` is the load-bearing step: `src/` is `.ts`, so `skipLibCheck`
+  # does NOT suppress a missing Gesture Handler export there, and the imports in
+  # our shipped `.d.ts` are generated from those same statements. A consumer-side
+  # type test cannot replace this — in a `.d.ts`, an unresolved import silently
+  # widens to the error type instead of failing, which no type assertion can
+  # detect.
+  #
+  # Majors are tracked by tag rather than pinned so an upstream release that
+  # breaks the range surfaces here instead of in users' projects.
+  gesture-handler-compat:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        gesture-handler: ['2', '3']
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      - name: Setup
+        uses: ./.github/actions/setup
+
+      - name: Install Gesture Handler v${{ matrix.gesture-handler }}
+        # Overriding the pinned devDependency necessarily mutates package.json
+        # and yarn.lock, which CI's default immutable install forbids.
+        env:
+          YARN_ENABLE_IMMUTABLE_INSTALLS: 'false'
+        run: yarn add -D react-native-gesture-handler@${{ matrix.gesture-handler }}
+
+      - name: Report resolved version
+        run: node -p "require('react-native-gesture-handler/package.json').version"
+
+      - name: Typecheck files
+        run: yarn typecheck
+
+      - name: Run unit tests
+        run: yarn test --maxWorkers=2
+
   build-library:
     runs-on: ubuntu-latest
 
