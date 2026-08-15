@@ -14,6 +14,26 @@ interface ShowcaseSection {
 
 const SECTIONS: ShowcaseSection[] = [
   {
+    title: 'High-level API',
+    data: [
+      {
+        title: 'Collapsible (parallax preset)',
+        href: '/collapsible-simple',
+        icon: '🎁',
+      },
+      {
+        title: 'CollapsibleTabs (pager-view)',
+        href: '/collapsible-tabs',
+        icon: '🗂️',
+      },
+      {
+        title: 'CollapsibleTabs (built-in pager)',
+        href: '/collapsible-tabs-default-pager',
+        icon: '📚',
+      },
+    ],
+  },
+  {
     title: 'Core',
     data: [
       { title: 'Collapsible', href: '/simple', icon: '📦' },

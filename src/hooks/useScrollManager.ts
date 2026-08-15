@@ -16,7 +16,7 @@ import {
   type ScrollHandler,
 } from 'react-native-reanimated';
 import { scheduleOnRN, scheduleOnUI } from 'react-native-worklets';
-import { HeaderMotionContext } from '../context';
+import { HeaderMotionContext, HeaderMotionScrollIdContext } from '../context';
 import type { ScrollManagerConfig, ScrollHandlerContext } from '../types';
 import type { LayoutChangeEvent } from 'react-native';
 import {
@@ -336,7 +336,9 @@ export interface UseScrollManagerOptions<TRef extends InstanceOrElement = any>
  *   below the measured header
  *
  * In multi-scroll setups, pass a unique `scrollId` for each scrollable.
- * In single-scroll setups, you usually do not need one.
+ * In single-scroll setups, you usually do not need one. Container components
+ * that own a scroll region (for example `CollapsibleTabs.Tab`) can provide a
+ * default id through context; an explicit `scrollId` always wins over it.
  *
  * If you need the same fallback behavior but prefer render-prop composition
  * over a hook, use `HeaderMotion.ScrollManager`.
@@ -375,7 +377,8 @@ export function useScrollManager<TRef extends InstanceOrElement = any>(
   options?: UseScrollManagerOptions<TRef>
 ): ScrollManagerConfig<TRef> {
   const { originalHeaderHeight } = useScrollManagerContext();
-  const id = scrollId ?? DEFAULT_SCROLL_ID;
+  const contextScrollId = useContext(HeaderMotionScrollIdContext);
+  const id = scrollId ?? contextScrollId ?? DEFAULT_SCROLL_ID;
 
   const ensureScrollableContentMinHeight =
     options?.ensureScrollableContentMinHeight ?? false;
