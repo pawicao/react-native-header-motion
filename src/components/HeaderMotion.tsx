@@ -22,33 +22,8 @@ import {
   DEFAULT_PROGRESS_THRESHOLD,
   DEFAULT_SCROLL_ID,
   getInitialScrollValue,
+  resolveScrollIdForProgress,
 } from '../utils';
-
-const resolveScrollIdForProgress = (
-  scrollValues: ScrollValues,
-  activeScrollIdValue: string | undefined
-) => {
-  'worklet';
-
-  if (activeScrollIdValue) {
-    return activeScrollIdValue;
-  }
-
-  let onlyNonDefaultId: string | null = null;
-  for (const key in scrollValues) {
-    if (key === DEFAULT_SCROLL_ID) {
-      continue;
-    }
-
-    if (onlyNonDefaultId !== null) {
-      return DEFAULT_SCROLL_ID;
-    }
-
-    onlyNonDefaultId = key;
-  }
-
-  return onlyNonDefaultId ?? DEFAULT_SCROLL_ID;
-};
 
 export interface HeaderMotionProps<T extends string> {
   /**
