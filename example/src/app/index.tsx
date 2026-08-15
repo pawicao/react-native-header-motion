@@ -16,10 +16,16 @@ const SECTIONS: ShowcaseSection[] = [
   {
     title: 'High-level API',
     data: [
+      { title: 'Preset: collapse', href: '/preset-collapse', icon: '🎁' },
+      { title: 'Preset: fade', href: '/preset-fade', icon: '🌫️' },
+      { title: 'Preset: parallax', href: '/preset-parallax', icon: '🎢' },
+      { title: 'Preset: scale', href: '/preset-scale', icon: '🔍' },
+      { title: 'Preset: none', href: '/preset-none', icon: '⬜' },
+      { title: 'Custom preset (3D fold)', href: '/preset-custom', icon: '🧪' },
       {
-        title: 'Collapsible (parallax preset)',
-        href: '/collapsible-simple',
-        icon: '🎁',
+        title: 'Overlay header (no NavigationHeader)',
+        href: '/collapsible-overlay',
+        icon: '🪟',
       },
       {
         title: 'CollapsibleTabs (pager-view)',
