@@ -19,6 +19,16 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'category',
+      label: 'High-level API',
+      collapsed: false,
+      items: [
+        'high-level/collapsible',
+        'high-level/presets',
+        'high-level/collapsible-tabs',
+      ],
+    },
+    {
+      type: 'category',
       label: 'Guides',
       collapsed: false,
       items: [
