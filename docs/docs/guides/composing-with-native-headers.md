@@ -110,7 +110,6 @@ function CollapsibleHeader() {
 const styles = StyleSheet.create({
   header: {
     backgroundColor: '#304077',
-    zIndex: 1,
   },
   dynamicWrapper: {
     overflow: 'hidden',
@@ -125,9 +124,7 @@ const styles = StyleSheet.create({
 When using `headerTransparent`, the native header no longer pushes your content down. You'll need to add `paddingTop` to your custom header to account for the safe area insets **plus** the native header height. The native header height can be obtained from `useHeaderHeight()` (from `@react-navigation/elements`) or estimated as a constant.
 :::
 
-:::caution
-Setting `zIndex: 1` on `HeaderMotion.Header` is important here. Since the header and the scrollable are siblings in the same layout (unlike the native header which renders in its own layer), you need the z-index to ensure the header draws on top of the scrollable content as they overlap during animation.
-:::
+`HeaderMotion.Header` sets `zIndex: 1` when `overlay` is `true` (the default). You do not need to set it in your header style.
 
 ## Why this works well
 
