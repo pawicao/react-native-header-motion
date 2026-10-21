@@ -44,6 +44,37 @@ jobs:
       - name: Run unit tests
         run: yarn test --maxWorkers=2 --coverage
 
+  # Checks the latest release of each supported Gesture Handler major.
+  gesture-handler-compat:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        gesture-handler: ['2', '3']
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      - name: Setup
+        uses: ./.github/actions/setup
+
+      - name: Install Gesture Handler v${{ matrix.gesture-handler }}
+        # This step changes package.json and yarn.lock.
+        env:
+          YARN_ENABLE_IMMUTABLE_INSTALLS: 'false'
+        run: yarn add -D react-native-gesture-handler@${{ matrix.gesture-handler }}
+
+      - name: Report resolved version
+        run: node -p "require('react-native-gesture-handler/package.json').version"
+
+      - name: Typecheck files
+        run: yarn typecheck
+
+      - name: Run unit tests
+        run: yarn test --maxWorkers=2
+
   build-library:
     runs-on: ubuntu-latest
 
