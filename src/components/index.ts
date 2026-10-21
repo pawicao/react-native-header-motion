@@ -3,6 +3,7 @@ export * from './FlatList';
 export * from './Header';
 export * from './NavigationBridge';
 export * from './HeaderMotion';
+export * from './RefreshControl';
 export * from './ScrollManager';
 export * from './ScrollView';
 export * from './createHeaderMotionScrollable';

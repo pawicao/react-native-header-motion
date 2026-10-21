@@ -72,10 +72,25 @@ function injectProgressViewOffset(
     });
   }
 
+  if (isHeadlessRefreshControl(refreshControl)) {
+    // HeaderMotion.RefreshControl is headless — its native side never reads
+    // progressViewOffset, so a SharedValue offset needs no resolving. Swapping
+    // it for ResolvedRefreshControl would silently replace the headless
+    // control with the built-in platform spinner.
+    return refreshControl;
+  }
+
   return createElement(ResolvedRefreshControl, {
     ...refreshControl.props,
     progressViewOffset: progressViewOffset as number,
   });
+}
+
+function isHeadlessRefreshControl(element: ReactElement<RefreshControlProps>) {
+  return (
+    (element.type as { isHeaderMotionRefreshControl?: boolean })
+      ?.isHeaderMotionRefreshControl === true
+  );
 }
 
 function ResolvedRefreshControl({

@@ -1,5 +1,5 @@
 import React from 'react';
-import { RefreshControl } from 'react-native';
+import { RefreshControl, type RefreshControlProps } from 'react-native';
 import { resolveRefreshControl } from '../refreshControl';
 
 jest.mock('react-native-reanimated', () => {
@@ -16,6 +16,13 @@ jest.mock('react-native-reanimated', () => {
     useAnimatedProps: (factory: () => object) => factory(),
   };
 });
+
+function createHeadlessRefreshControl() {
+  // Stand-in for HeaderMotion.RefreshControl carrying the same static marker.
+  const HeadlessRefreshControl = (_props: RefreshControlProps) => null;
+  HeadlessRefreshControl.isHeaderMotionRefreshControl = true;
+  return HeadlessRefreshControl;
+}
 
 describe('resolveRefreshControl', () => {
   it('injects progressViewOffset into explicit refreshControl when missing', () => {
@@ -92,6 +99,45 @@ describe('resolveRefreshControl', () => {
     expect(resolved?.props.refreshing).toBe(false);
     expect(resolved?.props.onRefresh).toBe(explicitOnRefresh);
     expect(resolved?.props.progressViewOffset).toBe(24);
+  });
+
+  it('injects numeric progressViewOffset into HeaderMotion.RefreshControl without replacing it', () => {
+    const HeadlessRefreshControl = createHeadlessRefreshControl();
+    const refreshControl = React.createElement(HeadlessRefreshControl, {
+      refreshing: false,
+      onRefresh: jest.fn(),
+    });
+
+    const resolved = resolveRefreshControl({
+      refreshControl,
+      progressViewOffset: 72,
+    });
+
+    expect(resolved?.type).toBe(HeadlessRefreshControl);
+    expect(resolved?.props.progressViewOffset).toBe(72);
+  });
+
+  it('preserves HeaderMotion.RefreshControl when progressViewOffset is a SharedValue', () => {
+    const HeadlessRefreshControl = createHeadlessRefreshControl();
+    const refreshControl = React.createElement(HeadlessRefreshControl, {
+      refreshing: false,
+      onRefresh: jest.fn(),
+    });
+
+    const resolved = resolveRefreshControl({
+      refreshControl,
+      progressViewOffset: { value: 72 } as any,
+    });
+
+    expect(resolved?.type).toBe(HeadlessRefreshControl);
+  });
+
+  it('marks the exported RefreshControl component as headless', () => {
+    const {
+      RefreshControl: HeaderMotionRefreshControl,
+    } = require('../../components/RefreshControl');
+
+    expect(HeaderMotionRefreshControl.isHeaderMotionRefreshControl).toBe(true);
   });
 
   it('returns undefined for invalid refreshControl values', () => {

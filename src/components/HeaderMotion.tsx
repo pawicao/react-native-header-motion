@@ -15,8 +15,10 @@ import type {
   MeasureAnimatedHeader,
   MeasureAnimatedHeaderAndSet,
   ProgressThreshold,
+  RefreshControlState,
   ScrollValues,
 } from '../types';
+import { RefreshPhase } from '../types';
 import {
   DEFAULT_MEASURE_DYNAMIC,
   DEFAULT_PROGRESS_THRESHOLD,
@@ -130,6 +132,34 @@ function HeaderMotionContextProvider<T extends string>({
     typeof progressThreshold === 'number' ? progressThreshold : Infinity
   );
   const headerPanMomentumOffset = useSharedValue<number | null>(null);
+  const refreshControlOwner = useSharedValue<number | null>(null);
+  const refreshControlPhase = useSharedValue<RefreshPhase>(RefreshPhase.Idle);
+  const refreshControlProgress = useSharedValue(0);
+  const refreshControlRawProgress = useSharedValue(0);
+  const refreshControlPullDistance = useSharedValue(0);
+  const refreshControlTriggerDistance = useSharedValue(0);
+  const refreshControlOvershoot = useDerivedValue(() =>
+    Math.max(0, refreshControlProgress.get() - 1)
+  );
+  const refreshControlIsPulling = useDerivedValue(
+    () => refreshControlPhase.get() === RefreshPhase.Pulling
+  );
+  const refreshControlIsReady = useDerivedValue(
+    () => refreshControlPhase.get() === RefreshPhase.Ready
+  );
+  const refreshControlIsRefreshing = useDerivedValue(
+    () => refreshControlPhase.get() === RefreshPhase.Refreshing
+  );
+  const refreshControlIsSettling = useDerivedValue(
+    () =>
+      refreshControlPhase.get() === RefreshPhase.Cancelling ||
+      refreshControlPhase.get() === RefreshPhase.Finishing
+  );
+  const refreshControlIsActive = useDerivedValue(
+    () =>
+      refreshControlPhase.get() !== RefreshPhase.Idle &&
+      refreshControlPhase.get() !== RefreshPhase.Disabled
+  );
 
   const setOrUpdateDynamicMeasurement =
     useCallback<MeasureAnimatedHeaderAndSet>(
@@ -218,6 +248,34 @@ function HeaderMotionContextProvider<T extends string>({
   });
 
   const scrollToRef = useRef<ScrollTo>(null);
+  const refreshControl = useMemo<RefreshControlState>(
+    () => ({
+      progress: refreshControlProgress,
+      rawProgress: refreshControlRawProgress,
+      pullDistance: refreshControlPullDistance,
+      triggerDistance: refreshControlTriggerDistance,
+      phase: refreshControlPhase,
+      overshoot: refreshControlOvershoot,
+      isPulling: refreshControlIsPulling,
+      isReady: refreshControlIsReady,
+      isRefreshing: refreshControlIsRefreshing,
+      isSettling: refreshControlIsSettling,
+      isActive: refreshControlIsActive,
+    }),
+    [
+      refreshControlIsActive,
+      refreshControlIsPulling,
+      refreshControlIsReady,
+      refreshControlIsRefreshing,
+      refreshControlIsSettling,
+      refreshControlOvershoot,
+      refreshControlPhase,
+      refreshControlProgress,
+      refreshControlRawProgress,
+      refreshControlPullDistance,
+      refreshControlTriggerDistance,
+    ]
+  );
   // FUTURE: SharedValue-based scrollTo was removed for now because function updates
   // were not propagating reliably, while it works for refs. Revisit later.
   // We need to be updating the scrollTo on active scroll ID changes and doing it via state would cause re-renders.
@@ -229,6 +287,8 @@ function HeaderMotionContextProvider<T extends string>({
       measureDynamic: setOrUpdateDynamicMeasurement,
       measureTotalHeight,
       headerPanMomentumOffset,
+      refreshControl,
+      refreshControlOwner,
       progressThreshold: progressThresholdValue,
       scrollValues,
       scrollToRef,
@@ -239,6 +299,8 @@ function HeaderMotionContextProvider<T extends string>({
       progress,
       measureTotalHeight,
       headerPanMomentumOffset,
+      refreshControl,
+      refreshControlOwner,
       setOrUpdateDynamicMeasurement,
       scrollValues,
       activeScrollId,
