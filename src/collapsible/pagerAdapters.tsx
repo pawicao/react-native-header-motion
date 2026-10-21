@@ -5,7 +5,6 @@ import {
   useImperativeHandle,
   useRef,
   useState,
-  type ComponentRef,
   type ComponentType,
   type ReactNode,
   type Ref,
@@ -97,7 +96,9 @@ export function DefaultCollapsibleTabsPagerAdapter({
   const { width: windowWidth } = useWindowDimensions();
   const [pageWidth, setPageWidth] = useState(windowWidth);
   const pageWidthRef = useRef(pageWidth);
-  const scrollRef = useRef<ComponentRef<typeof ScrollView>>(null);
+  const scrollRef = useRef<{
+    scrollTo: (options: { x: number; animated: boolean }) => void;
+  } | null>(null);
 
   useEffect(() => {
     pageWidthRef.current = pageWidth;
@@ -137,7 +138,9 @@ export function DefaultCollapsibleTabsPagerAdapter({
 
   return (
     <ScrollView
-      ref={scrollRef}
+      ref={(instance) => {
+        scrollRef.current = instance;
+      }}
       horizontal
       pagingEnabled
       nestedScrollEnabled
@@ -165,11 +168,9 @@ export interface CollapsiblePagerViewLikeProps {
   ref?: Ref<any>;
   style?: StyleProp<ViewStyle>;
   initialPage?: number;
-  onPageSelected?: (event: {
-    nativeEvent: {
-      position: number;
-    };
-  }) => void;
+  onPageSelected?: (
+    event: NativeSyntheticEvent<Readonly<{ position: number }>>
+  ) => void;
   children?: ReactNode;
 }
 

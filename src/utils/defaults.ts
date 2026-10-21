@@ -9,6 +9,7 @@ const DEFAULT_PROGRESS_THRESHOLD: ProgressThreshold = (measuredHeaderValue) =>
 const DEFAULT_MEASURE_DYNAMIC: MeasureAnimatedHeader = (e) =>
   e.nativeEvent.layout.height;
 const DEFAULT_HEADER_OFFSET_STRATEGY: HeaderMotionOffsetStrategy = 'padding';
+const SCROLL_OFFSET_TOLERANCE = 0.5;
 
 // Symbol doesn't work?
 // const DEFAULT_SCROLL_ID = Symbol("HEADER_MOTION_DEFAULT_SCROLL_ID");
@@ -19,4 +20,5 @@ export {
   DEFAULT_MEASURE_DYNAMIC,
   DEFAULT_PROGRESS_THRESHOLD,
   DEFAULT_SCROLL_ID,
+  SCROLL_OFFSET_TOLERANCE,
 };

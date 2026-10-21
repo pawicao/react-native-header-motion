@@ -34,7 +34,7 @@ export function PresetShowcaseScreen({
   return (
     <Collapsible preset={preset}>
       <Collapsible.NavigationHeader
-        style={[styles.header, { paddingTop: insets.top }]}
+        style={[styles.header, withPinnedTitle && { paddingTop: insets.top }]}
         render={(header) => <Stack.Screen options={{ header: () => header }} />}
       >
         {withPinnedTitle ? (
@@ -43,7 +43,10 @@ export function PresetShowcaseScreen({
           </Collapsible.Pinned>
         ) : null}
         <Collapsible.Dynamic
-          style={styles.dynamic}
+          style={[
+            styles.dynamic,
+            !withPinnedTitle && { paddingTop: insets.top + 12 },
+          ]}
           contentStyle={styles.dynamicContent}
         >
           {withPinnedTitle ? null : (

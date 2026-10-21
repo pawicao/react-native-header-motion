@@ -124,6 +124,70 @@ describe('Collapsible', () => {
     expect(element.props.children.props.children[0]).not.toBeNull();
   });
 
+  it.each([40, 120, 1000])(
+    'reports terminal states within half a point at threshold %s',
+    (threshold) => {
+      const reanimated = require('react-native-reanimated');
+      const worklets = require('react-native-worklets');
+      let progress = (threshold - 0.6) / threshold;
+      let reactToProgress: () => void;
+      const reactionSpy: jest.SpyInstance = jest.spyOn(
+        reanimated,
+        'useAnimatedReaction'
+      );
+      reactionSpy.mockImplementation(
+        (prepare: () => number, react: (value: number) => void) => {
+          reactToProgress = () => react(prepare());
+        }
+      );
+      const scheduleSpy: jest.SpyInstance = jest.spyOn(
+        worklets,
+        'scheduleOnRN'
+      );
+      scheduleSpy.mockImplementation(
+        (callback: (...args: any[]) => void, ...args: any[]) =>
+          callback(...args)
+      );
+      mockUseMotionProgress.mockReturnValue({
+        progress: { get: () => progress },
+        progressThreshold: createSharedValue(threshold),
+      });
+      const onStateChange = jest.fn();
+      const root = Collapsible({
+        onStateChange,
+        children: null,
+      }) as React.ReactElement<any>;
+      const observer = root.props.children.props.children[0];
+
+      try {
+        observer.type(observer.props);
+        reactToProgress!();
+        expect(onStateChange).not.toHaveBeenCalled();
+
+        progress = (threshold - 0.4) / threshold;
+        reactToProgress!();
+        reactToProgress!();
+        expect(onStateChange.mock.calls).toEqual([['collapsed']]);
+
+        progress = 0.5;
+        reactToProgress!();
+        expect(onStateChange).toHaveBeenCalledTimes(1);
+
+        progress = 0.6 / threshold;
+        reactToProgress!();
+        expect(onStateChange).toHaveBeenCalledTimes(1);
+
+        progress = 0.4 / threshold;
+        reactToProgress!();
+        reactToProgress!();
+        expect(onStateChange.mock.calls).toEqual([['collapsed'], ['expanded']]);
+      } finally {
+        reactionSpy.mockRestore();
+        scheduleSpy.mockRestore();
+      }
+    }
+  );
+
   it('Header slides up by the collapse distance', () => {
     const userStyle = { backgroundColor: 'red' };
     const element = Collapsible.Header({

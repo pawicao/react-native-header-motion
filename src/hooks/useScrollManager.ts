@@ -22,6 +22,7 @@ import type { LayoutChangeEvent } from 'react-native';
 import {
   resolveRefreshControl,
   DEFAULT_SCROLL_ID,
+  SCROLL_OFFSET_TOLERANCE,
   ensureScrollValueRegistered,
   warnIfMissingActiveScrollId,
   type ResolveRefreshControlOptions,
@@ -32,8 +33,6 @@ import {
   useScrollHandlerComposition,
   type ConsumerScrollEventHandlers,
 } from './useConsumerScrollHandlers';
-
-const SCROLL_TOLERANCE = 0.5;
 
 type ScrollManagerContextValue = NonNullable<
   ContextType<typeof HeaderMotionContext>
@@ -218,7 +217,7 @@ function useScrollManagerHandlers({
 
       if (
         ctx.lastOffset !== undefined &&
-        Math.abs(ctx.lastOffset - newCurrent) < SCROLL_TOLERANCE
+        Math.abs(ctx.lastOffset - newCurrent) < SCROLL_OFFSET_TOLERANCE
       ) {
         return;
       }
@@ -241,7 +240,7 @@ function useScrollManagerHandlers({
       const oldMin = scrollValue.min;
       const isCollapsed = oldCurrent >= oldMin + threshold - 0.001;
 
-      if (isCollapsed && newCurrent >= threshold) {
+      if (isCollapsed && newCurrent >= oldCurrent && newCurrent >= threshold) {
         scrollValue.current = newCurrent;
         scrollValue.min = newCurrent - threshold;
         return;
@@ -254,9 +253,7 @@ function useScrollManagerHandlers({
 
         value[id].current = newCurrent;
 
-        if (isCollapsed) {
-          value[id].min = Math.max(0, newCurrent - threshold);
-        }
+        value[id].min = Math.max(0, Math.min(oldMin, newCurrent));
 
         return value;
       });
