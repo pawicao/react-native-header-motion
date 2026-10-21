@@ -81,5 +81,5 @@ On `dynamic`, use only transforms. The layout of `dynamic` sets the collapse dis
 Define presets and preset arrays outside the component, or memoize them. If you make a new preset or array on each render, the animated styles also build again on each render.
 
 :::note
-The preset context (`{ progress, progressThreshold }`) can get more fields in later versions. Read only the fields that you need.
+The preset context (`{ progress, progressThreshold }`) does not include the refresh state yet. To animate the header during pull to refresh, use `useRefreshControl()` in a header component. Later versions can add more fields to the context, so read only the fields that you need.
 :::

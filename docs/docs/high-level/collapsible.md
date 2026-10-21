@@ -116,4 +116,4 @@ expand({ animated: false });
 
 ## Pull to refresh
 
-The scrollables accept `refreshControl`, as their low-level versions do. See [Pull to refresh](../guides/pull-to-refresh). To show a custom refresh indicator, put it in `Collapsible.Header` as a usual child.
+The scrollables accept `refreshing`, `onRefresh`, and `refreshControl`, as their low-level versions do. For a custom refresh indicator, use `HeaderMotion.RefreshControl` and read its state with `useRefreshControl()` in the header. See [Pull to refresh](../guides/pull-to-refresh#headless-refresh-ui).

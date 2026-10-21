@@ -3,10 +3,8 @@ import type { ViewStyle } from 'react-native';
 /**
  * Snapshot of the motion state a collapsible preset is evaluated against.
  *
- * The object is intentionally open-ended: future versions may extend it with
- * additional state (for example pull-to-refresh progress once the headless
- * refresh control lands) without breaking existing presets. Presets should
- * read the fields they need and ignore the rest.
+ * Later versions can add fields, for example the refresh state from
+ * `useRefreshControl()`. Read only the fields that you need.
  *
  * @experimental
  */
