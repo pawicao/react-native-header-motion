@@ -29,6 +29,37 @@ export function ensureScrollValueRegistered(
   return scrollValues.get();
 }
 
+/**
+ * Resolves which scrollable currently drives the shared `progress` value:
+ * the active scroll id when one is set, otherwise the only registered
+ * non-default id, falling back to the default id.
+ */
+export function resolveScrollIdForProgress(
+  scrollValues: ScrollValues,
+  activeScrollIdValue: string | undefined
+): string {
+  'worklet';
+
+  if (activeScrollIdValue) {
+    return activeScrollIdValue;
+  }
+
+  let onlyNonDefaultId: string | null = null;
+  for (const key in scrollValues) {
+    if (key === DEFAULT_SCROLL_ID) {
+      continue;
+    }
+
+    if (onlyNonDefaultId !== null) {
+      return DEFAULT_SCROLL_ID;
+    }
+
+    onlyNonDefaultId = key;
+  }
+
+  return onlyNonDefaultId ?? DEFAULT_SCROLL_ID;
+}
+
 export function warnIfMissingActiveScrollId(
   scrollValues: ScrollValues,
   id: string,

@@ -114,6 +114,7 @@ const HeaderMotion: HeaderMotionCompound = Object.assign(
 
 export default HeaderMotion;
 export * from './hooks';
+export * from './collapsible';
 export { ScrollablePresets } from './utils/presets';
 export type * from './types';
 export { RefreshPhase } from './types';
