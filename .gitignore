@@ -87,3 +87,5 @@ nitrogen/
 
 example/ios
 example/android
+
+/.tmp/
