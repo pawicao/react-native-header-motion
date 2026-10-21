@@ -6,6 +6,7 @@ import Animated, {
   useAnimatedStyle,
   useFrameCallback,
   useSharedValue,
+  type SharedValue,
 } from 'react-native-reanimated';
 import { RefreshShowcaseScreen } from '@/components/RefreshShowcaseScreen';
 
@@ -51,7 +52,7 @@ function CommandTile({
 }: {
   index: number;
   label: string;
-  clock: Animated.SharedValue<number>;
+  clock: SharedValue<number>;
 }) {
   const refresh = useRefreshControl();
 

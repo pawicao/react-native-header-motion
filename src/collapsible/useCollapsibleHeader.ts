@@ -49,15 +49,16 @@ export function useCollapsibleHeader(): UseCollapsibleHeaderResult {
 
   const scrollToProgress = useCallback(
     (target: 0 | 1, options?: CollapsibleScrollOptions) => {
-      const scrollToActive = scrollToRef.current;
-      if (!scrollToActive) {
-        return;
-      }
-
       const animated = options?.animated ?? true;
 
       scheduleOnUI(() => {
         'worklet';
+        const scrollToActive = scrollToRef.current;
+        const threshold = progressThreshold.get();
+        if (!scrollToActive || threshold <= 0 || !Number.isFinite(threshold)) {
+          return;
+        }
+
         const values = scrollValues.get();
         const id = resolveScrollIdForProgress(values, activeScrollId?.get());
         const scrollValue = values[id];
@@ -65,10 +66,7 @@ export function useCollapsibleHeader(): UseCollapsibleHeaderResult {
           return;
         }
 
-        const y =
-          target === 1
-            ? scrollValue.min + progressThreshold.get()
-            : scrollValue.min;
+        const y = target === 1 ? scrollValue.min + threshold : scrollValue.min;
         scrollToActive(y, { isValueDelta: false, animated });
       });
     },

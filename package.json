@@ -6,7 +6,7 @@
   "types": "./lib/typescript/src/index.d.ts",
   "exports": {
     ".": {
-      "source": "./src/index.tsx",
+      "source": "./src/index.ts",
       "types": "./lib/typescript/src/index.d.ts",
       "default": "./lib/module/index.js"
     },
@@ -18,8 +18,8 @@
     "android",
     "ios",
     "cpp",
-    "*.podspec",
-    "react-native.config.js",
+    "/react-native-header-motion.podspec",
+    "/react-native.config.js",
     "!ios/build",
     "!android/build",
     "!android/gradle",
@@ -27,9 +27,12 @@
     "!android/gradlew.bat",
     "!android/local.properties",
     "!**/__tests__",
+    "!**/*.test.*",
     "!**/__fixtures__",
     "!**/__mocks__",
-    "!**/.*"
+    "!**/.*",
+    "!/.claude/**",
+    "!/.tmp/**"
   ],
   "scripts": {
     "example": "yarn workspace react-native-header-motion-example",
@@ -146,7 +149,9 @@
     ],
     "modulePathIgnorePatterns": [
       "<rootDir>/example/node_modules",
-      "<rootDir>/lib/"
+      "<rootDir>/lib/",
+      "<rootDir>/.claude/",
+      "<rootDir>/.tmp/"
     ]
   },
   "commitlint": {

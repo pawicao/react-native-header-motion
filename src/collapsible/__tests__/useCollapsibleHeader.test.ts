@@ -114,7 +114,32 @@ describe('useCollapsibleHeader', () => {
     createContext({ scrollTo: null });
 
     expect(() => useCollapsibleHeader().collapse()).not.toThrow();
-    expect(scheduleOnUISpy).not.toHaveBeenCalled();
+    expect(scheduleOnUISpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('reads the scroll command on the UI runtime after scheduling', () => {
+    const { ctxValue } = createContext({ scrollTo: null });
+    const scrollTo = jest.fn();
+    scheduleOnUISpy.mockImplementationOnce((worklet: () => void) => {
+      ctxValue.scrollToRef.current = scrollTo;
+      worklet();
+    });
+
+    useCollapsibleHeader().collapse();
+
+    expect(scrollTo).toHaveBeenCalledWith(120, {
+      isValueDelta: false,
+      animated: true,
+    });
+  });
+
+  it.each([0, Infinity])('does not scroll with threshold %s', (threshold) => {
+    const { ctxValue, scrollTo } = createContext();
+    ctxValue.progressThreshold = createSharedValue(threshold);
+
+    useCollapsibleHeader().collapse();
+
+    expect(scrollTo).not.toHaveBeenCalled();
   });
 
   it('exposes the motion progress values', () => {

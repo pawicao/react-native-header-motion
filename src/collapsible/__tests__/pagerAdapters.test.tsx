@@ -81,6 +81,22 @@ describe('DefaultCollapsibleTabsPagerAdapter', () => {
     expect(onIndexChange).toHaveBeenCalledWith(2);
   });
 
+  it('scrolls the attached pager when the controller changes the page', () => {
+    const { element, controllerRef } = render();
+    const scrollTo = jest.fn();
+    element.props.ref({ scrollTo });
+
+    controllerRef.current!.setIndex(2);
+
+    expect(scrollTo).toHaveBeenCalledWith({
+      x: windowWidth * 2,
+      animated: true,
+    });
+    element.props.ref(null);
+    controllerRef.current!.setIndex(0);
+    expect(scrollTo).toHaveBeenCalledTimes(1);
+  });
+
   it('exposes a controller that does not crash before the ref attaches', () => {
     const { controllerRef } = render();
 

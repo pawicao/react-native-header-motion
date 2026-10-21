@@ -104,7 +104,7 @@ function HeaderMotionContextProvider<T extends string>({
   const dynamicMeasurement = useSharedValue<number | undefined>(undefined);
   const [originalHeaderHeight, setOriginalHeaderHeight] = useState(0);
   const progressThresholdValue = useSharedValue(
-    typeof progressThreshold === 'number' ? progressThreshold : Infinity
+    typeof progressThreshold === 'number' ? progressThreshold : 0
   );
   const headerPanMomentumOffset = useSharedValue<number | null>(null);
   const refreshControlOwner = useSharedValue<number | null>(null);
@@ -173,7 +173,7 @@ function HeaderMotionContextProvider<T extends string>({
 
     const measured = dynamicMeasurement.get();
     const nextThreshold =
-      measured === undefined ? Infinity : progressThreshold(measured);
+      measured === undefined ? 0 : progressThreshold(measured);
     progressThresholdValue.set(nextThreshold);
   }, [progressThreshold, dynamicMeasurement, progressThresholdValue]);
 
@@ -209,7 +209,7 @@ function HeaderMotionContextProvider<T extends string>({
     const scrollValue = values[id];
     const threshold = progressThresholdValue.get();
 
-    if (!scrollValue) {
+    if (!scrollValue || threshold <= 0 || !Number.isFinite(threshold)) {
       return 0;
     }
 

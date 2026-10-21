@@ -27,6 +27,7 @@ import { NavigationBridge } from '../components/NavigationBridge';
 import { ScrollView } from '../components/ScrollView';
 import { useMotionProgress } from '../hooks/useMotionProgress';
 import type { HeaderDynamicProps } from '../types';
+import { SCROLL_OFFSET_TOLERANCE } from '../utils/defaults';
 import {
   CollapsiblePresetsContext,
   CollapsibleTabsContext,
@@ -45,9 +46,6 @@ import type {
 type DistributiveOmit<T, K extends keyof any> = T extends any
   ? Omit<T, K>
   : never;
-
-const EXPANDED_EDGE = 0.001;
-const COLLAPSED_EDGE = 0.999;
 
 /** @experimental */
 export interface CollapsibleProps<T extends string = string>
@@ -72,7 +70,7 @@ function CollapsibleStateObserver({
 }: {
   onStateChange: (state: CollapsibleHeaderState) => void;
 }) {
-  const { progress } = useMotionProgress();
+  const { progress, progressThreshold } = useMotionProgress();
   const callbackRef = useRef(onStateChange);
   useEffect(() => {
     callbackRef.current = onStateChange;
@@ -88,10 +86,14 @@ function CollapsibleStateObserver({
     () => progress.get(),
     (value) => {
       const previous = lastState.get();
-      if (value >= COLLAPSED_EDGE && previous !== 'collapsed') {
+      const tolerance = Math.min(
+        0.5,
+        SCROLL_OFFSET_TOLERANCE / Math.max(1, progressThreshold.get())
+      );
+      if (value >= 1 - tolerance && previous !== 'collapsed') {
         lastState.set('collapsed');
         scheduleOnRN(emit, 'collapsed');
-      } else if (value <= EXPANDED_EDGE && previous !== 'expanded') {
+      } else if (value <= tolerance && previous !== 'expanded') {
         lastState.set('expanded');
         scheduleOnRN(emit, 'expanded');
       }

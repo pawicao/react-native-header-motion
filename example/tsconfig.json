@@ -1,6 +1,6 @@
 {
   "extends": "../tsconfig",
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "../src/types/**/*.d.ts"],
   "exclude": [],
   "compilerOptions": {
     "baseUrl": ".",

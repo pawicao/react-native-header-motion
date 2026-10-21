@@ -25,11 +25,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
  */
 export default function Screen() {
   const [refreshing, setRefreshing] = React.useState(false);
+  const [refreshCount, setRefreshCount] = React.useState(0);
   const [enabled, setEnabled] = React.useState(true);
   const [controlMounted, setControlMounted] = React.useState(true);
   const [tab, setTab] = React.useState<'a' | 'b'>('a');
 
   const onRefresh = React.useCallback(() => {
+    setRefreshCount((count) => count + 1);
     setRefreshing(true);
     setTimeout(() => setRefreshing(false), 2500);
   }, []);
@@ -78,7 +80,7 @@ export default function Screen() {
   ];
 
   return (
-    <HeaderMotion>
+    <HeaderMotion progressThreshold={0}>
       <HeaderMotion.Bridge>
         {(value) => (
           <Stack.Screen
@@ -87,6 +89,7 @@ export default function Screen() {
                 <HeaderMotion.NavigationBridge value={value}>
                   <ReadoutHeader
                     enabled={enabled}
+                    refreshCount={refreshCount}
                     controlMounted={controlMounted}
                     tab={tab}
                   />
@@ -123,10 +126,12 @@ export default function Screen() {
 
 function ReadoutHeader({
   enabled,
+  refreshCount,
   controlMounted,
   tab,
 }: {
   enabled: boolean;
+  refreshCount: number;
   controlMounted: boolean;
   tab: 'a' | 'b';
 }) {
@@ -189,6 +194,9 @@ function ReadoutHeader({
       </Text>
       <Text style={styles.readout} testID="refresh-progress-readout">
         progress: {progressLabel}
+      </Text>
+      <Text style={styles.readout} testID="refresh-count-readout">
+        refresh callbacks: {refreshCount}
       </Text>
       <Text style={styles.readout} testID="refresh-config-readout">
         enabled: {String(enabled)} | control:{' '}
