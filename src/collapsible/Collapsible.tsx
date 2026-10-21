@@ -49,6 +49,7 @@ type DistributiveOmit<T, K extends keyof any> = T extends any
 const EXPANDED_EDGE = 0.001;
 const COLLAPSED_EDGE = 0.999;
 
+/** @experimental */
 export interface CollapsibleProps<T extends string = string>
   extends HeaderMotionProps<T> {
   /**
@@ -128,6 +129,7 @@ function CollapsibleRoot<T extends string = string>({
   );
 }
 
+/** @experimental */
 export type CollapsibleHeaderProps = DistributiveOmit<
   Extract<HeaderProps, { asChild?: false | undefined }>,
   'asChild'
@@ -162,6 +164,7 @@ function CollapsibleHeaderPart({ style, ...rest }: CollapsibleHeaderProps) {
   return <Header {...rest} style={[style, animatedStyle]} />;
 }
 
+/** @experimental */
 export type CollapsiblePinnedProps = AnimatedProps<ViewProps>;
 
 /**
@@ -190,6 +193,7 @@ function CollapsiblePinned({ style, ...rest }: CollapsiblePinnedProps) {
   return <Animated.View {...rest} style={[style, animatedStyle]} />;
 }
 
+/** @experimental */
 export type CollapsibleDynamicProps = DistributiveOmit<
   Extract<HeaderDynamicProps, { asChild?: false | undefined }>,
   'asChild'
@@ -265,6 +269,7 @@ export interface CollapsibleNavigationHeaderRenderProps {
   render: (header: ReactElement) => ReactNode;
 }
 
+/** @experimental */
 export type CollapsibleNavigationHeaderProps = CollapsibleHeaderProps &
   CollapsibleNavigationHeaderRenderProps;
 
@@ -333,6 +338,8 @@ function CollapsibleNavigationHeader({
  *   <Collapsible.ScrollView>{content}</Collapsible.ScrollView>
  * </Collapsible>
  * ```
+ *
+ * @experimental
  */
 export const Collapsible = Object.assign(CollapsibleRoot, {
   /**

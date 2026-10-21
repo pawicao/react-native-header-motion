@@ -20,7 +20,11 @@ export function useCollapsiblePresetsOrThrow(
   return presets;
 }
 
-/** A tab entry after normalization — `label` falls back to `name`. */
+/**
+ * A tab entry after normalization — `label` falls back to `name`.
+ *
+ * @experimental
+ */
 export interface CollapsibleTabDescriptor {
   name: string;
   label: string;

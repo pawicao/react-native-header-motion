@@ -4,6 +4,7 @@ import { useHeaderMotionContextOrThrow } from '../context';
 import type { MotionProgress } from '../types';
 import { resolveScrollIdForProgress } from '../utils';
 
+/** @experimental */
 export interface CollapsibleScrollOptions {
   /**
    * Animates the scroll to the target state.
@@ -13,6 +14,7 @@ export interface CollapsibleScrollOptions {
   animated?: boolean;
 }
 
+/** @experimental */
 export interface UseCollapsibleHeaderResult extends MotionProgress {
   /** Scrolls the active scrollable so the header fully collapses. */
   collapse: (options?: CollapsibleScrollOptions) => void;
@@ -31,6 +33,8 @@ export interface UseCollapsibleHeaderResult extends MotionProgress {
  * ```tsx
  * const { progress, collapse, expand } = useCollapsibleHeader();
  * ```
+ *
+ * @experimental
  */
 export function useCollapsibleHeader(): UseCollapsibleHeaderResult {
   const {

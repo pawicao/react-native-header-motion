@@ -25,6 +25,8 @@ import {
 /**
  * Imperative surface a pager adapter must expose so `CollapsibleTabs` can
  * change pages programmatically (for example from a tab-bar press).
+ *
+ * @experimental
  */
 export interface CollapsibleTabsPagerController {
   /** Animates the pager to the page at `index`. */
@@ -38,6 +40,8 @@ export interface CollapsibleTabsPagerController {
  * user-driven page changes through `onIndexChange`, and assigns a
  * {@link CollapsibleTabsPagerController} to `controllerRef` for programmatic
  * page changes.
+ *
+ * @experimental
  */
 export interface CollapsibleTabsPagerAdapterProps {
   /** Index of the page that should be shown initially. */
@@ -58,6 +62,8 @@ export interface CollapsibleTabsPagerAdapterProps {
  * The library ships a dependency-free default (a paging horizontal
  * `ScrollView`) and `createPagerViewAdapter()` for `react-native-pager-view`.
  * Provide your own adapter to plug in any other pager implementation.
+ *
+ * @experimental
  */
 export type CollapsibleTabsPagerAdapter =
   ComponentType<CollapsibleTabsPagerAdapterProps>;
@@ -78,6 +84,8 @@ const styles = StyleSheet.create({
  * and programmatic page changes, and keeps every page mounted so scroll
  * positions are preserved. For native pager behavior, pass
  * `createPagerViewAdapter(PagerView)` to `CollapsibleTabs.Pager` instead.
+ *
+ * @experimental
  */
 export function DefaultCollapsibleTabsPagerAdapter({
   initialIndex,
@@ -150,6 +158,8 @@ export function DefaultCollapsibleTabsPagerAdapter({
  * Structural subset of `react-native-pager-view`'s props that the adapter
  * relies on. Typed loosely on purpose so the library does not depend on
  * `react-native-pager-view`'s types.
+ *
+ * @experimental
  */
 export interface CollapsiblePagerViewLikeProps {
   ref?: Ref<any>;
@@ -180,6 +190,8 @@ export interface CollapsiblePagerViewLikeProps {
  *
  * <CollapsibleTabs.Pager adapter={pagerAdapter}>
  * ```
+ *
+ * @experimental
  */
 export function createPagerViewAdapter(
   PagerViewComponent: ComponentType<CollapsiblePagerViewLikeProps>

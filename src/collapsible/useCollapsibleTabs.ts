@@ -4,6 +4,7 @@ import {
   type CollapsibleTabDescriptor,
 } from './context';
 
+/** @experimental */
 export interface UseCollapsibleTabsResult {
   /** The normalized tabs, in pager order. */
   tabs: readonly CollapsibleTabDescriptor[];
@@ -25,6 +26,8 @@ export interface UseCollapsibleTabsResult {
  *   const { tabs, activeTab, goTo } = useCollapsibleTabs();
  * }
  * ```
+ *
+ * @experimental
  */
 export function useCollapsibleTabs(): UseCollapsibleTabsResult {
   const { tabs, activeTab, goTo } =

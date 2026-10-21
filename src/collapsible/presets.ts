@@ -37,6 +37,8 @@ function rangeProgress(progress: number, from: number, to: number): number {
  *   };
  * });
  * ```
+ *
+ * @experimental
  */
 export function createCollapsiblePreset(
   preset: CollapsiblePreset
@@ -44,6 +46,7 @@ export function createCollapsiblePreset(
   return preset;
 }
 
+/** @experimental */
 export interface CollapsibleFadeOptions {
   /**
    * Progress value at which the fade starts.
@@ -59,6 +62,7 @@ export interface CollapsibleFadeOptions {
   to?: number;
 }
 
+/** @experimental */
 export interface CollapsibleParallaxOptions {
   /**
    * Fraction of the collapse distance the content lags behind by. `0` moves
@@ -75,6 +79,7 @@ export interface CollapsibleParallaxOptions {
   fade?: boolean;
 }
 
+/** @experimental */
 export interface CollapsibleScaleOptions {
   /**
    * Scale of the content in the fully collapsed state.
@@ -176,6 +181,8 @@ const none = (): CollapsiblePreset => {
  * - `parallax` — content lags behind the collapse and fades out.
  * - `scale` — content shrinks and fades out.
  * - `none` — no content effect; the header still slides up.
+ *
+ * @experimental
  */
 export const CollapsiblePresets = {
   collapse,

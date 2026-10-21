@@ -7,6 +7,8 @@ import type { ViewStyle } from 'react-native';
  * additional state (for example pull-to-refresh progress once the headless
  * refresh control lands) without breaking existing presets. Presets should
  * read the fields they need and ignore the rest.
+ *
+ * @experimental
  */
 export interface CollapsiblePresetContext {
   /**
@@ -29,6 +31,8 @@ export interface CollapsiblePresetContext {
  * `transform` arrays are concatenated, numeric `opacity` values are
  * multiplied, and any other property is taken from the last preset that
  * defines it.
+ *
+ * @experimental
  */
 export interface CollapsiblePresetPartStyles {
   /**
@@ -59,12 +63,18 @@ export interface CollapsiblePresetPartStyles {
  *
  * Custom presets **must be marked with the `'worklet'` directive** — they run
  * on the UI thread inside the parts' animated styles.
+ *
+ * @experimental
  */
 export type CollapsiblePreset = (
   context: CollapsiblePresetContext
 ) => CollapsiblePresetPartStyles;
 
-/** Names of the built-in collapsible presets. */
+/**
+ * Names of the built-in collapsible presets.
+ *
+ * @experimental
+ */
 export type CollapsiblePresetName =
   | 'collapse'
   | 'fade'
@@ -75,11 +85,17 @@ export type CollapsiblePresetName =
 /**
  * Anything accepted by the `preset` prop: a built-in preset name, a configured
  * or custom preset function, or an array of those to combine.
+ *
+ * @experimental
  */
 export type CollapsiblePresetInput =
   | CollapsiblePresetName
   | CollapsiblePreset
   | readonly (CollapsiblePresetName | CollapsiblePreset)[];
 
-/** Terminal states reported by `Collapsible`'s `onStateChange`. */
+/**
+ * Terminal states reported by `Collapsible`'s `onStateChange`.
+ *
+ * @experimental
+ */
 export type CollapsibleHeaderState = 'expanded' | 'collapsed';

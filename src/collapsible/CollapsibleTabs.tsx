@@ -32,9 +32,14 @@ import {
   type CollapsibleTabsPagerController,
 } from './pagerAdapters';
 
-/** A tab declaration: a plain name, or a name with a display label. */
+/**
+ * A tab declaration: a plain name, or a name with a display label.
+ *
+ * @experimental
+ */
 export type CollapsibleTabsTabInput = string | { name: string; label?: string };
 
+/** @experimental */
 export interface CollapsibleTabsProps
   extends Omit<CollapsibleProps<string>, 'activeScrollId'> {
   /**
@@ -198,6 +203,7 @@ function CollapsibleTabsRoot({
   );
 }
 
+/** @experimental */
 export interface CollapsibleTabsPagerProps {
   /**
    * The pager engine to render with.
@@ -275,6 +281,7 @@ function CollapsibleTabsPager({
   );
 }
 
+/** @experimental */
 export interface CollapsibleTabProps {
   /**
    * The tab's name from the `tabs` prop. It doubles as the default `scrollId`
@@ -311,6 +318,7 @@ function CollapsibleTab({ name, style, children }: CollapsibleTabProps) {
   );
 }
 
+/** @experimental */
 export interface CollapsibleTabsBarProps {
   /** Style for the bar container. */
   style?: StyleProp<ViewStyle>;
@@ -391,6 +399,8 @@ function CollapsibleTabsBar({
 /**
  * Compound entrypoint for tabbed collapsible headers. See
  * `CollapsibleTabsRoot` for the full example.
+ *
+ * @experimental
  */
 export const CollapsibleTabs = Object.assign(CollapsibleTabsRoot, {
   /** Renders the swipeable pages through a pager adapter. */
