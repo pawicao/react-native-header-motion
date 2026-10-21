@@ -20,6 +20,10 @@ If your header lives inside the same component tree as `HeaderMotion` (not rende
 
 Header panning is built on Gesture Handler's pan gesture. Even if you don't use the `pannable` prop, the library imports from `react-native-gesture-handler`. Most React Native projects already have it installed.
 
+## Which Gesture Handler versions does Header Motion support?
+
+Header Motion supports Gesture Handler v2 and v3.
+
 ## Can I use this with FlashList / LegendList / other custom scrollables?
 
 Yes. Use `createHeaderMotionScrollable()` to wrap any scrollable component. For FlashList and LegendList, you can also use the built-in `ScrollablePresets` export so the recommended factory options are already filled in. See the [Custom scrollables](../guides/custom-scrollables) guide.
