@@ -5,7 +5,7 @@ import {
   type ReactElement,
 } from 'react';
 import { RefreshControl, type RefreshControlProps } from 'react-native';
-import type { SharedValue } from 'react-native-reanimated';
+import type { AnimatedProps, SharedValue } from 'react-native-reanimated';
 import Animated, { useAnimatedProps } from 'react-native-reanimated';
 
 // FIXME: Types are a mess here
@@ -27,9 +27,7 @@ export function resolveRefreshControl({
   onRefresh,
   progressViewOffset,
 }: ResolveRefreshControlOptions):
-  | ReactElement<
-      RefreshControlProps | React.ComponentProps<typeof AnimatedRefreshControl>
-    >
+  | ReactElement<RefreshControlProps | AnimatedProps<RefreshControlProps>>
   | undefined {
   if (!refreshControl) {
     return createRefreshControlWithOffset({
