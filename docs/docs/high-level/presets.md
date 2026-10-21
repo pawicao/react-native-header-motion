@@ -5,38 +5,50 @@ title: Presets
 
 # Presets
 
-A preset describes how the collapsing content of a [`Collapsible`](./collapsible) header animates. The structural choreography — the frame sliding up, pinned content counter-translating — is intrinsic to the parts; presets only decorate the collapsing section, which is what makes them freely composable.
+:::caution Alpha
+This API is in alpha. It can change in any release, including patch releases. Pin the exact version. [Issue #31](https://github.com/pawicao/react-native-header-motion/issues/31) lists the changes we plan.
+:::
+
+A preset sets how the collapsing content of a [`Collapsible`](./collapsible) header moves. The parts always do their base movement: the frame moves up, and pinned content stays in place. A preset only adds styles on top of that base movement, so you can use more than one preset at a time.
 
 ## Built-in presets
 
-Pass a name for the defaults, or call the factory from `CollapsiblePresets` to configure:
+To use the default options, give the preset name. To change the options, call the function from `CollapsiblePresets`:
 
 ```tsx
 import { Collapsible, CollapsiblePresets } from 'react-native-header-motion';
 
-<Collapsible preset="collapse">            // string shorthand
-<Collapsible preset={CollapsiblePresets.parallax({ factor: 0.3 })}>  // configured
+<Collapsible preset="collapse">                                       // default options
+<Collapsible preset={CollapsiblePresets.parallax({ factor: 0.3 })}>  // custom options
 ```
 
-| Preset     | Effect                                                                                          | Options                                     |
-| ---------- | ----------------------------------------------------------------------------------------------- | ------------------------------------------- |
-| `collapse` | Content slides up and is clipped under the pinned sections (the classic iOS large-title feel).   | —                                           |
-| `fade`     | Content fades out in place while the header collapses.                                          | `from` (default `0`), `to` (default `0.8`)  |
-| `parallax` | Content lags behind the collapse and fades out.                                                 | `factor` (default `0.5`), `fade` (default `true`) |
-| `scale`    | Content shrinks and fades out.                                                                  | `to` (default `0.9`), `fade` (default `true`) |
-| `none`     | No content effect; the header still slides up.                                                  | —                                           |
+| Preset     | Effect                                                                        | Options                                           |
+| ---------- | ----------------------------------------------------------------------------- | ------------------------------------------------- |
+| `collapse` | Content moves up and goes under the pinned content, like the iOS large title. | —                                                 |
+| `fade`     | Content fades out in place while the header collapses.                        | `from` (default `0`), `to` (default `0.8`)        |
+| `parallax` | Content moves more slowly than the header and fades out.                      | `factor` (default `0.5`), `fade` (default `true`) |
+| `scale`    | Content becomes smaller and fades out.                                        | `to` (default `0.9`), `fade` (default `true`)     |
+| `none`     | No effect on the content. The header still moves up.                          | —                                                 |
 
-## Combining presets
+## Use more than one preset
 
-Pass an array to combine effects. `transform` arrays concatenate in order, numeric `opacity` values multiply, and any other property is taken from the last preset that defines it:
+Give an array of presets. The presets merge with these rules:
+
+- `transform` arrays join in array order. Thus, the order of the presets can change the result.
+- Number `opacity` values multiply.
+- For all other properties, the last preset that sets the property wins.
 
 ```tsx
 <Collapsible preset={['collapse', CollapsiblePresets.fade({ to: 0.5 })]}>
 ```
 
+:::note
+`parallax` and `scale` fade the content by default. If you use both, the content fades two times. To prevent this, set `fade: false` on one of them.
+:::
+
 ## Custom presets
 
-A preset is a worklet from the current motion state to per-part styles. Author one with `createCollapsiblePreset()` — the function runs on the UI thread, so it **must carry the `'worklet'` directive**:
+A preset is a worklet. It gets the motion state and returns styles for each part. Make one with `createCollapsiblePreset()`. The function runs on the UI thread, so it **must have the `'worklet'` directive**:
 
 ```tsx
 import { createCollapsiblePreset } from 'react-native-header-motion';
@@ -55,19 +67,19 @@ const lift = createCollapsiblePreset(({ progress, progressThreshold }) => {
 <Collapsible preset={lift}>
 ```
 
-The returned object may style four parts:
+The returned object can have styles for four parts:
 
-| Key              | Applied to                                    | Merged on top of                     |
-| ---------------- | --------------------------------------------- | ------------------------------------ |
-| `header`         | `Collapsible.Header` frame                    | The intrinsic slide-up transform     |
-| `pinned`         | Every `Collapsible.Pinned`                    | The intrinsic counter-translate      |
-| `dynamic`        | The measured `Collapsible.Dynamic` wrapper    | Its default `overflow: 'hidden'`     |
-| `dynamicContent` | The content view inside `Collapsible.Dynamic` | —                                    |
+| Key              | Part                                          | Merges on top of                 |
+| ---------------- | --------------------------------------------- | -------------------------------- |
+| `header`         | The `Collapsible.Header` frame                | The base upward movement         |
+| `pinned`         | All `Collapsible.Pinned` parts                | The base downward movement       |
+| `dynamic`        | The measured `Collapsible.Dynamic` wrapper    | Its default `overflow: 'hidden'` |
+| `dynamicContent` | The content view inside `Collapsible.Dynamic` | —                                |
 
-Use transforms only on `dynamic` — its layout defines the collapse distance, and transforms don't affect layout measurement.
+On `dynamic`, use only transforms. The layout of `dynamic` sets the collapse distance, and transforms do not change the layout.
 
-Because presets are plain values, they are shareable: hoist them to module scope (or memoize) so the animated styles aren't rebuilt on every render, and publish the ones you're proud of.
+Define presets and preset arrays outside the component, or memoize them. If you make a new preset or array on each render, the animated styles also build again on each render.
 
-:::note Designed to grow
-The preset context (`{ progress, progressThreshold }`) is intentionally open-ended. When the headless refresh control lands, refresh state will join it, letting presets react to pull-to-refresh without any breaking change. Read the fields you need and ignore the rest.
+:::note
+The preset context (`{ progress, progressThreshold }`) can get more fields in later versions. Read only the fields that you need.
 :::

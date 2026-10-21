@@ -28,7 +28,7 @@ Full documentation lives here:
 ## What it helps with
 
 - Scroll-driven animated headers
-- Ready-made, preset-driven collapsible headers via `Collapsible` and `CollapsibleTabs`
+- Collapsible headers with presets, through `Collapsible` and `CollapsibleTabs` (alpha)
 - Shared header state across tabs, pagers, and multiple scrollables
 - Navigation-rendered headers in Expo Router or React Navigation
 - Custom scrollables via `createHeaderMotionScrollable()` and `ScrollablePresets`
@@ -103,9 +103,12 @@ function AppHeader() {
 
 In a real header, use `useMotionProgress()` to drive your Reanimated styles. See the [Quick Start](https://pawicao.github.io/react-native-header-motion/docs/quick-start) for the full walkthrough, animation examples, and styling details.
 
-## High-level API
+## High-level API (alpha)
 
-If you'd rather not hand-write the choreography, `Collapsible` wraps the same primitives into a preset-driven compound component — and `CollapsibleTabs` does the same for one header shared across pager pages:
+> [!WARNING]
+> This API is in alpha. It can change in any release, including patch releases. Pin the exact version.
+
+If you do not want to write the animations yourself, use `Collapsible`. It uses the same primitives and animates the header with presets. `CollapsibleTabs` does the same for one header that many pager pages share:
 
 ```tsx
 import { Collapsible } from 'react-native-header-motion';
@@ -118,7 +121,7 @@ export default function Screen() {
         render={(header) => <Stack.Screen options={{ header: () => header }} />}
       >
         <Collapsible.Pinned>{/* stays in place */}</Collapsible.Pinned>
-        <Collapsible.Dynamic>{/* collapses away */}</Collapsible.Dynamic>
+        <Collapsible.Dynamic>{/* collapses */}</Collapsible.Dynamic>
       </Collapsible.NavigationHeader>
 
       <Collapsible.ScrollView>{/* content */}</Collapsible.ScrollView>
@@ -127,7 +130,7 @@ export default function Screen() {
 }
 ```
 
-See the [high-level API docs](https://pawicao.github.io/react-native-header-motion/docs/high-level/collapsible) for presets, tabs, and pager adapters.
+For presets, tabs, and pager adapters, see the [high-level API docs](https://pawicao.github.io/react-native-header-motion/docs/next/high-level/collapsible).
 
 ## Version notes
 

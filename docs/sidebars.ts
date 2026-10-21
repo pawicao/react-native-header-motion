@@ -19,7 +19,7 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'category',
-      label: 'High-level API',
+      label: 'High-level API (alpha)',
       collapsed: false,
       items: [
         'high-level/collapsible',

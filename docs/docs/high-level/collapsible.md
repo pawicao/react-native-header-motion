@@ -5,11 +5,15 @@ title: Collapsible
 
 # Collapsible
 
-`Collapsible` is the high-level, preset-driven way to build a collapsible header. It wraps the `HeaderMotion` primitives — the provider, the measured header, the animated styles — into a compound component where you compose the header from explicit parts and pick a [preset](./presets) for the animation.
+:::caution Alpha
+This API is in alpha. It can change in any release, including patch releases. Pin the exact version. [Issue #31](https://github.com/pawicao/react-native-header-motion/issues/31) lists the changes we plan.
+:::
 
-Everything `Collapsible` does is built on the public low-level API, and every low-level prop passes through. You can start high-level and drop down at any point.
+`Collapsible` builds a collapsible header from presets. It uses the `HeaderMotion` provider, the measured header, and the animated styles for you. You compose the header from parts and select a [preset](./presets) for the animation.
 
-## Anatomy
+`Collapsible` uses only the public low-level API, and it passes every low-level prop through. You can change to the low-level API at any time.
+
+## Parts
 
 ```tsx
 import { Collapsible } from 'react-native-header-motion';
@@ -36,18 +40,18 @@ export default function Screen() {
 }
 ```
 
-Each part names the *role* a piece of UI plays while the header collapses:
+Each part sets how its content moves when the header collapses:
 
-- **`Collapsible`** — the root provider. Renders a `HeaderMotion` provider, resolves the `preset`, and shares both with the parts. No visual output.
-- **`Collapsible.Header`** — the header frame. Measures the total header height (like `HeaderMotion.Header`) and slides up by the collapse distance as the user scrolls.
-- **`Collapsible.Pinned`** — content that stays visually in place (a title row, actions). It counter-translates against the frame's slide.
-- **`Collapsible.Dynamic`** — the collapsing section. Its measured height defines the collapse distance (like `HeaderMotion.Header.Dynamic`), and the active preset animates its content. Anything after it (like the `SearchBar` above) simply rides up and ends docked under the pinned content.
-- **`Collapsible.NavigationHeader`** — a `Collapsible.Header` rendered by a navigation library. It fuses the `Bridge` / `NavigationBridge` wiring into one component: compose the header as children, and use `render` to place the prepared element into your navigator.
-- **`Collapsible.ScrollView` / `Collapsible.FlatList`** — the same pre-wired scrollables as `HeaderMotion.ScrollView` / `HeaderMotion.FlatList`, re-exported for a self-contained import surface. Custom scrollables from `createHeaderMotionScrollable()` work here too.
+- **`Collapsible`** is the root. It renders a `HeaderMotion` provider and gives the `preset` to the parts. It shows nothing on screen.
+- **`Collapsible.Header`** is the header frame. It measures the full header height, as `HeaderMotion.Header` does. It moves up by the collapse distance when the user scrolls.
+- **`Collapsible.Pinned`** holds content that stays in the same screen position, for example a title row or action buttons. It moves down by the same distance that the frame moves up. Put it above `Collapsible.Dynamic`.
+- **`Collapsible.Dynamic`** is the section that collapses. Its measured height sets the collapse distance, as `HeaderMotion.Header.Dynamic` does. The preset animates its content. Content below it, such as the `SearchBar` above, moves up and stops under the pinned content.
+- **`Collapsible.NavigationHeader`** is a `Collapsible.Header` that a navigation library renders. It replaces the `Bridge` and `NavigationBridge` steps. Put the header content in its children, and use `render` to give the header to your navigator.
+- **`Collapsible.ScrollView`** and **`Collapsible.FlatList`** are the same components as `HeaderMotion.ScrollView` and `HeaderMotion.FlatList`. Custom scrollables from `createHeaderMotionScrollable()` also work.
 
-## Overlay headers without navigation
+## Headers without a navigation library
 
-If your header is not rendered by a navigation library, use `Collapsible.Header` directly — it overlays the content by default, exactly like the low-level `HeaderMotion.Header`:
+If a navigation library does not render your header, use `Collapsible.Header`. It shows on top of the content, as `HeaderMotion.Header` does:
 
 ```tsx
 <Collapsible preset="fade">
@@ -67,48 +71,49 @@ If your header is not rendered by a navigation library, use `Collapsible.Header`
 
 ### `Collapsible`
 
-Accepts every `HeaderMotion` prop (`progressThreshold`, `measureDynamic`, `measureDynamicMode`, `activeScrollId`, `progressExtrapolation`), plus:
+Accepts all `HeaderMotion` props (`progressThreshold`, `measureDynamic`, `measureDynamicMode`, `activeScrollId`, `progressExtrapolation`), and these props:
 
-| Prop            | Type                                        | Default      | Description                                                                                       |
-| --------------- | ------------------------------------------- | ------------ | ------------------------------------------------------------------------------------------------- |
-| `preset`        | `CollapsiblePresetInput`                    | `'collapse'` | How the collapsing content animates. See [Presets](./presets).                                    |
-| `onStateChange` | `(state: 'expanded' \| 'collapsed') => void` | —            | Called when the header settles into a terminal state.                                             |
+| Prop            | Type                                         | Default      | Description                                                       |
+| --------------- | -------------------------------------------- | ------------ | ----------------------------------------------------------------- |
+| `preset`        | `CollapsiblePresetInput`                     | `'collapse'` | How the collapsing content moves. See [Presets](./presets).       |
+| `onStateChange` | `(state: 'expanded' \| 'collapsed') => void` | —            | Called when the header becomes fully expanded or fully collapsed. |
 
-### `Collapsible.Header` / `Collapsible.NavigationHeader`
+### `Collapsible.Header` and `Collapsible.NavigationHeader`
 
-Accept all `HeaderMotion.Header` props except `asChild` (`overlay`, `pannable`, `panDecayConfig`, `withGestureHandlerRootView`, any `Animated.View` prop). `Collapsible.NavigationHeader` additionally requires:
+Accept all `HeaderMotion.Header` props except `asChild`: `overlay`, `pannable`, `panDecayConfig`, `withGestureHandlerRootView`, and all `Animated.View` props. `Collapsible.NavigationHeader` also needs this prop:
 
-| Prop     | Type                                  | Description                                                    |
-| -------- | ------------------------------------- | -------------------------------------------------------------- |
-| `render` | `(header: ReactElement) => ReactNode` | Places the prepared, context-bridged header into your navigator. |
+| Prop     | Type                                  | Description                                                                            |
+| -------- | ------------------------------------- | -------------------------------------------------------------------------------------- |
+| `render` | `(header: ReactElement) => ReactNode` | Puts the header into your navigator. The header already has all the contexts it needs. |
 
 ### `Collapsible.Dynamic`
 
-Accepts all `HeaderMotion.Header.Dynamic` props except `asChild`, plus:
+Accepts all `HeaderMotion.Header.Dynamic` props except `asChild`, and this prop:
 
-| Prop           | Type                    | Description                                                                                                      |
-| -------------- | ----------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `contentStyle` | `Animated.View` `style` | Style for the inner content view the preset effects animate. Layout styles for the measured wrapper go on `style`. |
+| Prop           | Type                    | Description                                                                                               |
+| -------------- | ----------------------- | --------------------------------------------------------------------------------------------------------- |
+| `contentStyle` | `Animated.View` `style` | Style for the inner view that the preset animates. Put layout styles for the measured wrapper on `style`. |
 
-The wrapper clips its content by default (`overflow: 'hidden'`); override it through `style` if needed.
+The wrapper clips its content (`overflow: 'hidden'`). To change this, set `overflow` in `style`.
 
 ### `Collapsible.Pinned`
 
 Accepts all `Animated.View` props.
 
-## Imperative control
+## Collapse and expand from code
 
-`useCollapsibleHeader()` exposes the motion state plus imperative controls, anywhere inside the tree (it also works in plain `HeaderMotion` trees):
+`useCollapsibleHeader()` gives the motion values and two functions, `collapse()` and `expand()`. You can use it anywhere in the tree, also in a plain `HeaderMotion` tree:
 
 ```tsx
 import { useCollapsibleHeader } from 'react-native-header-motion';
 
-const { progress, progressThreshold, collapse, expand } = useCollapsibleHeader();
+const { progress, progressThreshold, collapse, expand } =
+  useCollapsibleHeader();
 
-collapse(); // scrolls the active scrollable until the header is collapsed
+collapse(); // scrolls the active scrollable until the header is fully collapsed
 expand({ animated: false });
 ```
 
 ## Pull to refresh
 
-The scrollables accept `refreshControl` (and `refreshing` / `onRefresh`) exactly like their low-level counterparts — see [Pull to refresh](../guides/pull-to-refresh). Custom refresh indicators compose naturally into the header as regular children of `Collapsible.Header`.
+The scrollables accept `refreshControl`, as their low-level versions do. See [Pull to refresh](../guides/pull-to-refresh). To show a custom refresh indicator, put it in `Collapsible.Header` as a usual child.
