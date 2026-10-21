@@ -23,5 +23,8 @@ jobs:
       - name: Setup
         uses: ./.github/actions/setup
 
+      - name: Test docs version selection
+        run: yarn workspace docs test:versioning
+
       - name: Build docs
         run: yarn --cwd docs build
