@@ -1,6 +1,10 @@
 import { themes as prismThemes } from 'prism-react-renderer';
 import type { Config } from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
+import versions from './versions.json';
+import { latestStable } from './versioning/latest-stable';
+
+const stableVersion = latestStable(versions);
 
 const config: Config = {
   title: 'React Native Header Motion',
@@ -40,10 +44,12 @@ const config: Config = {
           sidebarPath: './sidebars.ts',
           editUrl:
             'https://github.com/pawicao/react-native-header-motion/tree/main/docs/',
-          lastVersion: 'current',
+          lastVersion: stableVersion,
           versions: {
             current: {
-              label: '1.x',
+              label: '2.x (Next)',
+              path: 'next',
+              banner: 'unreleased',
               badge: true,
             },
           },
@@ -71,8 +77,9 @@ const config: Config = {
       },
       items: [
         {
-          type: 'docSidebar',
-          sidebarId: 'docsSidebar',
+          type: 'doc',
+          docId: 'overview',
+          docsVersion: stableVersion,
           position: 'left',
           label: 'Docs',
         },
