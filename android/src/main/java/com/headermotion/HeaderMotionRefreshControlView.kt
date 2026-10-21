@@ -32,7 +32,7 @@ internal class HeaderMotionRefreshControlView(context: Context) : ViewGroup(cont
         if (refreshing) {
           // Match iOS: re-enabling while a controlled refresh is active must
           // come back as REFRESHING, not IDLE.
-          pullDistancePx = max(pullDistancePx, triggerDistancePx)
+          pullDistancePx = triggerDistancePx
           emitProgress(HeaderMotionRefreshPhase.REFRESHING)
         } else {
           emitProgress(HeaderMotionRefreshPhase.IDLE)
@@ -57,10 +57,10 @@ internal class HeaderMotionRefreshControlView(context: Context) : ViewGroup(cont
       }
       if (value) {
         stopAnimation()
-        pullDistancePx = max(pullDistancePx, triggerDistancePx)
+        pullDistancePx = triggerDistancePx
         emitProgress(HeaderMotionRefreshPhase.REFRESHING)
       } else {
-        pullDistancePx = max(pullDistancePx, triggerDistancePx)
+        pullDistancePx = triggerDistancePx
         animateToIdle(HeaderMotionRefreshPhase.FINISHING)
       }
     }
@@ -80,6 +80,9 @@ internal class HeaderMotionRefreshControlView(context: Context) : ViewGroup(cont
   var triggerDistancePx = PixelUtil.toPixelFromDIP(DEFAULT_TRIGGER_DISTANCE)
     set(value) {
       field = max(1f, value)
+      if (phase == HeaderMotionRefreshPhase.REFRESHING) {
+        pullDistancePx = field
+      }
       emitProgress(phase)
     }
 
@@ -132,6 +135,7 @@ internal class HeaderMotionRefreshControlView(context: Context) : ViewGroup(cont
       refreshEnabled &&
         !refreshing &&
         phase != HeaderMotionRefreshPhase.REFRESHING &&
+        phase != HeaderMotionRefreshPhase.FINISHING &&
         !canChildScrollUp()
 
     when (event.actionMasked) {
@@ -205,10 +209,15 @@ internal class HeaderMotionRefreshControlView(context: Context) : ViewGroup(cont
 
       MotionEvent.ACTION_POINTER_UP -> onSecondaryPointerUp(event)
 
-      MotionEvent.ACTION_UP,
-      MotionEvent.ACTION_CANCEL -> {
+      MotionEvent.ACTION_UP -> {
         finishNativeGesture(event)
         finishPull()
+      }
+
+      MotionEvent.ACTION_CANCEL -> {
+        finishNativeGesture(event)
+        endDrag()
+        animateToIdle(HeaderMotionRefreshPhase.CANCELLING)
       }
     }
 
@@ -260,10 +269,14 @@ internal class HeaderMotionRefreshControlView(context: Context) : ViewGroup(cont
     emitProgress(nextPhase)
   }
 
-  private fun finishPull() {
+  private fun endDrag() {
     isBeingDragged = false
     hasEligibleDown = false
     parent?.requestDisallowInterceptTouchEvent(false)
+  }
+
+  private fun finishPull() {
+    endDrag()
 
     if (pullDistancePx >= triggerDistancePx) {
       pullDistancePx = triggerDistancePx

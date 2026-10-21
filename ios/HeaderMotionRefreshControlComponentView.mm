@@ -136,12 +136,12 @@ static const std::shared_ptr<const HeaderMotionRefreshControlProps> &HeaderMotio
   // change within a single commit.
   _enabled = newRefreshProps.enabled;
   _refreshing = newRefreshProps.refreshing;
-  [self updatePinnedContentTransformWithDistance:[self scrollViewPullDistance]];
+  [self updatePinnedContentOffsetWithDistance:[self scrollViewPullDistance]];
 
   if (enabledChanged && !_enabled) {
     [self stopSettlingAnimation];
     _pullDistance = 0;
-    [self resetPinnedContentTransform];
+    [self resetPinnedContentOffset];
     [self emitProgress:HeaderMotionRefreshPhaseDisabled];
     return;
   }
@@ -221,7 +221,7 @@ static const std::shared_ptr<const HeaderMotionRefreshControlProps> &HeaderMotio
   }
 
   _observingContentOffset = NO;
-  [self resetPinnedContentTransform];
+  [self resetPinnedContentOffset];
   _scrollView = nil;
   _scrollViewComponentView = nil;
 }
@@ -275,9 +275,14 @@ static const std::shared_ptr<const HeaderMotionRefreshControlProps> &HeaderMotio
     }
 
     case UIGestureRecognizerStateEnded:
+      [self finishPullGesture];
+      break;
+
     case UIGestureRecognizerStateCancelled:
     case UIGestureRecognizerStateFailed:
-      [self finishPullGesture];
+      if (!_settleDisplayLink) {
+        [self animateToIdle:HeaderMotionRefreshPhaseCancelling];
+      }
       break;
 
     default:
@@ -292,7 +297,7 @@ static const std::shared_ptr<const HeaderMotionRefreshControlProps> &HeaderMotio
   }
 
   const CGFloat distance = [self scrollViewPullDistance];
-  [self updatePinnedContentTransformWithDistance:distance];
+  [self updatePinnedContentOffsetWithDistance:distance];
 
   if (_refreshing || _phase == HeaderMotionRefreshPhaseRefreshing) {
     return;
@@ -347,24 +352,27 @@ static const std::shared_ptr<const HeaderMotionRefreshControlProps> &HeaderMotio
   return MAX(0, -(_scrollView.contentOffset.y + topInset));
 }
 
-- (void)updatePinnedContentTransformWithDistance:(CGFloat)distance
+- (void)updatePinnedContentOffsetWithDistance:(CGFloat)distance
 {
   if (!_scrollViewComponentView) {
     return;
   }
 
-  UIView *containerView = _scrollViewComponentView.containerView;
-  if (!_keepScrollContentPinned || !_enabled || distance <= 0) {
-    containerView.transform = CGAffineTransformIdentity;
-    return;
-  }
-
-  containerView.transform = CGAffineTransformMakeTranslation(0, -distance);
+  const BOOL pinned = _keepScrollContentPinned && _enabled && distance > 0;
+  [self setContainerBoundsOriginY:pinned ? distance : 0];
 }
 
-- (void)resetPinnedContentTransform
+- (void)resetPinnedContentOffset
 {
-  _scrollViewComponentView.containerView.transform = CGAffineTransformIdentity;
+  [self setContainerBoundsOriginY:0];
+}
+
+- (void)setContainerBoundsOriginY:(CGFloat)y
+{
+  UIView *containerView = _scrollViewComponentView.containerView;
+  CGRect bounds = containerView.bounds;
+  bounds.origin.y = y;
+  containerView.bounds = bounds;
 }
 
 - (void)scheduleControlledRefreshFallback

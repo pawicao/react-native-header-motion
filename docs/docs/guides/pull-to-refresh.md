@@ -93,6 +93,10 @@ The refresh state lives in the `HeaderMotion` context, because its intended cons
 
 ## Platform notes
 
+:::caution Native code
+`HeaderMotion.RefreshControl` contains native code. After you install or update the library, rebuild the app. For iOS, run `pod install` before the build. With Expo, use a development build. Expo Go does not include this native control.
+:::
+
 :::info
 Built-in Android refresh works well with the adjusted `progressViewOffset`.
 
