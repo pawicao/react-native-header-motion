@@ -7,7 +7,7 @@ title: HeaderMotion.Header
 
 The main header container. It measures the total header height and can optionally make the header surface pannable.
 
-By default, the header is absolutely positioned above content (`overlay: true`).
+By default, the header is absolutely positioned above content (`overlay: true`). In this mode, it sets `zIndex: 1` to draw above sibling scrollables. You do not need to add this value to your header style.
 
 ## Usage
 
